@@ -1,0 +1,24 @@
+# =====================================================================
+#  TFI OSINT/n8n — archivos que NO van al repositorio
+# =====================================================================
+
+# PostgreSQL: cluster propio del proyecto con DATOS REALES recolectados.
+# La evidencia se comparte via consultas SQL (V4\evidencias), nunca la base.
+V4/pgdata/
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Secretos locales / entorno
+.env
+.env.*
+*.local
+
+# Temporales de Windows/Office
+~$*
+Thumbs.db

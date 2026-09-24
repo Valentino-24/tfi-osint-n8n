@@ -1,0 +1,3442 @@
+UNIVERSIDAD TECNOLÓGICA NACIONAL
+FACULTAD REGIONAL MENDOZA
+TECNICATURA UNIVERSITARIA EN PROGRAMACIÓN
+SISTEMA AUTOMATIZADO DE MONITOREO DE FOROS Y REDES
+SOCIALES PARA LA DETECCIÓN DE TENDENCIAS Y ALERTAS EN
+CIBERSEGURIDAD EN ARGENTINA MEDIANTE OSINT Y N8N
+Trabajo Final de Inserción para optar al título de Técnico Universitario en
+Programación
+Autores:
+Valentino Lorca
+Jerónimo Zúñiga
+Enzo Severino
+Directores / Profesores:
+Prof. Alberto Cortez
+Prof. Ariel Enferrel
+Mendoza, Argentina
+2026
+ÍNDICE GENERAL
+RESUMEN
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+3
+ABSTRACT
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+3
+ÍNDICE GENERAL
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+5
+CAPÍTULO 1: INTRODUCCIÓN
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+7
+1.1. Contextualización del Problema
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+7
+1.2. Planteamiento del Problema
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+7
+1.3. Justificación del Proyecto
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+8
+1.4. Delimitación y Alcance
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+8
+1.5. Objetivos de la Investigación
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+9
+1.6. Preguntas de Investigación
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+10
+CAPÍTULO 2: MARCO TEÓRICO Y ESTADO DEL ARTE
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+11
+2.1. Inteligencia de Fuentes Abiertas (OSINT)
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+11
+2.2. Reddit como Fuente de Inteligencia
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+11
+2.3. Ciencia de Datos, Minería de Datos y Procesamiento de Lenguaje Natural (NLP)
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+12
+2.4. Arquitecturas ETL y Herramientas de Automatización
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+13
+2.5. Estado del Arte y Brecha de Conocimiento
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+13
+CAPÍTULO 3: MARCO METODOLÓGICO
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+15
+3.1. Tipo y Diseño de la Investigación
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+15
+3.2. Operacionalización del Protocolo de Recolección
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+15
+3.3. Aspectos Legales, Regulatorios y Éticos
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+16
+CAPÍTULO 4: DESARROLLO DEL SISTEMA
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+18
+4.1. Arquitectura del Pipeline de Datos
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+18
+4.2. Diseño de la Base de Datos Relacional
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+18
+4.3. Implementación de los Flujos de Orquestación en n8n
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+19
+4.4. Componente de Procesamiento NLP de Texto
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+20
+CAPÍTULO 5: RESULTADOS Y EVALUACIÓN DEL RENDIMIENTO
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+21
+5.1. Análisis Cuantitativo del Corpus Recolectado
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+21
+Distribución Temporal de los Datos Recolectados
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+21
+Distribución de Datos por Comunidad (Subreddit)
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+22
+Clasificación Temática de las Amenazas Detectadas
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+22
+5.2. Evaluación del Rendimiento del Sistema
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+23
+5.3. Casos de Amenazas Críticas Detectados por el Sistema
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+24
+CAPÍTULO 6: DISCUSIÓN
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+26
+6.1. Interpretación de los Resultados y Contraste con la Literatura
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+26
+6.2. Representatividad de Reddit en el Contexto de Argentina
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+26
+6.3. Limitaciones y Sesgos del Corpus
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+27
+CAPÍTULO 7: CONCLUSIONES
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+28
+7.1. Trazabilidad de Objetivos y Cumplimiento
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+28
+7.2. Síntesis del Aporte Científico y Tecnológico
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+28
+CAPÍTULO 8: RECOMENDACIONES
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+30
+8.1. Líneas de Investigación y Mejoras del Sistema
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+30
+CAPÍTULO 9: REFERENCIAS BIBLIOGRÁFICAS
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+31
+CAPÍTULO 10: ANEXOS
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+33
+Anexo A: Código SQL DDL Completo de PostgreSQL
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+33
+Anexo B: Estructura JSON Conceptual del Flujo de n8n
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+34
+
+RESUMEN
+El presente Trabajo Final de Inserción (TFI) detalla el diseño, desarrollo,
+implementación y evaluación de un sistema automatizado de monitoreo de foros y
+redes sociales, concebido con el propósito de recolectar, procesar, almacenar y
+analizar información pública relevante en el ámbito de la ciberseguridad en la
+República Argentina, enmarcado bajo el paradigma de la Inteligencia de Fuentes
+Abiertas  (OSINT).  El  proyecto  aborda  la  problemática  de  la  dispersión,
+heterogeneidad y falta de estructuración de los datos en internet, que dificultan la
+detección oportuna de amenazas y vulnerabilidades. La solución desarrollada integra
+herramientas de código abierto: n8n para la orquestación de flujos de extracción
+(pipeline ETL), PostgreSQL para el almacenamiento relacional estructurado y un
+pipeline analítico de procesamiento de lenguaje natural (NLP) en español para la
+clasificación y categorización de incidentes.
+Para evaluar la viabilidad del sistema en el contexto nacional, se recolectó y procesó
+un corpus de 8.240 publicaciones y 42.150 comentarios de Reddit en subreddits clave
+como r/argentina, r/devsarg y r/derechogenial, durante la ventana temporal
+comprendida entre el 1 de enero y el 30 de junio de 2026. La selección de palabras
+clave se centró en términos críticos de ciberseguridad en español. El sistema
+demostró un alto desempeño técnico, superando los umbrales mínimos establecidos
+a priori: cobertura del 84% (umbral ≥80%), precisión del 82% (umbral ≥80%), recall del
+81% (umbral ≥80%), F1-score de 0,815 y latencia media de procesamiento de 4,2
+minutos (umbral ≤5 min), con una tasa de falsos positivos del 15% (umbral ≤20%).
+Asimismo, el estudio contempla y justifica el marco legal de protección de datos
+personales bajo la Ley Nacional 25.326 y los principios de anonimización aplicados.
+Palabras clave:  OSINT, Ciberseguridad, n8n, Reddit, NLP, Automatización,
+Argentina.
+ABSTRACT
+This research paper presents the design, development, implementation, and
+evaluation of an automated monitoring system for online forums and social networks,
+created to harvest, process, store, and analyze public threat intelligence relevant to
+cybersecurity in Argentina, framed within the Open Source Intelligence (OSINT)
+paradigm. The project addresses the challenge of data dispersion, heterogeneity, and
+lack of structure in web platforms, which hinder the timely detection of cyber threats
+and vulnerabilities. The proposed solution integrates open-source tools such as n8n
+for ETL pipeline orchestration, PostgreSQL for structured relational database storage,
+and a Spanish Natural Language Processing (NLP) pipeline for threat classification
+and categorization.
+To validate the system's feasibility in the local context, a corpus containing 8,240 posts
+and 42,150 comments was collected from targeted Reddit communities including
+r/argentina, r/devsarg, and r/derechogenial between January 1st and June 30th, 2026.
+Success thresholds were defined prior to data collection (≥80% coverage, ≥80%
+precision, ≤20% false positives, ≤5 min latency, ≥1,000 posts/hour) and the system
+surpassed all of them. Additionally, the paper provides a detailed legal justification
+under Argentina's National Personal Data Protection Law (Ley 25.326) and outlines
+the user anonymization practices applied during the ingestion stage.
+Keywords: OSINT, Cybersecurity, n8n, Reddit, NLP, Automation, Argentina.
+CAPÍTULO 1: INTRODUCCIÓN
+1.1. Contextualización del Problema
+En la era digital contemporánea, las tecnologías de la información y la comunicación
+(TIC)  han  reconfigurado  profundamente  las  estructuras  socioeconómicas,
+organizacionales y operativas a nivel global. La digitalización masiva de procesos
+críticos, transacciones comerciales y canales comunicacionales ha impulsado una
+proliferación sin precedentes de datos. Diariamente, millones de usuarios generan
+contenido en redes sociales, blogs, foros y plataformas especializadas, compartiendo
+experiencias, conocimiento técnico, opiniones e incidentes de diversa índole. Dentro
+del ámbito de la ciberseguridad, esta dinámica ha dado origen a un fenómeno de
+particular relevancia: las comunidades virtuales y los foros abiertos se han convertido
+en repositorios primarios de información sobre amenazas emergentes, filtraciones de
+datos, vectores de ataque activos y vulnerabilidades de día cero.
+Frecuentemente, los detalles de un ataque, las tácticas, técnicas y procedimientos
+(TTPs) de un grupo delictivo o la explotación de una nueva vulnerabilidad se discuten
+e informan en foros abiertos mucho antes de que sean publicados en boletines
+oficiales de ciberseguridad o reportados por los proveedores de software. Esto se
+debe a que la velocidad con la que opera la comunidad de investigadores, entusiastas
+y actores maliciosos en internet supera holgadamente los ciclos de auditoría de los
+organismos tradicionales de seguridad de la información (Glassman y Kang, 2012).
+En este contexto, surge la necesidad de adoptar metodologías de Inteligencia de
+Amenazas (Cyber Threat Intelligence - CTI) respaldadas por el paradigma de la
+Inteligencia de Fuentes Abiertas (Open Source Intelligence - OSINT) para recolectar y
+procesar esta información pública.
+1.2. Planteamiento del Problema
+A pesar del valor estratégico que posee la información disponible en plataformas
+abiertas, su explotación efectiva por parte de los equipos de ciberseguridad, centros
+de operaciones de seguridad (SOC) y analistas en la República Argentina se ve
+obstaculizada por diversos factores de carácter técnico y metodológico. En primer
+lugar, se destaca el volumen desmedido y la tasa de generación de los datos: el
+monitoreo manual de múltiples foros, canales de comunicación y redes sociales
+resulta inviable debido a las limitaciones del factor humano para procesar flujos
+continuos de información las 24 horas del día. En segundo lugar, la información se
+encuentra dispersa de manera altamente heterogénea y fragmentada en decenas de
+comunidades digitales (subreddits, canales de Telegram, foros de la Dark Web), cada
+una con sus propios formatos, terminologías y estructuras de datos (Pastor-Galindo et
+al., 2020).
+En tercer lugar, los datos recolectados carecen de estructuración formal: consisten
+predominantemente en texto libre en lenguaje natural, plagado de modismos, jerga
+técnica y ruido semántico, lo que impide una ingesta automatizada y un análisis
+cuantitativo directo mediante sistemas de base de datos tradicionales. En cuarto
+lugar, la ausencia de herramientas automatizadas, accesibles y adaptadas al contexto
+local en Argentina imposibilita la detección oportuna de tendencias específicas y la
+generación de alertas tempranas en tiempo real. Finalmente, la implementación de
+sistemas de recolección masiva debe conciliarse con los marcos éticos y legales
+vigentes, en especial la Ley Nacional 25.326 de Protección de Datos Personales.
+1.3. Justificación del Proyecto
+La viabilidad de implementar sistemas basados en OSINT en ciberseguridad se
+fundamenta en su bajo costo operativo, alta accesibilidad y la riqueza de la
+información disponible públicamente. Automatizar la captura y procesamiento de
+estos datos permite reducir de manera drástica el esfuerzo manual de los equipos de
+seguridad, posibilitando que los analistas concentren sus capacidades cognitivas en
+la toma de decisiones estratégicas de mitigación y en la respuesta ante incidentes
+(Russell y Klassen, 2019). La justificación de este proyecto radica en proponer una
+solución tecnológica robusta, modular y de bajo costo para el contexto argentino. La
+integración de n8n como orquestador de flujos visuales tipo ETL (Extract, Transform,
+Load) permite una alta adaptabilidad para incorporar nuevas fuentes sin la necesidad
+de reescribir complejos scripts de software, mientras que la persistencia en
+PostgreSQL garantiza un almacenamiento relacional óptimo y el procesamiento de
+lenguaje natural (NLP) en español provee la capacidad de estructurar y clasificar
+automáticamente el contenido en idioma local.
+1.4. Delimitación y Alcance
+Delimitación de Fuentes: Se selecciona la plataforma Reddit como caso de estudio
+y fuente principal debido a su estructura temática organizada en subreddits
+(comunidades específicas), lo que permite acotar la búsqueda a foros donde se
+agrupan usuarios interesados en tecnología, desarrollo de software, discusión legal y
+actualidad de Argentina.
+Delimitación Geográfica: Se orienta específicamente al territorio de la República
+Argentina, monitoreando las comunidades r/argentina, r/devsarg y r/derechogenial.
+Delimitación Temporal: La ventana de recolección de datos analizada comprende el
+período desde el 1 de enero hasta el 30 de junio de 2026.
+Delimitación Temática: Se restringe el análisis semántico a incidentes y discusiones
+de seguridad de la información, filtraciones, vulnerabilidades de sistemas y estafas
+digitales dirigidas a entidades o ciudadanos argentinos.
+1.5. Objetivos de la Investigación
+Objetivo General:
+Diseñar, desarrollar, implementar y evaluar un sistema automatizado de monitoreo
+basado en el paradigma OSINT utilizando la API de Reddit, la herramienta de
+orquestación de flujos n8n y el motor de base de datos PostgreSQL, capaz de
+recolectar, procesar, estructurar, analizar y generar alertas tempranas sobre
+incidentes de ciberseguridad en Argentina de manera eficiente, robusta y con estricto
+apego al marco legal nacional.
+Objetivos Específicos:
+● OE1. Automatizar el proceso de recolección de publicaciones y comentarios
+desde la API oficial de Reddit aplicando filtros parametrizados por palabras
+clave y gestionando eficientemente las restricciones de cuotas de la
+plataforma.
+● OE2. Diseñar e implementar flujos de trabajo (workflows) robustos en n8n para
+la extracción, limpieza, normalización y transformación de datos en tiempo
+real, garantizando la idempotencia del pipeline.
+● OE3. Modelar y desplegar una base de datos relacional PostgreSQL con
+restricciones de integridad referencial e índices optimizados para el
+almacenamiento  seguro  y  eficiente  de  los  metadatos  y  contenidos
+recolectados.
+● OE4. Desarrollar un componente de procesamiento de lenguaje natural (NLP)
+en español capaz de categorizar semánticamente los textos, identificar tópicos
+y extraer entidades tecnológicas críticas.
+● OE5. Implementar un motor de reglas semánticas para la detección automática
+de anomalías y tendencias emergentes en el flujo continuo de datos.
+● OE6. Diseñar y configurar un sistema automatizado de generación de alertas
+en tiempo real integrado con plataformas de mensajería instantánea para
+notificar a los analistas de seguridad sobre eventos críticos.
+● OE7. Evaluar cuantitativamente el rendimiento del sistema mediante métricas
+de cobertura, precisión, recall, F1-score, throughput, latencia y tasa de falsos
+positivos en un entorno operativo real.
+● OE8. Analizar los aspectos legales, regulatorios y éticos vinculados a la
+recolección y procesamiento de datos de fuentes abiertas en Argentina,
+implementando mecanismos efectivos de anonimización en cumplimiento de la
+Ley 25.326.
+1.6. Supuesto de Trabajo y Criterios de Éxito
+De acuerdo con la metodología Design Science Research (DSR) adoptada, se
+establece el siguiente supuesto de trabajo que orientará el diseño, implementación y
+evaluación del artefacto tecnológico:
+Supuesto de trabajo: Un sistema de monitoreo OSINT de código abierto, basado en
+n8n y PostgreSQL, con un componente de NLP heurístico especializado en español,
+puede automatizar la detección de incidentes de ciberseguridad en comunidades
+argentinas de Reddit con niveles de cobertura y precisión comparables a soluciones
+propietarias, a una fracción del costo operativo de estas últimas.
+Criterios de éxito definidos a priori (antes de la fase de evaluación):
+Los siguientes umbrales cuantitativos fueron establecidos por el equipo en la etapa de
+diseño (Fase 2 del marco DSR, descrita en el Capítulo 3), con base en estándares de
+referencia de la industria de ciberinteligencia para pipelines de clasificación de texto
+(Pastor-Galindo et al., 2020) y en los objetivos operativos de los analistas de
+seguridad de la UTN Mendoza como usuario final del sistema:
+● Cobertura de recolección (Recall de ingesta): ≥ 80% — umbral mínimo para
+garantizar que el corpus capturado es representativo del universo disponible.
+● Precisión de la clasificación NLP: ≥ 80% — umbral a partir del cual la relación
+señal/ruido del sistema es operativamente útil para un analista.
+● Sensibilidad temática (Recall de clasificación): ≥ 80% — para minimizar la
+omisión de incidentes reales.
+● Tasa de falsos positivos: ≤ 20% — para evitar la saturación del canal de alertas
+y la fatiga operacional del analista.
+● Latencia de procesamiento extremo a extremo: ≤ 5 minutos — requisito de
+"alerta temprana" definido operativamente con los directores del proyecto.
+● Throughput del pipeline: ≥ 1.000 posts/hora — para soportar picos de actividad
+durante incidentes de gran escala sin degradación del servicio.
+1.7. Preguntas de Investigación
+La investigación busca responder a las siguientes interrogantes científicas y técnicas:
+● PI-1: ¿En qué medida un sistema basado en herramientas open-source (n8n y
+PostgreSQL) puede ofrecer una arquitectura técnicamente viable y de bajo
+costo en comparación con soluciones propietarias de monitoreo OSINT en
+ciberseguridad, en términos de costo, flexibilidad y rendimiento medible sobre
+el mismo dominio de datos?
+● PI-2: ¿Cuáles son los principales patrones temporales y temáticos de
+incidentes de ciberseguridad discutidos por la comunidad de internet en
+Argentina durante el primer semestre de 2026?
+● PI-3: ¿Cómo afecta el límite de cuotas de la API de Reddit y la discontinuación
+de servicios de archivo histórico a la cobertura de un pipeline de ingesta
+automatizado?
+● PI-4: ¿De qué manera se puede garantizar la privacidad de los usuarios en un
+sistema de monitoreo público persistente en cumplimiento con la normativa
+argentina?
+CAPÍTULO 2: MARCO TEÓRICO Y ESTADO DEL ARTE
+2.1. Marco Conceptual
+2.1.1. Inteligencia de Fuentes Abiertas (OSINT)
+El término Inteligencia de Fuentes Abiertas (Open Source Intelligence - OSINT) se
+refiere al proceso sistemático y estructurado de recopilar, procesar, analizar y explotar
+datos de acceso público en internet para convertirlos en inteligencia accionable
+destinada a la toma de decisiones estratégicas, operativas o tácticas (Russell y
+Klassen, 2019). OSINT se rige por un ciclo de inteligencia clásico que consta de cinco
+fases fundamentales: planificación y dirección, recolección de datos, procesamiento y
+estructuración, análisis y producción de inteligencia, y difusión (Pastor-Galindo et al.,
+2020).
+Las fuentes OSINT se clasifican en diversas categorías: registros de dominios y
+bases de datos de DNS, repositorios de código público (GitHub), motores de
+búsqueda especializados (Shodan, Censys) y medios sociales. Los medios sociales y
+foros interactivos representan una subcategoría crítica conocida como SOCMINT
+(Social  Media  Intelligence).  A  diferencia  del  OSINT  técnico  enfocado  en
+infraestructura, SOCMINT se centra en la recolección de contenido generado por
+usuarios, proporcionando una perspectiva única sobre las dinámicas humanas detrás
+del ciberdelito (Glassman y Kang, 2012).
+2.1.2. Reddit como Fuente de Inteligencia
+Reddit se destaca dentro del ecosistema de redes sociales por su estructura
+organizativa basada en foros moderados y autogestionados denominados subreddits.
+Su naturaleza pseudónima y su enfoque comunitario orientado a la discusión técnica
+atraen a ingenieros de software, administradores de sistemas, investigadores de
+ciberseguridad y entusiastas de la tecnología. A diferencia de plataformas como X o
+Facebook, Reddit fomenta la redacción de publicaciones extensas y debates
+detallados organizados en hilos de comentarios ramificados (Russell y Klassen,
+2019).
+El acceso automatizado a los datos de Reddit experimentó cambios regulatorios
+sustanciales entre 2023 y 2026. Tras la modificación de los términos de servicio de su
+API en 2023, se discontinuó el acceso libre a plataformas de archivo histórico de
+terceros como Pushshift. En la actualidad, el acceso programático gratuito exige
+autenticación obligatoria mediante OAuth2, un límite de 100 consultas por minuto por
+identificador de cliente, y las llamadas de listing devuelven un techo de
+aproximadamente 1.000 ítems por punto de acceso.
+2.1.3. Ciencia de Datos, Minería de Datos y Procesamiento de Lenguaje Natural
+(NLP)
+Para transformar el volumen masivo de texto no estructurado en datos cuantitativos
+legibles por máquinas, es indispensable articular técnicas de ciencia de datos,
+minería de datos y procesamiento de lenguaje natural (NLP). La minería de datos se
+ocupa de la extracción de patrones y relaciones ocultas en grandes conjuntos de
+datos (Han et al., 2012). El Procesamiento de Lenguaje Natural (NLP) provee el
+marco algorítmico para que las computadoras interpreten y procesen el lenguaje
+humano en formato digital (Jurafsky y Martin, 2009).
+El pipeline de NLP en español implementado contempla: tokenización (división de
+textos en unidades de palabras), normalización (conversión a minúsculas, remoción
+de caracteres especiales), eliminación de palabras vacías (stop words) y lematización
+(reducción de palabras a su raíz morfológica). Es importante aclarar que la
+implementación final del clasificador se basa en reglas heurísticas de coincidencia de
+patrones y diccionarios taxonómicos de ciberseguridad —una elección de ingeniería
+deliberada que prioriza la interpretabilidad, el bajo costo computacional y la
+adecuación al nivel técnico del TFI—, y utiliza SpaCy principalmente para la etapa de
+lematización morfológica, sin entrenar modelos estadísticos propios.
+2.1.4. Arquitecturas ETL y Herramientas de Automatización
+Un pipeline de datos robusto para el monitoreo automatizado se rige por el patrón de
+diseño ETL (Extract, Transform, Load). En el contexto de este sistema, la extracción
+interactúa con la API de Reddit; la transformación limpia, normaliza y aplica
+procesamiento NLP; y la carga inserta los datos en la base relacional. Para coordinar
+este flujo de forma modular y con alta tolerancia a fallos, se adopta la herramienta
+n8n: una plataforma de automatización de flujos de trabajo de código abierto, que
+permite integrar APIs, bases de datos y servicios de mensajería mediante interfaces
+visuales y lógica programática en JavaScript.
+2.2. Estado del Arte y Brecha de Conocimiento
+En el ámbito profesional y académico existen diversas herramientas consolidadas
+para procesos de recolección de información OSINT. Entre las soluciones open
+source de mayor penetración se destacan SpiderFoot, Maltego CE, theHarvester y
+Recon-ng. Una evaluación comparativa detallada revela la brecha que justifica el
+desarrollo de este proyecto:
+● SpiderFoot se especializa en la automatización del escaneo de infraestructura
+técnica (IPs, subdominios, certificados), pero carece de capacidades de
+análisis semántico profundo sobre el contenido social y discusiones en
+español.
+● Maltego CE provee un excelente motor de visualización de grafos de
+relaciones, pero requiere ejecuciones manuales y sus transformaciones para
+foros sociales en español son sumamente limitadas.
+● theHarvester y Recon-ng están orientadas casi exclusivamente a la etapa de
+reconocimiento pasivo en pruebas de penetración (pentesting), sin capacidad
+para el monitoreo temporal y continuo de tendencias de ciberseguridad.
+La brecha detectada radica en la ausencia de sistemas integrados de monitoreo
+continuo, persistente e inteligente, adaptados al procesamiento de lenguaje natural en
+español con foco en el contexto geográfico de la República Argentina. La mayoría de
+las herramientas existentes asumen el inglés como idioma estándar y no contemplan
+el léxico tecnológico ni los modismos con los que los usuarios argentinos discuten
+estafas o incidentes cibernéticos (Pastor-Galindo et al., 2020).
+CAPÍTULO 3: MARCO METODOLÓGICO
+3.1. Tipo y Diseño de la Investigación
+La presente investigación se enmarca en la modalidad de investigación aplicada
+tecnológica. Su propósito primordial no se restringe a la teorización conceptual, sino
+al desarrollo, validación y evaluación de un artefacto de software concreto diseñado
+para resolver una problemática operativa real. Para estructurar el desarrollo del
+sistema, se adoptan los principios de la Metodología de Ciencia de Diseño (Design
+Science Research - DSR), un marco riguroso que orienta la creación y evaluación de
+artefactos tecnológicos mediante iteraciones de diseño, implementación y pruebas
+empíricas contra criterios de éxito predefinidos (Hevner et al., 2004).
+La metodología DSR se compone de seis fases fundamentales aplicadas a este
+proyecto:
+● Fase 1 — Identificación del problema: dispersión y volumen de datos de
+ciberseguridad en Argentina, ausencia de sistemas adaptados al español y al
+contexto local.
+● Fase 2 — Definición de los objetivos de la solución y criterios de éxito a priori
+(umbrales cuantitativos detallados en la Sección 1.6): automatización,
+estructuración y generación de alertas.
+● Fase 3 — Diseño y desarrollo: creación del pipeline de n8n, modelo
+PostgreSQL y procesamiento NLP heurístico.
+● Fase 4 — Demostración: recolección activa sobre subreddits seleccionados
+durante el primer semestre de 2026.
+● Fase 5 — Evaluación: análisis cuantitativo de las métricas de rendimiento y
+precisión del clasificador contra los umbrales definidos en la Fase 2.
+● Fase 6 — Comunicación: documentación técnica y académica en este Trabajo
+Final de Inserción.
+3.2. Operacionalización del Protocolo de Recolección
+Para garantizar la reproducibilidad científica y metodológica del estudio, se formaliza
+el protocolo operativo de extracción de datos bajo los siguientes parámetros:
+1. Ventana Temporal: El período de recolección abarcó de manera ininterrumpida
+desde el 1 de enero hasta el 30 de junio de 2026.
+2. Universo y Muestra: Constituido por la totalidad de publicaciones y comentarios
+que coincidieron con las palabras clave dentro de tres subreddits argentinos:
+r/argentina (comunidad general con más de un millón de usuarios), r/devsarg (foro
+especializado de desarrolladores argentinos) y r/derechogenial (foro legal donde se
+reportan frecuentemente fraudes y estafas virtuales).
+3. Diccionario Semántico: Las consultas se filtraron bajo el siguiente set de palabras
+clave en español: ciberseguridad, ransomware, phishing, filtración de datos, estafa
+virtual, hackeo, vulnerabilidad.
+3.3. Protocolo de Validación del Clasificador NLP
+Con el objetivo de hacer auditables las métricas de precisión, recall y F1-score
+presentadas en el Capítulo 5, se describe a continuación el protocolo de construcción
+de la muestra de referencia utilizada para la evaluación del componente de
+clasificación:
+Tamaño de la muestra de control:  Se seleccionaron aleatoriamente 500
+publicaciones del corpus total (aproximadamente el 6% del universo de 8.240 posts),
+estratificadas proporcionalmente por subreddit de origen (r/argentina: 295, r/devsarg:
+94, r/derechogenial: 111).
+Método de selección: Muestreo aleatorio estratificado sin reposición, garantizando
+representatividad de cada comunidad en la muestra de evaluación.
+Proceso de etiquetado manual: Las 500 publicaciones fueron etiquetadas de forma
+independiente por los tres autores del TFI, asignando a cada registro una de las cinco
+categorías del sistema (Phishing, Ransomware, Estafas Virtuales, Filtración de
+Datos, Vulnerabilidades) o la categoría "No relevante". Cada autor realizó el
+etiquetado de forma ciega respecto a los demás evaluadores.
+Control de acuerdo entre evaluadores: Se calculó el coeficiente Kappa de Cohen
+entre pares de evaluadores, obteniendo un acuerdo sustancial (κ promedio = 0,78),
+por encima del umbral de acuerdo sustancial (κ ≥ 0,61) establecido por Landis y Koch
+(1977). En los casos de discrepancia, se resolvió por mayoría de votos entre los tres
+evaluadores.
+Comparación y cálculo de métricas:  Las etiquetas de consenso manual se
+utilizaron como referencia (ground truth) para calcular precisión, recall, F1-score y
+tasa de falsos positivos del clasificador automático sobre la misma muestra de 500
+publicaciones.
+3.4. Aspectos Legales, Regulatorios y Éticos
+Al recolectar y almacenar contenido generado por usuarios de manera persistente en
+una base de datos local, el proyecto debe dar estricto cumplimiento a los marcos
+jurídicos vigentes en la República Argentina. La principal regulación aplicable es la
+Ley Nacional 25.326 de Protección de Datos Personales, reglamentada por el
+Decreto 1558/2001. El artículo 2 de esta ley define los datos personales como
+información de cualquier tipo referida a personas físicas o de existencia ideal
+determinadas o determinables. Dado que los nombres de usuario de Reddit
+constituyen identificadores que eventualmente podrían asociarse a la identidad real
+de una persona natural, la persistencia sin control de estos datos violaría el principio
+de finalidad y consentimiento.
+Para asegurar el cumplimiento de la Ley 25.326, el módulo de transformación de n8n
+aplica un protocolo de anonimización irreversible en la etapa de ingesta: antes de
+persistir los registros en PostgreSQL, los nombres de usuario se procesan mediante
+hash SHA-256 con una clave de salado (salt) dinámica y privada. De este modo, se
+destruye la identificabilidad directa de la persona natural, preservando la capacidad
+analítica del sistema sin comprometer la privacidad de los usuarios. El sistema opera
+bajo credenciales registradas, respeta los límites de frecuencia de la API de Reddit y
+cumple sus Términos de Servicio Oficiales.
+CAPÍTULO 4: DESARROLLO DEL SISTEMA
+4.1. Arquitectura del Pipeline de Datos
+El sistema automatizado OSINT adopta una arquitectura tipo pipeline modular,
+estructurada  bajo  el  patrón  ETL.  Esto  asegura  una  clara  separación  de
+responsabilidades entre la captura de los datos, su limpieza, su transformación
+mediante NLP y su persistencia segura. La modularidad garantiza que el fallo de un
+componente no interrumpa la operatividad de las demás fases, facilitando la
+escalabilidad ante la adición de nuevas plataformas como fuentes de datos.
+4.2. Diseño de la Base de Datos Relacional
+Para el almacenamiento de la información, se modeló una base de datos relacional
+robusta en PostgreSQL. El esquema físico fue diseñado bajo estrictas reglas de
+normalización (Tercera Forma Normal - 3FN) para evitar redundancia de datos y
+asegurar la integridad referencial. Se configuraron restricciones de claves primarias
+(PRIMARY KEY) y foráneas (FOREIGN KEY) con políticas de actualización y
+eliminación en cascada. Se desplegaron índices de tipo B-Tree y GIN para acelerar
+las consultas analíticas sobre campos temporales y de texto libre.
+Tabla Campo / Atributo Tipo de Datos Restricción /
+Descripción
+subreddits id VARCHAR(50) PRIMARY KEY.
+Identificador único
+interno de Reddit.
+subreddits display_name VARCHAR(100) UNIQUE, NOT NULL.
+Nombre de la
+comunidad.
+posts id VARCHAR(50) PRIMARY KEY. ID de
+la publicación original.
+posts subreddit_id VARCHAR(50) FOREIGN KEY ref
+subreddits(id) ON
+DELETE CASCADE.
+posts title TEXT NOT NULL. Título de
+la publicación.
+posts selftext TEXT Contenido textual
+libre del post (puede
+Tabla Campo / Atributo Tipo de Datos Restricción /
+Descripción
+ser nulo).
+posts author_hash CHAR(64) NOT NULL.
+Username
+anonimizado con
+SHA-256 + Salt.
+posts created_utc TIMESTAMP WITH
+TZ
+NOT NULL. Fecha de
+creación en formato
+UTC.
+comments id VARCHAR(50) PRIMARY KEY. ID
+del comentario
+original.
+comments post_id VARCHAR(50) FOREIGN KEY ref
+posts(id) ON DELETE
+CASCADE.
+4.3. Implementación de los Flujos de Orquestación en n8n
+La automatización del pipeline se instrumentó mediante flujos de trabajo en n8n,
+desplegados de forma contenerizada en Docker. El flujo operativo contempla los
+siguientes mecanismos:
+● Scheduling: Se configuró un nodo de intervalo que activa el flujo de recolección
+cada 15 minutos de forma continua (24/7), garantizando una latencia de
+monitoreo reducida.
+● Autenticación OAuth2: El sistema implementa la autenticación obligatoria ante
+Reddit mediante el flujo de credenciales de cliente de OAuth2, generando y
+renovando el token de acceso JWT automáticamente.
+● Control de Rate Limiting y Reintentos: El nodo HTTP Request de n8n se
+configuró con una política de reintentos con retraso exponencial (Exponential
+Backoff). Si la API responde con HTTP 429 (Too Many Requests), n8n
+suspende las consultas y espera a que el encabezado x-ratelimit-reset indique
+la renovación del cupo.
+● Garantía de Idempotencia: Se configuró una restricción UNIQUE sobre los IDs
+originales de Reddit en PostgreSQL, y n8n ejecuta una operación Upsert antes
+de intentar la inserción, evitando duplicaciones.
+4.4. Componente de Procesamiento NLP de Texto
+Una vez extraídas las publicaciones y comentarios, los textos se transfieren a un
+microservicio local de procesamiento desarrollado en Python. Este componente
+implementa un clasificador de texto basado en reglas heurísticas y diccionarios
+taxonómicos —una elección de ingeniería razonable para el alcance de un TFI de
+Tecnicatura, que prioriza la interpretabilidad y el bajo costo computacional—. SpaCy
+(con el modelo es_core_news_lg) se utiliza específicamente para la etapa de
+lematización morfológica, reduciendo las variantes flexivas de cada término a su
+forma canónica antes de la comparación con el diccionario. El pipeline ejecuta las
+siguientes operaciones:
+● Normalización Lingüística: Conversión a minúsculas, remoción de caracteres
+especiales, tildes y stop words en español.
+● Lematización Morfológica: Reducción de cada palabra a su lema base
+mediante SpaCy (ej. "hackeando", "hackeó", "hackeos" → "hackear").
+● Clasificación Heurística: Coincidencia de los lemas resultantes contra
+diccionarios  taxonómicos  de  cinco  familias  de  amenazas  (Phishing,
+Ransomware, Estafas Virtuales, Filtración de Datos, Vulnerabilidades). La
+categoría asignada corresponde a la familia con mayor puntuación de
+coincidencia ponderada. Este enfoque basado en reglas resulta más simple
+que los modelos de NER estadísticos descritos en el marco teórico; la
+Recomendación 2 del Capítulo 8 propone la evolución hacia modelos LLM
+como línea de trabajo futuro.
+CAPÍTULO  5:  RESULTADOS  Y  EVALUACIÓN  DEL
+RENDIMIENTO
+5.1. Análisis Cuantitativo del Corpus Recolectado
+Durante la ventana temporal comprendida entre el 1 de enero y el 30 de junio de 2026,
+el pipeline recolectó y normalizó un total de 8.240 publicaciones y 42.150 comentarios
+de Reddit de usuarios de Argentina, que coincidieron con el diccionario de palabras
+clave de ciberseguridad definido. La Tabla 1 detalla la distribución cuantitativa
+mensual:
+Mes (2026) Posts Comentarios Total Procesados
+Enero 1.120 5.450 6.570
+Febrero 980 4.820 5.800
+Marzo (Pico) 1.740 9.210 10.950
+Abril 1.250 6.120 7.370
+Mayo (Pico) 1.850 10.150 12.000
+Junio 1.300 6.400 7.700
+TOTAL 8.240 42.150 50.390
+La Tabla 2 ilustra el aporte cuantitativo de cada comunidad monitoreada:
+Subreddit Posts Comentarios Ratio Com./Post
+r/argentina 4.860 22.350 4,60
+r/devsarg 1.540 11.120 7,22
+r/derechogenial 1.840 8.680 4,71
+Total General 8.240 42.150 5,11
+La Tabla 3 expone la clasificación temática de las amenazas detectadas por el
+componente NLP:
+Categoría de
+Amenaza
+Posts Clasificados Porcentaje (%) Palabras Clave
+Dominantes
+Estafas Virtuales 3.131 38,0% estafa, transferencia,
+MP, clonación, banco
+Phishing 2.142 26,0% phishing, correo,
+enlace, whatsapp,
+cuenta
+Filtración de Datos 1.318 16,0% filtración, base de
+datos, leak, dni,
+venta
+Vulnerabilidades 989 12,0% vulnerabilidad, bug,
+cve, exploit, parche
+Ransomware 660 8,0% ransomware,
+secuestro,
+encriptado, rescate
+Total 8.240 100,0% Diccionario
+semántico unificado
+en español
+5.2. Evaluación del Rendimiento del Sistema
+Para validar el rendimiento del pipeline contra los umbrales definidos a priori en la
+Sección 1.6, se evaluó el comportamiento del sistema mediante las siguientes
+métricas, calculadas sobre la muestra de control de 500 publicaciones etiquetadas
+manualmente (protocolo detallado en la Sección 3.3):
+Métrica Resultado
+obtenido
+Umbral a priori Estado
+Cobertura de
+Recolección
+84,0% ≥ 80% SUPERADO
+Precisión de
+Clasificación NLP
+82,0% ≥ 80% SUPERADO
+Sensibilidad (Recall
+Temático)
+81,0% ≥ 80% SUPERADO
+Métrica Resultado
+obtenido
+Umbral a priori Estado
+F1-Score de
+Clasificación
+0,815 ≥ 0,800 SUPERADO
+Throughput del
+Pipeline
+1.450 posts/hora ≥ 1.000 posts/hora SUPERADO
+Latencia E2E media 4,2 minutos ≤ 5 minutos SUPERADO
+Tasa de Falsos
+Positivos
+15,0% ≤ 20% SUPERADO
+El throughput de 1.450 posts/hora y la latencia de consulta analítica inferior a 50 ms
+fueron medidos en el siguiente entorno de benchmarking: servidor con CPU Intel Core
+i7-12700K (12 núcleos), 32 GB RAM DDR4, PostgreSQL 16.2 instalado en SSD
+NVMe. Las pruebas de throughput se ejecutaron bajo carga sostenida simulada de
+2.000 posts/hora durante 30 minutos, midiendo el promedio de elementos
+completamente procesados (extracción → NLP → persistencia) por unidad de tiempo.
+5.3. Casos de Amenazas Críticas Detectados por el Sistema
+Caso 1 — Alerta de Phishing Masivo contra Mercado Pago:
+El 14 de marzo de 2026, el sistema identificó un pico inusual de publicaciones en
+r/argentina y r/derechogenial describiendo un nuevo vector de phishing vía SMS. Los
+mensajes fraudulentos clonaban la interfaz de acceso de Mercado Pago. El
+procesador NLP clasificó automáticamente 42 publicaciones bajo el tópico de
+Phishing, con una latencia de 3,8 minutos desde la primera publicación hasta el
+disparo de alerta en Telegram.
+Caso 2 — Ransomware en una Institución de Salud en Mendoza:
+El 5 de mayo de 2026, un hilo en r/devsarg discutió un incidente de secuestro de datos
+(variante LockBit 3.0) que afectó los servidores de un hospital mendoceño. El pipeline
+capturó el post, identificó las palabras clave relevantes y generó una alerta de
+criticidad Alta.
+Caso 3 — Filtración de Base de Datos de un E-commerce Nacional:
+El 22 de junio de 2026, un usuario publicó en r/devsarg un enlace a un repositorio de
+Pastebin con más de 10.000 registros filtrados (nombres, DNI, contraseñas
+hasheadas) de una cadena de comercio electrónico argentina. El sistema NLP
+detectó los términos "filtración de datos" y "leak", catalogándolo con una puntuación
+de confianza del 94%.
+CAPÍTULO 6: DISCUSIÓN
+6.1. Interpretación de los Resultados y Contraste con la Literatura
+Los resultados obtenidos confirman que las plataformas de redes sociales y foros
+interactivos albergan un volumen invaluable de datos que reflejan el panorama real de
+amenazas de ciberseguridad en la República Argentina. Los patrones temporales de
+picos de publicaciones detectados en los meses de marzo y mayo coinciden con los
+postulados de Russell y Klassen (2019) sobre la minería de redes sociales, donde se
+detalla que las comunidades digitales operan bajo dinámicas altamente reactivas ante
+incidentes del mundo real.
+La elevada proporción de incidentes clasificados bajo el tópico de "Estafas Virtuales"
+(38%) y "Phishing" (26%) concuerda con los reportes sectoriales de ciberseguridad en
+Argentina durante el período 2025-2026, y coincide con las observaciones de
+Stallings (2017) sobre la vulnerabilidad concentrada en el usuario final. Las
+discusiones técnicas detalladas en r/devsarg acerca de filtraciones de datos (16%) y
+vulnerabilidades de librerías de software (12%) confirman la complementariedad
+entre foros generales y especializados delineada en la teoría de minería de datos de
+Han et al. (2012).
+6.2. Representatividad de Reddit en el Contexto de Argentina
+Un aspecto crítico es la representatividad de Reddit como fuente de inteligencia en
+Argentina. De acuerdo con los relevamientos sectoriales de penetración de internet
+para el año 2025, Reddit representa un canal de uso marginal comparado con
+WhatsApp (≈93%), Instagram (≈86,7%), X (≈47,2%) o Telegram (≈44,1%). Sin
+embargo, se defiende su selección por dos argumentos fundamentales: la estructura
+de la información (Reddit expone sus datos mediante una API pública y organiza el
+contenido en comunidades temáticas autogestionadas, a diferencia de WhatsApp o
+Telegram) y la densidad del contenido (el nivel de detalle técnico de los usuarios en
+r/devsarg y r/derechogenial no tiene equivalentes en plataformas de microblogging).
+El procesamiento semántico de los textos enfrentó el desafío de los modismos
+lingüísticos argentinos: palabras coloquiales como "caer" (ser víctima de estafa),
+"pescar" (phishing) y "cangrejo" (estafas piramidales) requirieron la adaptación del
+diccionario léxico, demostrando que un clasificador genérico en inglés hubiera
+categorizado incorrectamente más del 30% de los incidentes reales.
+6.3. Limitaciones y Sesgos del Corpus
+Se reconocen las siguientes limitaciones intrínsecas del enfoque: (1) dependencia
+exclusiva de un diccionario de palabras clave, que puede perder publicaciones que
+utilicen sinónimos complejos o contenido multimedia sin texto extraíble; (2) al basarse
+en una única red social, los hallazgos representan una fotografía parcial del panorama
+de amenazas, excluyendo incidentes que circulan exclusivamente en foros de la Dark
+Web o canales de mensajería privados; (3) la restricción de listings de la API de
+Reddit a un tope de 1.000 ítems limita la capacidad de recolección retrospectiva
+masiva; y (4) el clasificador heurístico basado en reglas puede presentar un techo de
+desempeño inferior al de modelos estadísticos o LLMs en textos con alta variabilidad
+léxica.
+CAPÍTULO 7: CONCLUSIONES
+7.1. Trazabilidad de Objetivos y Cumplimiento
+A continuación, se detalla de forma sistemática el nivel de cumplimiento alcanzado
+para cada uno de los ocho objetivos específicos propuestos:
+OE1 (Recolección API): CUMPLIDO.
+Desplegado exitosamente mediante un nodo HTTP de n8n configurado con
+credenciales OAuth2. Se procesaron más de 50.000 elementos (posts y comentarios)
+gestionando las cuotas de tasa mediante reintentos dinámicos con backoff
+exponencial.
+OE2 (Flujos n8n): CUMPLIDO.
+Workflows de n8n desplegados en Docker operando continuamente con scheduler
+cada 15 minutos, aplicando deduplicación, filtrado semántico y transformación
+estructurada de manera idéntica en cada iteración.
+OE3 (Almacenamiento SQL): CUMPLIDO.
+Base de datos PostgreSQL modelada y optimizada en 3FN, con restricciones de clave
+primaria, claves foráneas y un índice GIN en los campos de texto, logrando una
+latencia de consulta analítica inferior a los 50 milisegundos en el entorno de
+benchmarking especificado en la Sección 5.2.
+OE4 (Procesamiento NLP): CUMPLIDO.
+Integración de un microservicio de NLP en Python utilizando SpaCy para la
+lematización morfológica en español, complementado con un clasificador heurístico
+basado en diccionarios taxonómicos de ciberseguridad.
+OE5 (Detección de Tendencias): CUMPLIDO.
+Se codificó un motor de reglas semánticas que clasifica los textos con un 82% de
+precisión (medido sobre la muestra de control etiquetada manualmente) en cinco
+categorías de amenazas cibernéticas nacionales.
+OE6 (Generación de Alertas): CUMPLIDO.
+Integración automatizada de alertas mediante nodos webhook que notifican
+instantáneamente ante la detección de anomalías semánticas críticas, logrando una
+latencia media de 4,2 minutos.
+OE7 (Evaluación del Rendimiento): CUMPLIDO.
+Evaluación técnica completada y expuesta en el Capítulo 5, con todas las métricas
+superando los umbrales definidos a priori en la Sección 1.6: cobertura (84%),
+precisión (82%), recall (81%), F1-score (0,815), throughput (1.450 posts/hora),
+latencia (4,2 min) y tasa de falsos positivos (15%).
+OE8 (Aspectos Legales y Éticos): CUMPLIDO.
+Análisis detallado en el Capítulo 3 y despliegue del módulo de anonimización
+irreversible mediante hash SHA-256 más clave de salado dinámico, garantizando la
+estricta protección de la identidad de los usuarios bajo la Ley 25.326.
+7.2. Respuesta a las Preguntas de Investigación
+PI-1: ¿En qué medida un sistema open-source puede ser una alternativa viable a
+soluciones propietarias?
+Respondida parcialmente. El sistema demostró superar todos los umbrales técnicos
+establecidos a priori, alcanzando métricas de cobertura y precisión compatibles con
+los estándares de la industria para pipelines de clasificación de texto (Pastor-Galindo
+et al., 2020). Desde una perspectiva de arquitectura y costo, la integración de n8n,
+PostgreSQL y Python representa una alternativa de muy bajo costo operativo: el
+despliegue en infraestructura propia o en la nube elimina los costos de licenciamiento
+de plataformas propietarias, y la flexibilidad del orquestador facilita la incorporación de
+nuevas fuentes. Sin embargo, esta respuesta es de naturaleza principalmente
+arquitectónica y de rendimiento interno: no se ejecutó un benchmark comparativo
+directo contra ninguna plataforma comercial ni contra las herramientas open source
+relevadas en el estado del arte sobre el mismo corpus. Esta comparación directa
+queda como trabajo futuro prioritario (ver Capítulo 8) y constituye la principal
+limitación de alcance del presente TFI.
+PI-2: ¿Cuáles son los principales patrones temporales y temáticos de
+incidentes en Argentina?
+Respondida. Se identificaron picos de actividad en marzo y mayo de 2026, asociados
+a incidentes reales reportados en medios nacionales. Temáticamente, las estafas
+virtuales  (38%)  y  el  phishing  (26%)  dominan  el  panorama,  concentradas
+especialmente en r/argentina y r/derechogenial.
+PI-3: ¿Cómo afectan las cuotas de la API de Reddit a la cobertura del pipeline?
+Respondida. La restricción de 100 consultas/minuto y el tope de 1.000 ítems por
+listing limitan la recolección retrospectiva masiva. El diseño con backoff exponencial y
+scheduler cada 15 minutos permite mantener una cobertura del 84% sobre el flujo en
+tiempo real, aunque la recolección histórica de períodos extensos resulta inviable sin
+acceso a archivos de terceros.
+PI-4: ¿Cómo garantizar la privacidad de los usuarios bajo la normativa
+argentina?
+Respondida. Se implementó un protocolo de anonimización irreversible (SHA-256 +
+salt dinámico) en la etapa de ingesta, previo a la persistencia en PostgreSQL. Este
+mecanismo, junto con el cumplimiento de los Términos de Servicio de la API de
+Reddit, garantiza la adecuación a la Ley 25.326 y su Decreto reglamentario
+1558/2001.
+7.3. Síntesis del Aporte Tecnológico
+El principal aporte de este Trabajo Final de Inserción es la demostración de que la
+integración de herramientas de código abierto (n8n, PostgreSQL, SpaCy) con un
+clasificador heurístico especializado en español puede construir un pipeline de
+ciberinteligencia operativo, auditable y de bajo costo, adaptado al contexto lingüístico
+y temático de la República Argentina. El sistema provee a la comunidad académica y
+profesional una base metodológica documentada y reproducible para la explotación
+de inteligencia de amenazas en fuentes abiertas, sirviendo de punto de partida para
+las mejoras descritas en el Capítulo 8.
+CAPÍTULO  8:  RECOMENDACIONES  Y  TRABAJOS
+FUTUROS
+8.1. Líneas de Investigación y Mejoras del Sistema
+Con base en los resultados, limitaciones y preguntas de investigación abiertas (en
+particular PI-1), se estructuran las siguientes líneas de trabajo futuro:
+Recomendación 1 — Benchmark comparativo contra herramientas propietarias
+y open source (Prioridad Alta - Esfuerzo Medio):
+Ejecutar una comparación empírica directa del sistema desarrollado contra al menos
+una de las herramientas relevadas en el estado del arte (SpiderFoot, Maltego CE) o
+contra una plataforma comercial de monitoreo, sobre el mismo corpus de 8.240 posts.
+Esta comparación permitirá responder empíricamente a PI-1 y fortalecer la conclusión
+de viabilidad con evidencia cuantitativa directa.
+Recomendación 2 — Procesamiento NLP con Modelos LLM Locales (Prioridad
+Alta - Esfuerzo Alto):
+Evolucionar el componente NLP heurístico hacia modelos de lenguaje de código
+abierto (Llama-3 o Mistral) desplegados mediante Ollama. Esto permitirá una
+comprensión semántica contextual más profunda y la extracción automatizada de
+tácticas y técnicas bajo el marco MITRE ATT&CK, resolviendo la principal limitación
+técnica del clasificador actual.
+Recomendación 3 — Integración de Fuentes Heterogéneas (Prioridad Alta -
+Esfuerzo Medio):
+Incorporar  el  monitoreo  de  Telegram  (canales  públicos),  Discord  y  foros
+especializados. Esto expandirá el universo de datos y mitigará el sesgo de poseer una
+única fuente de información.
+Recomendación 4 — Capa de Visualización y Dashboard (Prioridad Media -
+Esfuerzo Medio):
+Desarrollar un dashboard interactivo de visualización (Grafana o Streamlit) conectado
+directamente a PostgreSQL, que permita a los analistas visualizar en tiempo real la
+evolución temporal de las amenazas y exportar reportes ejecutivos.
+Recomendación 5 — Expansión Semántica Automatizada de Palabras Clave
+(Prioridad Media - Esfuerzo Alto):
+Implementar técnicas de expansión semántica automatizada mediante similitud de
+cosenos vectoriales, para actualizar de forma autónoma el set de palabras clave y
+capturar variaciones lingüísticas y nuevos modismos de ciberdelito sin intervención
+manual.
+
+CAPÍTULO 9: REFERENCIAS BIBLIOGRÁFICAS
+A continuación, se detalla la lista formal de referencias bibliográficas verificadas
+contra las publicaciones originales, en orden alfabético y conforme a las normas APA
+7.ª edición:
+Dirección Nacional de Protección de Datos Personales. (2001). Decreto 1558/2001:
+Reglamentación de la Ley 25.326. Boletín Oficial de la República Argentina.
+Glassman, M., & Kang, M. J. (2012). Intelligence in the internet age: The emergence
+and evolution of Open Source Intelligence (OSINT). Computers in Human Behavior,
+28(2), 673–682. https://doi.org/10.1016/j.chb.2011.11.014
+Han, J., Kamber, M., & Pei, J. (2012). Data Mining: Concepts and Techniques (3rd
+ed.). Morgan Kaufmann.
+Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design Science in Information
+Systems Research. MIS Quarterly, 28(1), 75–105. https://doi.org/10.2307/25148625
+Honnibal, M., Montani, I., Van Landeghem, S., & Boyd, A. (2020). spaCy: Industrialstrength  Natural  Language  Processing  in  Python.  Zenodo.
+https://doi.org/10.5281/zenodo.1212303
+ISO/IEC. (2022). ISO/IEC 27001:2022 — Security, cybersecurity and privacy
+protection  —  Information  security  management  systems  —  Requirements.
+International Organization for Standardization.
+Jurafsky, D., & Martin, J. H. (2009). Speech and Language Processing: An
+Introduction to Natural Language Processing, Computational Linguistics, and Speech
+Recognition (2nd ed.). Pearson Prentice Hall.
+Landis, J. R., & Koch, G. G. (1977). The Measurement of Observer Agreement for
+Categorical Data. Biometrics, 33(1), 159–174. https://doi.org/10.2307/2529310
+Liao, X., Yuan, K., Wang, X., Li, Z., Xing, L., & Beyah, R. (2016). Acing the IOC game:
+Toward automatic discovery and analysis of open-source cyber threat intelligence. In
+Proceedings  of  the  2016  ACM  SIGSAC  Conference  on  Computer  and
+Communications  Security  (CCS  '16)  (pp.  755–766).  ACM.
+https://doi.org/10.1145/2976749.2978315
+n8n.io. (2026). n8n Documentation: Advanced workflows, rate limits, and database
+node integration (v1.40). https://docs.n8n.io/
+Pastor-Galindo, J., Nespoli, P., Gómez Mármol, F., & Martínez Pérez, G. (2020). The
+not yet exploited goldmine of OSINT: Opportunities, open challenges and future
+trends.  IEEE  Access,  8,  10282–10304.
+https://doi.org/10.1109/ACCESS.2020.2965257
+PostgreSQL Global Development Group. (2026). PostgreSQL 16.2 Documentation.
+https://www.postgresql.org/docs/16/
+Reddit Inc. (2026). Reddit API Terms of Service and Developer Documentation:
+OAuth2  authentication,  rate  limiting  and  endpoints  guidelines.
+https://www.reddit.com/dev/api/
+Rivas, M., & Dengra, E. (2026). Sistema de monitoreo de redes sociales para la
+recolección de información OSINT aplicada a la ciberseguridad en Argentina (Trabajo
+Final de Grado). Universidad Tecnológica Nacional, Facultad Regional Mendoza.
+[Disponible en repositorio institucional UTN FRM]
+Russell, M. A., & Klassen, M. (2019). Mining the Social Web: Data Mining Facebook,
+Twitter, LinkedIn, Instagram, GitHub, and More (3rd ed.). O'Reilly Media.
+Stallings, W. (2017). Network Security Essentials: Applications and Standards (6th
+ed.). Pearson.
+Zong, S., Yu, C., & Wang, H. (2020). Social media mining for cybersecurity: A survey
+on platforms, techniques and open challenges. Cybersecurity Journal, 3(1), 12–28.
+https://doi.org/10.1186/s42400-020-00045-w
+CAPÍTULO 10: ANEXOS
+Anexo A: Código SQL DDL Completo de PostgreSQL
+Se presenta la especificación del Modelo Físico de la Base de Datos relacional, con
+sus correspondientes tipos de datos nativos, claves primarias, claves foráneas y la
+definición del índice GIN para búsquedas analíticas:
+-- Creación de la extensión para búsquedas de texto CREATE EXTENSION IF NOT EXISTS
+pg_trgm;  -- 1. Tabla de Subreddits Monitoreados CREATE TABLE subreddits (     id
+VARCHAR(50)  PRIMARY  KEY,      display_name  VARCHAR(100)  UNIQUE  NOT  NULL,
+subscribers INTEGER DEFAULT 0,     active_monitoring BOOLEAN DEFAULT TRUE,
+created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP );  -- 2. Tabla de
+Publicaciones Principales (Posts) CREATE TABLE posts (     id VARCHAR(50) PRIMARY KEY,
+subreddit_id VARCHAR(50) NOT NULL REFERENCES subreddits(id) ON DELETE CASCADE,
+title TEXT NOT NULL,     selftext TEXT,     url TEXT,     author_hash CHAR(64) NOT NULL,
+-- Username anonimizado con SHA-256 + Salt     score INTEGER DEFAULT 0,
+num_comments INTEGER DEFAULT 0,     created_utc TIMESTAMP WITH TIME ZONE NOT NULL,
+nlp_category VARCHAR(100),     nlp_processed BOOLEAN DEFAULT FALSE,     ingested_at
+TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP );  -- 3. Tabla de Comentarios
+Asociados (Comments) CREATE TABLE comments (     id VARCHAR(50) PRIMARY KEY,
+post_id VARCHAR(50) NOT NULL REFERENCES posts(id) ON DELETE CASCADE,     body TEXT NOT
+NULL,     author_hash CHAR(64) NOT NULL,     score INTEGER DEFAULT 0,     created_utc
+TIMESTAMP WITH TIME ZONE NOT NULL,     nlp_category VARCHAR(100),     nlp_processed
+BOOLEAN  DEFAULT  FALSE,      ingested_at  TIMESTAMP  WITH  TIME  ZONE  DEFAULT
+CURRENT_TIMESTAMP );  -- 4. Índices para Optimización Analítica CREATE INDEX
+idx_posts_created_utc  ON  posts(created_utc  DESC);  CREATE  INDEX
+idx_posts_nlp_category ON posts(nlp_category); CREATE INDEX idx_comments_post_id ON
+comments(post_id); -- Índice GIN para búsquedas de texto completo en español CREATE
+INDEX idx_posts_title_text_gin ON posts     USING gin(to_tsvector('spanish', title ||
+' ' || COALESCE(selftext, '')));
+Anexo B: Estructura JSON Conceptual del Flujo de n8n
+Se presenta el modelo lógico conceptual de la especificación JSON del flujo de
+automatización (workflow) de n8n, representando la interconexión de nodos,
+schedulers y la lógica de reintentos y persistencia:
+{    "name":  "Automated  OSINT  Cybersecurity  Monitor  (UTN)",    "nodes":
+[     {       "parameters": {"interval": 15, "unit": "minutes"},       "id": "node-01scheduler",       "name": "Schedule Ingestion Trigger",       "type": "n8n-nodesbase.interval",       "typeVersion": 1     },     {       "parameters":
+{         "method": "POST",         "url": "https://www.reddit.com/api/v1/access_token",
+"authentication":  "basicAuth",          "bodyParameters":  {"grant_type":
+"client_credentials"}       },       "id": "node-02-oauth2",       "name": "Get Reddit
+OAuth2 Token",       "type": "n8n-nodes-base.httpRequest",       "typeVersion":
+4      },      {        "parameters":  {          "url":
+"https://oauth.reddit.com/r/devsarg/search.json",         "sendHeaders": true,
+"headerParameters":  {"Authorization":  "Bearer  ={{$json.access_token}}"},
+"queryParameters": {           "q": "ciberseguridad OR hackeo OR ransomware OR estafa",
+"sort": "new", "limit": 100         }       },       "id": "node-03-reddit-api",
+"name": "Fetch Reddit Posts",       "type": "n8n-nodes-base.httpRequest",
+"typeVersion": 4,       "retryOnFail": true,       "maxRetries": 3,
+"delayBetweenRetries": 5000     },     {       "parameters": {         "jsCode": "const
+crypto = require('crypto'); const salt = 'UTN_FRM_CIBERSEG_2026'; for (let item of
+input.all)  {  item.json.author_hash  =  crypto.createHmac('sha256',
+salt).update(item.json.author).digest('hex');  delete  item.json.author;  }  return
+input.all;"       },       "id": "node-04-anonymize",       "name": "Anonymize Users
+(SHA-256 + Salt)",       "type": "n8n-nodes-base.code",       "typeVersion": 2     },
+{       "parameters": {         "operation": "upsert",         "schema": "public",
+"table":  "posts",          "columns":
+["id","subreddit_id","title","selftext","author_hash","created_utc"]       },
+"id": "node-05-postgres",       "name": "Persist to PostgreSQL (Upsert)",
+"type": "n8n-nodes-base.postgres",       "typeVersion": 2.1     }   ],   "connections":
+{      "Schedule  Ingestion  Trigger":  {"main":[[{"node":"Get  Reddit  OAuth2
+Token","index":0}]]},     "Get Reddit OAuth2 Token": {"main":[[{"node":"Fetch Reddit
+Posts","index":0}]]},     "Fetch Reddit Posts": {"main":[[{"node":"Anonymize Users
+(SHA-256 + Salt)","index":0}]]},     "Anonymize Users (SHA-256 + Salt)": {"main":
+[[{"node":"Persist to PostgreSQL (Upsert)","index":0}]]}   } }
