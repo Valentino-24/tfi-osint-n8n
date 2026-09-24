@@ -1,0 +1,370 @@
+{
+  "id": "TFIOsintV4Monitor01",
+  "name": "TFI OSINT V4 - Monitor de Amenazas",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "8375c4ee-e45f-432c-b13b-ae7152060704",
+      "name": "Schedule Ingesta",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1900,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const subs = [\n  { subreddit_id: 'argentina', display_name: 'r/argentina', rss_url: 'https://www.reddit.com/r/argentina/new/.rss?limit=100' },\n  { subreddit_id: 'devsarg', display_name: 'r/devsarg', rss_url: 'https://www.reddit.com/r/devsarg/new/.rss?limit=100' },\n  { subreddit_id: 'derechogenial', display_name: 'r/derechogenial', rss_url: 'https://www.reddit.com/r/derechogenial/new/.rss?limit=100' }\n];\nreturn subs;"
+      },
+      "id": "e2667eef-1ccf-43d6-8d61-e9ad9843b204",
+      "name": "Prepare Subreddits",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1580,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO subreddits (id, display_name, active_monitoring)\nVALUES ($1, $2, TRUE)\nON CONFLICT (id) DO UPDATE SET display_name = EXCLUDED.display_name",
+        "options": {
+          "queryReplacement": "={{ [ $json.subreddit_id, $json.display_name ] }}"
+        }
+      },
+      "id": "d4d22f83-07ae-4bfd-9440-f3a45ed21bd7",
+      "name": "Upsert Subreddits",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -620,
+        -560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.rss_url }}",
+        "options": {
+          "customFields": "author, contentSnippet, guid"
+        }
+      },
+      "id": "922eadb4-68d5-44b0-a04e-f3b1e6f8648a",
+      "name": "Fetch Posts RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -940,
+        80
+      ],
+      "retryOnFail": true,
+      "maxRetries": 3,
+      "waitBetweenRetries": 30000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parser para feed Atom RSS de Reddit (nodo RSS Read, rss-parser).\n// id y subreddit_id se derivan del link del post:\n//   https://www.reddit.com/r/{sub}/comments/{id}/{slug}/\n// limitaciones RSS: score y num_comments no vienen -> 0 (documentado).\nconst out = [];\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  const link = String(d.link || '');\n  const m = link.match(/\\/r\\/([a-z0-9_]+)\\/comments\\/([a-z0-9]+)\\//i);\n  if (!m) continue;\n  const authorRaw = (typeof d.author === 'string' ? d.author : (d.author && d.author.name) || '')\n    .replace(/^\\/u\\//, '')\n    .trim();\n  const text = String(d.contentSnippet || '')\n    .replace(/\\s*submitted by\\s+\\S+\\s*/gi, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n  const iso = d.isoDate || d.pubDate || null;\n  out.push({\n    json: {\n      id: m[2],\n      subreddit_id: m[1],\n      title: String(d.title || ''),\n      selftext: text || null,\n      url: link,\n      author: authorRaw || '[deleted]',\n      score: 0,\n      num_comments: 0,\n      created_utc: iso ? Math.floor(new Date(iso).getTime() / 1000) : 0\n    }\n  });\n}\nreturn out;"
+      },
+      "id": "ddb07ab3-bb34-4c08-88d8-f1737d182c1a",
+      "name": "Parse Reddit Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst key = $env.OSINT_HMAC_KEY;\nif (!key) {\n  throw new Error('Falta la variable de entorno OSINT_HMAC_KEY. Seteala antes de arrancar n8n (ver GUIA_EJECUCION.md).');\n}\nconst out = [];\nfor (const item of $input.all()) {\n  out.push({\n    json: {\n      ...item.json,\n      author_hash: crypto.createHmac('sha256', key).update(String(item.json.author)).digest('hex'),\n      created_utc_iso: new Date((item.json.created_utc || 0) * 1000).toISOString()\n    }\n  });\n  delete out[out.length - 1].json.author;\n}\nreturn out;"
+      },
+      "id": "533feb08-c34a-4d1d-948a-7f28cf535b9c",
+      "name": "HMAC Anonymize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clasificador por diccionario (Anexo C base). Texto normalizado sin acentos.\n// Fórmula de puntuación (4.4): score = hits(c) / |keywords(c)| con hits >= MIN_HITS.\nconst DICT = {\n  'Estafas Virtuales': ['estafa', 'estafas', 'estafa virtual', 'transferencia', 'mercado pago', 'mp', 'clonacion', 'clonacion de tarjeta', 'clonar', 'banco', 'billetera', 'cangrejo', 'piramidal', 'defraudacion'],\n  'Phishing': ['phishing', 'suplantacion', 'enlace', 'correo', 'whatsapp', 'cuenta', 'pescar', 'smishing', 'verificacion', 'ingreso falso'],\n  'Filtración de Datos': ['filtracion', 'filtrar', 'leak', 'fuga', 'dni', 'base de datos', 'venta de datos', 'expuesta', 'datos personales', 'vazamiento'],\n  'Vulnerabilidades': ['vulnerabilidad', 'vulnerabilidades', 'bug', 'cve', 'exploit', 'parche', 'actualizacion', 'falla', 'pwn'],\n  'Ransomware': ['ransomware', 'secuestro de datos', 'secuestro', 'encriptado', 'cifrado', 'rescate', 'wannacry', 'criptoransomware']\n};\nconst MIN_HITS = 2;\nconst norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst out = [];\nfor (const item of $input.all()) {\n  const text = norm(item.json.title + ' ' + (item.json.selftext || ''));\n  const words = new Set(text.split(/[^a-z0-9]+/));\n  let best = null;\n  let bestHits = 0;\n  let bestK = 1;\n  for (const cat of Object.keys(DICT)) {\n    let hits = 0;\n    for (const kw of DICT[cat]) {\n      const k = kw.includes(' ') ? (text.includes(kw) ? 1 : 0) : (words.has(kw) ? 1 : 0);\n      hits += k;\n    }\n    if (hits > bestHits) {\n      bestHits = hits;\n      best = cat;\n      bestK = DICT[cat].length;\n    }\n  }\n  if (best && bestHits >= MIN_HITS) {\n    item.json.nlp_category = best;\n    item.json.nlp_score = Math.round((bestHits / bestK) * 10000) / 10000; // normalizado [0,1]\n  } else {\n    item.json.nlp_category = 'No relevante';\n    item.json.nlp_score = 0;\n  }\n  out.push({ json: item.json });\n}\nreturn out;"
+      },
+      "id": "06067537-4af5-49d3-a9aa-93e2ef4e51bb",
+      "name": "Classify Dictionary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extracción de entidades (OE4, [N-06]): CVE, emails, IPs, dominios y productos.\nconst PRODUCTS = ['whatsapp', 'telegram', 'mercado pago', 'windows', 'linux', 'android', 'ios', 'chrome', 'firefox', 'bitcoin', 'usdt', 'afi p', 'banco nacion', 'galicia', 'santander', 'uala', 'cvu', 'mercado libre'];\nconst norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst uniq = (a) => Array.from(new Set(a));\nconst out = [];\nfor (const item of $input.all()) {\n  const raw = item.json.title + ' ' + (item.json.selftext || '');\n  const low = norm(raw);\n  const entities = {\n    cves: uniq((low.match(/\\bcve-\\d{4}-\\d{4,7}\\b/g) || []).map((x) => x.toUpperCase())).slice(0, 20),\n    emails: uniq((raw.match(/\\b[\\w.+-]+@[\\w-]+\\.[\\w.]+\\b/g) || [])).slice(0, 20),\n    ips: uniq((low.match(/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/g) || [])).slice(0, 20),\n    domains: uniq((low.match(/\\b(?:[a-z0-9-]+\\.)+(?:com|ar|org|net|io|gov|edu)\\b/g) || []).filter((d) => !d.startsWith('reddit.com'))).slice(0, 20),\n    products: uniq(PRODUCTS.filter((p) => low.includes(p))).slice(0, 20)\n  };\n  item.json.entities = entities;\n  item.json.entities_json = JSON.stringify(entities);\n  out.push({ json: item.json });\n}\nreturn out;"
+      },
+      "id": "b8e5d1af-2bbb-4ed0-8117-a115dcaf3719",
+      "name": "Extract Entities",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO posts (id, subreddit_id, title, selftext, url, author_hash, score, num_comments, created_utc, nlp_category, nlp_score, entities, nlp_processed)\nVALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz, $10, $11, $12::jsonb, TRUE)\nON CONFLICT (id) DO UPDATE SET\n  title = EXCLUDED.title,\n  selftext = EXCLUDED.selftext,\n  url = EXCLUDED.url,\n  score = EXCLUDED.score,\n  num_comments = EXCLUDED.num_comments,\n  nlp_category = EXCLUDED.nlp_category,\n  nlp_score = EXCLUDED.nlp_score,\n  entities = EXCLUDED.entities,\n  nlp_processed = TRUE",
+        "options": {
+          "queryReplacement": "={{ [ $json.id, $json.subreddit_id, $json.title, $json.selftext, $json.url, $json.author_hash, $json.score, $json.num_comments, $json.created_utc_iso, $json.nlp_category, $json.nlp_score, $json.entities_json ] }}"
+        }
+      },
+      "id": "255a04d0-68af-41d1-9992-bdd3c4089ebf",
+      "name": "Upsert Posts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        660,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 0,
+              "triggerAtMinute": 5
+            }
+          ]
+        }
+      },
+      "id": "7fbb26dd-87d7-4ed9-899f-6229804f83f5",
+      "name": "Schedule Anomalias",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1900,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Ventana: ayer [00:00, 00:00) hora de Buenos Aires. Base: media diaria de los 10 días previos.\nSELECT\n  p.nlp_category AS categoria,\n  COUNT(*) FILTER (WHERE p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day'\n                   AND p.ingested_at <  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires')) AS n_observado,\n  COUNT(*) FILTER (WHERE p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '11 day'\n                   AND p.ingested_at <  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day') / 10.0 AS base_media,\n  (date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day') AT TIME ZONE 'America/Argentina/Buenos_Aires' AS ventana_inicio,\n  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') AT TIME ZONE 'America/Argentina/Buenos_Aires' AS ventana_fin\nFROM posts p\nWHERE p.nlp_category IS NOT NULL\n  AND p.nlp_category <> 'No relevante'\n  AND p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '11 day'\nGROUP BY p.nlp_category\nORDER BY p.nlp_category",
+        "options": {}
+      },
+      "id": "c086d403-4ea7-4659-80cd-85a5212b77e4",
+      "name": "Query Daily Counts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1580,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Motor de anomalías (4.5): ventana diaria, base = media diaria de los 10 días previos,\n// umbral = max(cuantil 95 de Poisson + 1, mínimo absoluto 3). Disparo si n_observado >= umbral.\nfunction poissonCdf(k, l) {\n  let s = 0;\n  for (let i = 0; i <= k; i++) {\n    let logP = -l;\n    for (let j = 2; j <= i; j++) {\n      logP += Math.log(l / j);\n    }\n    s += Math.exp(logP);\n  }\n  return Math.min(1, s);\n}\nconst MIN_ABS = 3;\nconst out = [];\nfor (const item of $input.all()) {\n  const lambda = Math.max(0, Number(item.json.base_media) || 0);\n  const n = Math.max(0, Math.round(Number(item.json.n_observado) || 0));\n  let t = 0;\n  if (lambda > 0) {\n    while (t < 500 && (1 - poissonCdf(t, lambda)) > 0.05) {\n      t += 1;\n    }\n  }\n  const umbralPoisson = lambda > 0 ? t + 1 : 1;\n  const umbral = Math.max(umbralPoisson, MIN_ABS);\n  out.push({\n    json: {\n      ventana_inicio: item.json.ventana_inicio,\n      ventana_fin: item.json.ventana_fin,\n      categoria: item.json.categoria,\n      n_observado: n,\n      base_media: Math.round(lambda * 1000) / 1000,\n      umbral: umbral,\n      disparo: n >= umbral\n    }\n  });\n}\nreturn out;"
+      },
+      "id": "1e0acb7a-8303-4c8a-a5d0-9a8e804cfa84",
+      "name": "Anomaly Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1260,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Inserta TODA la evaluación en anomalias; genera alerta solo si hubo disparo.\nWITH ins AS (\n  INSERT INTO anomalias (ventana_inicio, ventana_fin, categoria, n_observado, base_media, umbral, disparo)\n  SELECT * FROM json_to_recordset($1::jsonb)\n    AS x(ventana_inicio timestamptz, ventana_fin timestamptz, categoria varchar, n_observado int, base_media real, umbral real, disparo boolean)\n  RETURNING id, categoria, n_observado, base_media, umbral, disparo, ventana_inicio\n)\nINSERT INTO alertas (anomalia_id, canal, destinatario, payload, estado)\nSELECT id, 'telegram', 'canal_tfi',\n       jsonb_build_object('categoria', categoria, 'n_observado', n_observado, 'base_media', base_media, 'umbral', umbral, 'ventana_inicio', ventana_inicio),\n       'PENDIENTE'\nFROM ins\nWHERE disparo\nRETURNING id, anomalia_id, canal, payload, estado",
+        "options": {
+          "queryReplacement": "={{ [ JSON.stringify($json) ] }}"
+        }
+      },
+      "id": "63583e69-62e2-45fa-8828-b7dbad58705f",
+      "name": "Registrar Anomalias y Alertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -940,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' }}",
+        "authentication": "none",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: 'ALERTA TFI OSINT: ' + $json.payload.categoria + ' — posts: ' + $json.payload.n_observado + ' (umbral ' + $json.payload.umbral + '), ventana ' + $json.payload.ventana_inicio }) }}",
+        "options": {}
+      },
+      "disabled": true,
+      "id": "5803cc77-81bd-495b-9ac3-42c6fcb15da5",
+      "name": "Send Telegram Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -620,
+        560
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Ingesta": {
+      "main": [
+        [
+          {
+            "node": "Prepare Subreddits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Subreddits": {
+      "main": [
+        [
+          {
+            "node": "Upsert Subreddits",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Posts RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Posts RSS": {
+      "main": [
+        [
+          {
+            "node": "Parse Reddit Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Reddit Posts": {
+      "main": [
+        [
+          {
+            "node": "HMAC Anonymize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC Anonymize": {
+      "main": [
+        [
+          {
+            "node": "Classify Dictionary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Dictionary": {
+      "main": [
+        [
+          {
+            "node": "Extract Entities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Entities": {
+      "main": [
+        [
+          {
+            "node": "Upsert Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Anomalias": {
+      "main": [
+        [
+          {
+            "node": "Query Daily Counts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Daily Counts": {
+      "main": [
+        [
+          {
+            "node": "Anomaly Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anomaly Engine": {
+      "main": [
+        [
+          {
+            "node": "Registrar Anomalias y Alertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Anomalias y Alertas": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "versionId": "be996f9d-f720-4096-b859-0ef37c0ade3c",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
