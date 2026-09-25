@@ -1,0 +1,67 @@
+﻿# Tasks — ventana-recoleccion-b5 (C-05)
+
+> Governance MEDIO. Ninguna tarea modifica el DDL, el workflow ni la lógica del pipeline.
+> Ninguna tarea ejecuta escrituras sobre `tesi_osint`: solo consultas `SELECT` de conteo y agregación.
+> Ninguna tarea toca credenciales, tokens ni la clave HMAC.
+
+## 1. Definición de la ventana
+
+- [x] 1.1 Crear `V4/evidencias/VENTANA_B5.md` con la definición de la ventana real: inicio **2026-09-25**, criterio del corpus sobre `posts.ingested_at`, y nota de que la corrida B4 del 2026-09-24 (201 posts verificados) queda fuera del corpus salvo decisión de los autores
+- [x] 1.2 En la misma definición, registrar la fecha de corte con el estado explícito **"no fijada"**, el motivo (decisión de los autores con sus directores) y el nombre de la tarea 6.1 que la cierra; no escribir ninguna fecha tentativa
+- [x] 1.3 Declarar en el mismo documento el criterio de suficiencia: **10 días completos de evaluaciones** en `anomalias`, justificado por la base comparativa de RN-AN-02
+- [x] 1.4 Sustituir en `V4/GUIA_EJECUCION.md` toda mención a la ventana ficticia de seis meses por la ventana real; añadir B5 a su tabla de estado sin tocar lo que pertenece a C-06 (IN-01, IN-02)
+- [x] 1.5 Actualizar `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 dejando constancia de que la ventana real está fechada desde 2026-09-25 y de que su corte sigue abierto
+- [x] 1.6 Actualizar `knowledge-base/02_descripcion_general.md` §Estado de implementación con el estado real de la ventana
+
+## 2. Script de bitácora diaria
+
+- [x] 2.1 Crear `V4/scripts/bitacora_b5.py` que tome la fecha como parámetro y emita únicamente consultas `SELECT` agregadas sobre `tesi_osint`
+- [x] 2.2 Implementar la consulta de total de posts ingeridos en la ventana acotada por `ingested_at >= <fecha> 00:00:00` y `ingested_at < <fecha+1> 00:00:00`
+- [x] 2.3 Implementar la consulta de distribución por subreddit que devuelva los **tres** subreddits monitorizados, incluido el que aporta 0, sin filtrar los ceros del resultado
+- [x] 2.4 Implementar el conteo de `días_completos_evaluados` derivado de las filas de `anomalias` por `ventana_fin`, como estado consultable y no estimado
+- [x] 2.5 Generar `V4/evidencias/bitacora_b5/YYYY-MM-DD.md` con cabecera obligatoria: consulta SQL literal, fecha de ejecución, identificador de la ventana y `n` de la observación
+- [x] 2.6 Hacer que el script termine con error explícito y no escriba entrada parcial si falla la conexión a la base
+- [x] 2.7 Verificar que el script no contiene sentencias `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `DROP` ni `ALTER`, y que reejecutarlo no altera el estado de la base
+- [x] 2.8 Generar la primera entrada fechada **2026-09-25** como línea de base de la ventana
+
+## 3. Llenado de la bitácora
+
+- [x] 3.1 Verificar que el trigger `Schedule Ingesta` de 15 minutos sigue activo en la instancia n8n y que el cluster PostgreSQL en `localhost:5433` está arriba; registrar el resultado de la verificación — **resultado registrado el 2026-09-25** en `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md`: cluster PostgreSQL **VERIFICADO arriba** en `localhost:5433` (servicio `Running`, puerto 5433 responde, `SELECT version()` devuelve PostgreSQL 18.0); trigger `Schedule Ingesta` **`no verificable en esta corrida`: la instancia n8n no está levantada (`localhost:5678` sin respuesta, sin proceso `node`)**. No se afirma que esté activo: **pendiente de re-verificación** cuando n8n esté levantada
+  - **Re-verificación del 2026-09-25 (15:07 `America/Argentina/Buenos_Aires`) — VERIFICADO**, en `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §10.1: la instancia n8n quedó levantada y el workflow `TFI OSINT V4 - Monitor de Amenazas` (id `TFIOsintV4Monitor01`) está **PUBLICADO**, `active = 1`, `versionId` `abe9e78c-4854-4243-b2ea-58dbc4a57a9f`; cluster PostgreSQL sigue **VERIFICADO arriba** en `localhost:5433` (sin cambios). Consulta literal sobre la base SQLite local de n8n en modo **solo lectura** (`mode=ro`): `SELECT id, name, active, versionId, triggerCount FROM workflow_entity WHERE name = 'TFI OSINT V4 - Monitor de Amenazas';` → salida archivada en `V4/evidencias/n8n_2026-09-25_estado_y_ejecuciones.txt` §1. El registro de la 1ª pasada se conserva y queda marcado como **supersedido** solo en este punto
+- [x] 3.2 Registrar la transcripción de las ejecuciones fallidas del log de n8n a la entrada del día, declarando el log como fuente y la transcripción como manual — **el log de ejecuciones no está disponible en esta corrida** (instancia n8n no levantada, sin base de n8n en el cluster), así que **no hay log que transcribir** y no se fabricó ningún registro de ejecución; la entrada del día declara el log como fuente y la transcripción como **manual** cuando exista (D-3)
+  - **Re-verificación del 2026-09-25 (15:07) — el log SÍ está disponible y SÍ se transcribió**, en §10.2 de la verificación de instancia. Fuente: base SQLite local de n8n en `mode=ro`, consulta `SELECT id, status, mode, finished, startedAt, stoppedAt, ROUND((julianday(stoppedAt) - julianday(startedAt)) * 86400, 1) AS duracion_s FROM execution_entity ORDER BY id DESC LIMIT 5;`. Registro transcrito **manualmente** (D-3) a `V4/evidencias/n8n_2026-09-25_estado_y_ejecuciones.txt` §2 y a la §5 de `bitacora_b5/2026-09-25.md`: ejecución **`id 9`**, `status = success`, `finished = 1`, `startedAt` `2026-09-25 17:55:35.332` UTC, `stoppedAt` `2026-09-25 17:55:43.715` UTC, duración **8.4 s**; en `America/Argentina/Buenos_Aires`, `14:55:35.332` → `14:55:43.715`. **0 ejecuciones fallidas** del 2026-09-25. **Distinción manual vs programado (punto metodológico)**: la columna `mode` vale **`manual`**, o sea que la ejecución la disparó el operador desde la UI con *Execute workflow* y **no** un tick del `Schedule Ingesta`; la consulta de control `SELECT COUNT(*) FROM execution_entity WHERE mode != 'manual';` devuelve **0**, así que **la primera ingesta programada está pendiente** y ocurrirá dentro de los 15 minutos de publicado el workflow. El campo de la entrada del día registra el estado como **declaración del operador** vía los parámetros nuevos `--n8n-estado` / `--n8n-detalle` de `V4/scripts/bitacora_b5.py`; el script no lee la base de n8n ni deduce el estado
+- [x] 3.3 Cuando el log de ejecuciones no esté disponible para una fecha, marcar la ejecución como **"sin observación"** en vez de asumir que fue exitosa — las ejecuciones del 2026-09-25 quedan marcadas **`sin observación`** (no "exitosas") en la entrada del día y en el documento de verificación de instancia
+  - **Re-verificación del 2026-09-25 (15:07) — para esta fecha la regla ya NO APLICA** (§10.3 de la verificación de instancia): hay log y hay ejecución observada, así que el 2026-09-25 pasa de `sin observación` a **`observadas` (1 ejecución, `success`, 0 fallidas)**; el `n = 0` y el `n` de la 1ª pasada quedan como registro histórico del estado de instancia caída. **La regla se conserva íntegra para los días futuros**: sin log disponible, la ejecución se marca `sin observación` y **nunca** como exitosa. Para que no dependa de la memoria de nadie, la regla quedó implementada en `V4/scripts/bitacora_b5.py`: el estado de n8n es un parámetro **declarado por el operador** cuyo valor por defecto es `no_observado` y produce literalmente "no observado en la generación de esta entrada"; el script no consulta la base de n8n, no infiere el estado y **no tiene forma de asumir un éxito**
+- [x] 3.4 Completar una entrada por cada día transcurrido de la ventana, sin omitir los días con total 0 — ventana iniciada el 2026-09-25 y verificación el 2026-09-25: **1 día transcurrido, 1 entrada** (`bitacora_b5/2026-09-25.md`), sin días faltantes; se conserva el `n = 0` real del día con su causa declarada
+- [x] 3.5 Dejar constancia de la disponibilidad del log de ejecuciones de n8n durante la ventana como limitación conocida si no se conserva — **limitación registrada** en `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §6 y referenciada en `knowledge-base/10_preguntas_abiertas.md`
+
+## 4. Caracterización del rate limiting
+
+- [x] 4.1 Crear `V4/evidencias/CARACTERIZACION_RATE_LIMIT.md` con lo observado: Reddit devuelve 429 ante exceso de requests desde la IP del proyecto, y la mitigación vigente de reintento x3 con 30 s de espera (RN-FU-03)
+- [x] 4.2 Documentar el caso verificado de `r/derechogenial` con 0 posts en la corrida B4 del 2026-09-24, con su causa, y dejarlo con `active_monitoring` en `true`
+- [x] 4.3 Declarar el umbral exacto de requests que dispara el 429 como **no determinado** salvo que la observación acumulada lo aísle con evidencia
+- [x] 4.4 Establecer la tabla acumulativa de incidentes de rate limiting: fecha, subreddit afectado, síntoma observado y ciclo de ingesta, con una fila por incidente real
+- [x] 4.5 No modificar el número de requests por ciclo ni la configuración de reintentos: eso corresponde a C-03/C-07
+
+## 5. Cobertura por subreddit
+
+- [x] 5.1 Verificar que todo desglose por subreddit de la ventana usa como denominador los **tres** subreddits monitorizados, incluidos los que aportan 0, y que declara su `n`
+- [x] 5.2 Declarar en la evidencia de la ventana que ningún porcentaje se completa con datos de fuentes ajenas al sistema (RN-GL-02)
+- [x] 5.3 Registrar que la cobertura por subreddit está sesgada por el rate limiting y que el sesgo se reporta como limitación, no se compensa
+
+## 6. Decisión de cierre (abierta — requiere a los autores)
+
+- [ ] 6.1 **BLOQUEADA — decisión de los autores con sus directores**: fijar la fecha de corte de la ventana. Actualizar `V4/evidencias/VENTANA_B5.md` y el registro de OpenSpec con la fecha, el responsable, la fecha de la decisión, el motivo y los changes que habilita
+- [ ] 6.2 **BLOQUEADA — decisión de los autores**: decidir si se conserva la recolección actual o se reinicia con métricas corregidas. Si se reinicia, el inicio vigente pasa a ser la fecha del reinicio y la ventana iniciada el 2026-09-25 queda documentada como descartada con su razón
+- [ ] 6.3 **BLOQUEADA — decisión de los autores**: decidir si los posts previos al 2026-09-25 se incluyen en el corpus de resultados. Por defecto quedan fuera; incluirlos es un cambio de alcance que debe registrarse con su motivo y su efecto sobre las métricas publicadas
+- [x] 6.4 Registrar en `knowledge-base/10_preguntas_abiertas.md` que la pregunta de prioridad Alta sobre la fecha de inicio y cierre quedó **parcialmente** resuelta: inicio fijado el 2026-09-25, corte pendiente
+- [ ] 6.5 Confirmar que el criterio de suficiencia de 1.3 se alcanzó antes de ejecutar 6.1, y que el estado de acumulación quedó registrado en la entrada de bitácora del día del cierre — **BLOQUEADA al 2026-09-25**: suficiencia **0 de 10** días completos evaluados en `anomalias` (consulta en `V4/evidencias/psql_2026-09-25_suficiencia_anomalias.txt`, estado en `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §7). No se puede ejecutar 6.1 ni cerrar la ventana; quedan bloqueadas por la misma razón 6.1, 6.2 y 6.3
+
+## 7. Verificación del change
+
+- [x] 7.1 Confirmar que ninguna métrica de resultados se declara en los artefactos de esta change: solo conteos operativos de la ventana, con su consulta, fecha, ventana y `n` (RN-GL-01) — verificado por inspección y búsqueda sobre los 4 specs, `proposal.md`, `design.md`, `tasks.md` y los 6 documentos de evidencia: las menciones a E4–E8, Tabla 3, Kappa y matriz de confusión son **referencias a métricas futuras** (no producidas, C-08 a C-11), nunca valores declarados
+- [x] 7.2 Confirmar que `V4/anexos/A_DDL.sql` y `V4/scripts/generar_workflow.py` no fueron modificados — verificado el 2026-09-25: `git status --porcelain` vacío para `A_DDL.sql`, `generar_workflow.py` **y** `V4/anexos/B_workflow.json`; los tres siguen en el commit `3b0617c`
+- [x] 7.3 Confirmar que ningún archivo nuevo contiene secretos, tokens ni el valor de la clave HMAC — verificado el 2026-09-25: sin coincidencias de patrón de clave, token, hash de 40+ caracteres hexadecimales ni cadena de conexión en los archivos de la change. El único hit es el marcador de posición del docstring de `V4/scripts/bitacora_b5.py` (`<clave del rol local>`), no un valor real
+- [x] 7.4 Confirmar que `r/derechogenial` y los otros dos subreddits siguen con `active_monitoring` en `true` y que la base conserva los 201 posts de B4 — verificado el 2026-09-25 con consultas `SELECT`: **3 de 3** subreddits con `active_monitoring = true` (`r/argentina` 101, `r/devsarg` 100, `r/derechogenial` 0) y **201 posts** con `ingested_at` del **2026-09-24**. Salidas en `V4/evidencias/psql_2026-09-25_caso_429_b4_derechogenial.txt`
+- [x] 7.5 Registrar que las salidas de psql de la caracterización del rate limit se archivaron en `V4/evidencias/` con fecha — archivadas el 2026-09-25 con la consulta literal y su salida real, con fecha y ventana en la cabecera y sin credenciales: `psql_2026-09-25_caso_429_b4_derechogenial.txt`, `psql_2026-09-25_ventana_b5_dia_2026-09-25.txt`, `psql_2026-09-25_suficiencia_anomalias.txt`
+- [x] 7.6 Verificar la correspondencia entre la definición de la ventana, la bitácora y el documento de caracterización, sin cifras divergentes entre ellos — verificado el 2026-09-25: inicio `2026-09-25`, corte `no fijada`, 201 posts de B4 (101 / 100 / 0), 1 entrada de bitácora con `n = 0`, 3 subreddits monitorizados, 1 incidente de rate limiting (2026-09-24, `r/derechogenial`), 0 filas en `anomalias` y suficiencia 0/10. Los cuatro documentos declaran las mismas cifras

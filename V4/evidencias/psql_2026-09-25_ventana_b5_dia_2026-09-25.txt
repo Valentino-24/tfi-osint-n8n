@@ -1,0 +1,274 @@
+Salida de psql — ventana de recolección B5, día 2026-09-25 (REFRESCA 2026-09-25)
+===============================================================================
+
+| Campo | Valor |
+|---|---|
+| Fecha de captura | **2026-09-25** |
+| Instante de esta pasada | `2026-09-25T15:07:58-03:00` (`America/Argentina/Buenos_Aires`) |
+| Identificador de la ventana | **B5** (inicio 2026-09-25, corte `no fijada`) |
+| Zona horaria de los límites | `America/Argentina/Buenos_Aires` |
+| Días transcurridos de la ventana al 2026-09-25 | 1 (el día de inicio, **aún no cerrado**) |
+| Cambio OpenSpec | `ventana-recoleccion-b5` (C-05), tareas 3.4 y 7.5 |
+| Documentos que consumen esta salida | `V4/evidencias/bitacora_b5/2026-09-25.md`, `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` |
+| Tipo de dato | Conteo operativo de la ventana, con su consulta, fecha, ventana y `n`. No es métrica de resultados (RN-GL-01) |
+| Modo de conexión | Variables de entorno estándar de PostgreSQL (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`) definidas en la sesión. El rol, la clave y la cadena de conexión NO se registran en este archivo |
+| Forma del comando | `psql -X -q -c "<consulta literal>"` (solo lectura) |
+| Límite superior usado acá | `2026-09-26T00:00:00-03:00` (fin del día 2026-09-25). A diferencia de la entrada de bitácora —cuyo límite superior es el instante de ejecución, porque el corte todavía es `no fijada`—, este archivo usa un tope fijo y por eso es reproducible con la misma consulta en cualquier momento |
+
+> **Natureza de estas cifras: corte a mitad de día.** El día `2026-09-25` **no estaba cerrado**
+> cuando se capturaron. Los `n` de abajo son un *snapshot* de lo recolectado hasta el instante de
+> la pasada, **no** el total del día. La entrada de bitácora del día dice lo mismo en su §1.
+
+> **Qué cambió respecto de la primera captura de este mismo archivo (2026-09-25, ~14:23).** La
+> versión anterior registró `n = 0` en la ventana y 201 posts en la base, porque la instancia n8n
+> no estaba levantada. Con la instancia **publicada** (`active = 1`, ver
+> `n8n_2026-09-25_estado_y_ejecuciones.txt` §1) la recolección arrancó: la ventana pasó de 0 a 33
+> posts y la base de 201 a 234. Los conteos de este archivo **sustituyen** a los anteriores, que
+> quedan como registro histórico de un estado de instancia distinto.
+
+---
+
+## [Q-C1] Total de posts ingeridos en el día 2026-09-25
+
+Consulta literal:
+
+```sql
+SELECT COUNT(*) AS total_posts_ventana_b5
+FROM posts
+WHERE ingested_at >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+  AND ingested_at <  TIMESTAMPTZ '2026-09-26T00:00:00-03:00';
+```
+
+Salida real:
+
+```
+ total_posts_ventana_b5
+------------------------
+                     33
+(1 fila)
+```
+
+Lectura: **`n = 33` posts dentro de la ventana B5 al cierre de esta pasada.** Es un corte a mitad
+de día (§0), no un total de día cerrado. Pasa de `n = 0` en la captura anterior, cuando la
+instancia n8n no estaba levantada.
+
+---
+
+## [Q-C1b] Acumulado de la ventana B5 (mismo `n`: la ventana arrancó hoy)
+
+Consulta literal:
+
+```sql
+SELECT COUNT(*) AS total_posts_ventana_b5
+FROM posts
+WHERE ingested_at >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00';
+```
+
+Salida real:
+
+```
+ total_posts_ventana_b5
+------------------------
+                     33
+(1 fila)
+```
+
+Lectura: el acumulado de la ventana es igual al total del día porque la ventana **arrancó hoy** y
+todavía no pasó ningún día completo. Los dos números van a divergir recién el 2026-09-26.
+
+---
+
+## [Q-C2] Desglose por subreddit DENTRO de la ventana (denominador completo = 3)
+
+Consulta literal:
+
+```sql
+SELECT s.display_name,
+       s.active_monitoring,
+       COUNT(p.id) AS n
+FROM subreddits s
+LEFT JOIN posts p
+       ON p.subreddit_id = s.id
+      AND p.ingested_at >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+      AND p.ingested_at <  TIMESTAMPTZ '2026-09-26T00:00:00-03:00'
+GROUP BY s.display_name, s.active_monitoring
+ORDER BY s.display_name;
+```
+
+Salida real:
+
+```
+  display_name   | active_monitoring | n
+-----------------+-------------------+---
+ r/argentina     | t                 | 33
+ r/derechogenial | t                 |  0
+ r/devsarg       | t                 |  0
+(3 filas)
+```
+
+Lectura: dentro de la ventana B5 los **33** posts son **todos** de `r/argentina`. Los otros dos
+subreddits monitorizados aportan **0** y se los mantiene en la tabla con su cero, como exige
+RN-GL-02. Ninguno se desactiva para ajustar la cobertura.
+
+**Sobre el `0` de `r/devsarg`:** la causa **no es observable desde `tesi_osint`**. La base no
+persiste el log de n8n ni las respuestas de Reddit, así que no se puede distinguir entre "el feed
+no traía posts nuevos" y "el feed falló". Queda registrado como observación, **no** como falla
+atribuida. El `0` histórico de `r/derechogenial` sí tiene causa verificada y documentada — el
+rate limiting de Reddit del 2026-09-24 — en
+`psql_2026-09-25_caso_429_b4_derechogenial.txt` y `CARACTERIZACION_RATE_LIMIT.md`.
+
+---
+
+## [Q-C2b] Distribución ACUMULADA de toda la base (sin filtro de ventana) — para desambiguar
+
+Este bloque **no** es la distribución de la ventana. Se incluye porque el mismo par de números se
+puede leer de dos maneras y confundirlos falsearía el desglose:
+
+Consulta literal:
+
+```sql
+SELECT s.display_name,
+       COUNT(p.id) AS n_total_base
+FROM subreddits s
+LEFT JOIN posts p
+       ON p.subreddit_id = s.id
+GROUP BY s.display_name
+ORDER BY s.display_name;
+```
+
+Salida real:
+
+```
+  display_name   | n_total_base
+-----------------+--------------
+ r/argentina     |          134
+ r/derechogenial |            0
+ r/devsarg       |          100
+(3 filas)
+```
+
+Lectura: la base completa suma **234** = 201 de la corrida B4 del 2026-09-24 (101 + 100 + 0) + 33
+de la ventana B5 (los 33 de `r/argentina`). El `0` acumulado de `r/derechogenial` se mantiene.
+
+**Las dos distribuciones son distintas y no deben intercambiarse:**
+
+| Distribución | r/argentina | r/devsarg | r/derechogenial | Total | Consulta |
+|---|---|---|---|---|---|
+| **Dentro de la ventana B5** | 33 | 0 | 0 | **33** | [Q-C2] |
+| **Acumulada en toda la base** | 134 | 100 | 0 | **234** | [Q-C2b] |
+
+---
+
+## [Q-C3] Estado global de la base al 2026-09-25 (control de integridad)
+
+Consulta literal:
+
+```sql
+SELECT (SELECT COUNT(*) FROM posts) AS total_posts,
+       (SELECT COUNT(*) FROM anomalias) AS filas_anomalias,
+       (SELECT COUNT(*) FROM subreddits) AS subreddits,
+       (SELECT COUNT(*) FROM subreddits WHERE active_monitoring = true) AS subreddits_activos,
+       (SELECT MIN(ingested_at) FROM posts) AS min_ingested_at,
+       (SELECT MAX(ingested_at) FROM posts) AS max_ingested_at;
+```
+
+Salida real:
+
+```
+ total_posts | filas_anomalias | subreddits | subreddits_activos |        min_ingested_at        |        max_ingested_at
+-------------+-----------------+------------+-------------------+-------------------------------+-------------------------------
+         234 |               0 |          3 |                  3 | 2026-09-24 17:42:03.321854-03 | 2026-09-25 14:55:43.688358-03
+(1 fila)
+```
+
+Lectura: **234** posts en total (**201** de B4 + **33** de la ventana B5), **0** filas en
+`anomalias`, **3** subreddits con los **3** activos. El rango de `ingested_at` va del
+`2026-09-24 17:42:03-03` (B4) al `2026-09-25 14:55:43-03` (ventana B5). El `0` en `anomalias` sigue
+significando **suficiencia 0 de 10** (tarea 6.5 bloqueada), no ausencia de anomalías.
+
+---
+
+## [Q-C4] Posts por día local de ingesta (¿dentro de la ventana?)
+
+Consulta literal:
+
+```sql
+SELECT (ingested_at AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS dia,
+       COUNT(*) AS n_posts
+FROM posts
+GROUP BY 1
+ORDER BY 1;
+```
+
+Salida real:
+
+```
+    dia     | n_posts
+------------+---------
+ 2026-09-24 |     201
+ 2026-09-25 |      33
+(2 filas)
+```
+
+Lectura: aparecen **dos** días locales de ingesta. El `2026-09-24` (201) es la corrida B4, **fuera**
+de la ventana. El `2026-09-25` (33) es el primer día de la ventana, y su total **va a crecer** con
+la recolección programada que sigue activa.
+
+---
+
+## [Q-C5] Cobertura por categoría en la ventana (RN-GL-01: conteo, no tasa)
+
+Consulta literal:
+
+```sql
+SELECT nlp_category, COUNT(*) AS n
+FROM posts
+WHERE ingested_at >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+GROUP BY 1
+ORDER BY 1;
+```
+
+Salida real:
+
+```
+ nlp_category | n
+--------------+---
+ No relevante | 33
+(1 fila)
+```
+
+Lectura: los 33 posts de la ventana quedaron clasificados como `No relevante` por el clasificador
+por diccionario. Se registra como **conteo operativo del día**; **no** es una métrica de
+resultados ni habilita ninguna afirmación sobre la calidad de la detección. Con `n = 33` y sin
+base comparativa (`anomalias` vacía), no corresponde ninguna tasa.
+
+---
+
+## [Q-C8] Instantes de ingesta dentro de la ventana — vínculo con la ejecución de n8n
+
+Consulta literal:
+
+```sql
+SELECT to_char(ingested_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS') AS ingested_utc,
+       COUNT(*) AS n
+FROM posts
+WHERE ingested_at >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+GROUP BY 1
+ORDER BY 1;
+```
+
+Salida real:
+
+```
+    ingested_utc     | n
+--------------------+----
+ 2026-09-25 17:55:43 | 33
+(1 fila)
+```
+
+Lectura: **los 33 posts se ingestaron en un único segundo**, `2026-09-25 17:55:43 UTC`
+(`14:55:43` local). La ejecución 9 de n8n corrió de `17:55:35.332` a `17:55:43.715` UTC y fue
+`mode = manual` (ver `n8n_2026-09-25_estado_y_ejecuciones.txt` §2 y §3): el segundo de ingesta cae
+**dentro** de la ventana temporal de esa ejecución, y no hay ningún otro instante de ingesta en el
+día. **Los 33 posts provienen de la ejecución manual**, y a esta altura del día no hay registro de
+ninguna ingesta **programada** por el trigger de 15 minutos.

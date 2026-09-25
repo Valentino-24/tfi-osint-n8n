@@ -1,0 +1,178 @@
+Salida de SQLite (solo lectura) — estado de n8n y log de ejecuciones, 2026-09-25
+================================================================================
+
+| Campo | Valor |
+|---|---|
+| Fecha de captura | **2026-09-25** (pasada de evidencia a las 15:07:58 `America/Argentina/Buenos_Aires`) |
+| Identificador de la ventana | **B5** (inicio 2026-09-25, corte `no fijada`) |
+| Cambio OpenSpec | `ventana-recoleccion-b5` (C-05), tareas 3.1, 3.2, 3.3 y 7.5 |
+| Documentos que consumen esta salida | `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §10, `V4/evidencias/bitacora_b5/2026-09-25.md` §5 |
+| Origen de los datos | base SQLite interna de n8n, `~/.n8n/database.sqlite` |
+| Modo de acceso | URI `file:.../database.sqlite?mode=ro` — SQLite **no puede escribir** en la base en este modo |
+| Sentencias ejecutadas | 3 `SELECT`. Ninguna escritura, ningún DDL, ningún `PRAGMA` que modifique datos |
+| Credenciales | **Ninguna.** La base de n8n es local y no requiere rol, clave ni cadena de conexión. Ningún valor de entorno de n8n (por ejemplo la clave HMAC) se registra en este archivo |
+| Zona horaria de los `startedAt` / `stoppedAt` | n8n los persiste en **UTC**. La equivalencia local se declara en §4 y no se reinterpreta acá |
+
+---
+
+## 1. Estado del workflow: `active = 1` → **PUBLICADO**
+
+### Consulta literal
+
+```sql
+SELECT id, name, active, versionId, triggerCount
+FROM workflow_entity
+WHERE name = 'TFI OSINT V4 - Monitor de Amenazas';
+```
+
+### Salida real
+
+```
+id                  | name                               | active | versionId                            | triggerCount
+--------------------+------------------------------------+--------+--------------------------------------+-------------
+TFIOsintV4Monitor01 | TFI OSINT V4 - Monitor de Amenazas | 1      | abe9e78c-4854-4243-b2ea-58dbc4a57a9f | 2
+(1 fila)
+```
+
+### Lectura
+
+| Punto | Valor observado |
+|---|---|
+| `id` del workflow | **`TFIOsintV4Monitor01`** |
+| `name` del workflow | **`TFI OSINT V4 - Monitor de Amenazas`** |
+| `active` | **`1` → el workflow está PUBLICADO y su trigger de ingesta quedó activo** |
+| `versionId` de la versión publicada | **`abe9e78c-4854-4243-b2ea-58dbc4a57a9f`** |
+| `triggerCount` | `2` — cantidad de nodos de disparo registrados en el workflow (ingesta cada 15 min + motor de anomalías diario), **no** una cantidad de ticks ejecutados |
+
+`active = 1` es el dato que la pasada anterior no pudo observar y que hoy **sí** queda verificado.
+
+---
+
+## 2. Log de ejecuciones: las últimas 5
+
+### Consulta literal
+
+```sql
+SELECT id, status, mode, finished, startedAt, stoppedAt,
+       ROUND((julianday(stoppedAt) - julianday(startedAt)) * 86400, 1) AS duracion_s
+FROM execution_entity
+ORDER BY id DESC
+LIMIT 5;
+```
+
+### Salida real
+
+```
+id | status  | mode   | finished | startedAt               | stoppedAt               | duracion_s
+---+---------+--------+----------+-------------------------+-------------------------+-----------
+9  | success | manual | 1        | 2026-09-25 17:55:35.332 | 2026-09-25 17:55:43.715 | 8.4
+8  | success | manual | 1        | 2026-09-24 20:46:03.710 | 2026-09-24 20:46:06.030 | 2.3
+7  | success | manual | 1        | 2026-09-24 20:44:02.141 | 2026-09-24 20:44:04.583 | 2.4
+6  | success | manual | 1        | 2026-09-24 20:41:59.179 | 2026-09-24 20:42:03.381 | 4.2
+5  | error   | manual | 0        | 2026-09-24 20:39:32.515 | 2026-09-24 20:39:37.048 | 4.5
+(5 filas)
+```
+
+### Lectura de la ejecución 9
+
+| Campo | Valor observado |
+|---|---|
+| `id` | **9** |
+| `status` | **`success`** |
+| `finished` | `1` — terminó, no quedó en cola |
+| `mode` | **`manual`** — ver §3 |
+| `startedAt` (UTC) | `2026-09-25 17:55:35.332` |
+| `stoppedAt` (UTC) | `2026-09-25 17:55:43.715` |
+| `duracion_s` | **8.4 s** |
+| Ejecuciones **fallidas** del 2026-09-25 | **0**. La única ejecución del día es la 9, y fue `success` |
+
+Las ejecuciones 5, 6, 7 y 8 son del **2026-09-24** (validación técnica de B4), incluida la única
+ejecución con `status = error` de toda la historia de la instancia (id 5, `finished = 0`).
+Ninguna pertenece a la ventana B5, que arrancó el 2026-09-25.
+
+---
+
+## 3. Distinción **manual** vs **programada** — la observación central
+
+### Consulta literal
+
+```sql
+SELECT mode, status, COUNT(*) AS n
+FROM execution_entity
+GROUP BY mode, status
+ORDER BY mode, status;
+```
+
+### Salida real
+
+```
+mode   | status  | n
+-------+---------+--
+manual | error   | 5
+manual | success | 4
+(2 filas)
+```
+
+### Consulta literal (control: ¿existe alguna ejecución programada?)
+
+```sql
+SELECT COUNT(*) FROM execution_entity WHERE mode != 'manual';
+```
+
+### Salida real
+
+```
+0
+```
+
+### Lectura
+
+La columna `mode` de `execution_entity` vale **`manual` en las 9 ejecuciones de la instancia**, sin
+excepción: 5 `error` y 4 `success`. El conteo de ejecuciones **no** manuales es **0**.
+
+**Qué significa, en concreto:**
+
+- La ejecución **9** — la única del 2026-09-25, la que produjo los 33 posts de la ventana B5 — la
+  disparó una persona desde la UI de n8n con el botón *Execute workflow*. **No** fue un tick del
+  nodo `Schedule Ingesta` de 15 minutos.
+- Por lo tanto, **la ingesta del 2026-09-25 fue MANUAL, no PROGRAMADA.** El workflow recién se
+  publicó en esta misma jornada (`active = 1`), y un Schedule de 15 minutos recién publicado no
+  puede haber producido ticks anteriores a su publicación.
+- **Estado de la primera ingesta PROGRAMADA al cierre de esta pasada: PENDIENTE.** Ocurre dentro
+  de los 15 minutos siguientes a la publicación del workflow. No hay ninguna ejecución programada
+  registrada que la contradiga: el conteo es 0.
+
+**Por qué la distinción importa metodológicamente:** un `n` de posts recolectado por una ejecución
+manual y uno recolectado por el trigger programado no miden lo mismo. El manual prueba que el
+pipeline funciona; el programado es lo que sostiene la continuidad de la ventana. Reportarlos
+como si fueran la misma cosa sería falsear la cobertura de la ventana. El texto de la bitácora del
+día y el documento de verificación de instancia lo declaran explícitamente por eso.
+
+---
+
+## 4. Equivalencia de zona horaria de la ejecución 9
+
+`startedAt` y `stoppedAt` están en **UTC**. La zona de ejecución del sistema es
+`America/Argentina/Buenos_Aires` (UTC−03:00, sin horario de verano desde 2009).
+
+| Marca | UTC (como la persiste n8n) | `America/Argentina/Buenos_Aires` |
+|---|---|---|
+| `startedAt` | `2026-09-25 17:55:35.332` | `2026-09-25 14:55:35.332` |
+| `stoppedAt` | `2026-09-25 17:55:43.715` | `2026-09-25 14:55:43.715` |
+| Duración | 8.4 s | 8.4 s |
+
+Conversión: `hora local = UTC − 03:00`. La tabla `posts.ingested_at` de `tesi_osint` guarda
+`2026-09-25 17:55:43.688358Z` como `MAX(ingested_at)` de la ventana, que cae **dentro** de la
+ventana temporal de la ejecución 9 (`17:55:35.332Z` → `17:55:43.715Z`): los 33 posts del día son
+los de esa ejecución, según la salida de
+`psql_2026-09-25_ventana_b5_dia_2026-09-25.txt` [Q-C8].
+
+---
+
+## 5. Cifras que este archivo NO afirma
+
+Este archivo es **evidencia operacional del estado de la instancia**, no una métrica de
+resultados (RN-GL-01). No declara ninguna tasa, precisión, coincidencia ni volumen de hallazgos
+sobre los posts recolectados. Las únicas cifras son conteos operativos: identificadores de
+workflow, `active`, `versionId` y estados de ejecución, cada uno con su consulta literal y su
+salida real.

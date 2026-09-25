@@ -1,0 +1,104 @@
+Salida de psql — suficiencia de la ventana B5 (criterio de 10 días completos)
+==============================================================================
+
+| Campo | Valor |
+|---|---|
+| Fecha de captura | 2026-09-25 |
+| Identificador de la ventana | **B5** (inicio 2026-09-25, corte `no fijada`) |
+| Zona horaria de los límites | `America/Argentina/Buenos_Aires` |
+| Criterio de suficiencia | 10 días completos de evaluaciones en `anomalias` (D-6, base comparativa de RN-AN-02) |
+| Cambio OpenSpec | `ventana-recoleccion-b5` (C-05), tareas 6.5 y 7.5 |
+| Tipo de dato | Conteo operativo consultable, no estimado. No es métrica de resultados (RN-GL-01) |
+| Modo de conexión | Variables de entorno estándar de PostgreSQL (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`) definidas en la sesión. El rol, la clave y la cadena de conexión NO se registran en este archivo |
+| Forma del comando | `psql -X -q -c "<consulta literal>"` (solo lectura) |
+
+---
+
+## [Q-D1] Días completos evaluados dentro de la ventana (agrupado por `ventana_fin`)
+
+Consulta literal (la misma que emite `V4/scripts/bitacora_b5.py`):
+
+```sql
+SELECT (ventana_fin AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS dia,
+       COUNT(*) AS n_evaluaciones
+FROM anomalias
+WHERE ventana_fin >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+  AND ventana_fin <  TIMESTAMPTZ '2026-09-26T00:00:00-03:00'
+GROUP BY (ventana_fin AT TIME ZONE 'America/Argentina/Buenos_Aires')::date
+ORDER BY dia;
+```
+
+Salida real:
+
+```
+ dia | n_evaluaciones
+-----+----------------
+(0 filas)
+```
+
+Lectura: **0 días** con evaluación dentro de la ventana. Sin filas, no porque
+no haya anomalías, sino porque el motor de anomalías todavía no corrió dentro
+de la ventana: la base **no tiene ninguna fila en `anomalias`**. El estado se
+reporta como limitación de la base comparativa (RN-AN-06), nunca como ausencia
+de anomalías.
+
+---
+
+## [Q-D2] Suficiencia: días evaluados contra el umbral
+
+Consulta literal:
+
+```sql
+SELECT (SELECT COUNT(*)
+        FROM anomalias
+        WHERE ventana_fin >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+          AND ventana_fin <  TIMESTAMPTZ '2026-09-26T00:00:00-03:00') AS filas_anomalias_ventana,
+       (SELECT COUNT(DISTINCT (ventana_fin AT TIME ZONE 'America/Argentina/Buenos_Aires')::date)
+        FROM anomalias
+        WHERE ventana_fin >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+          AND ventana_fin <  TIMESTAMPTZ '2026-09-26T00:00:00-03:00') AS dias_completos_evaluados,
+       10 AS umbral_suficiencia;
+```
+
+Salida real:
+
+```
+ filas_anomalias_ventana | dias_completos_evaluados | umbral_suficiencia
+-------------------------+--------------------------+--------------------
+                       0 |                        0 |                 10
+(1 fila)
+```
+
+Lectura: suficiencia **0 de 10**. La ventana B5 sigue declared **ABIERTA** y
+antes de alcanzar el umbral no puede ejecutarse la decisión de cierre
+(tarea 6.1), ni la decisión de conservar o reiniciar la recolección (6.2), ni
+la de incluir los posts previos al 2026-09-25 (6.3), ni la confirmación de
+suficiencia (6.5). Todas dependen de una decisión de los autores y del
+acumulado de evaluaciones, no de esta ejecución técnica.
+
+---
+
+## [Q-D3] Evaluaciones registradas en toda la base (incluidas fuera de la ventana)
+
+Consulta literal:
+
+```sql
+SELECT COUNT(*) AS filas_anomalias_total,
+       MIN(ventana_fin) AS ventana_fin_min,
+       MAX(ventana_fin) AS ventana_fin_max
+FROM anomalias;
+```
+
+Salida real:
+
+```
+ filas_anomalias_total | ventana_fin_min | ventana_fin_max
+------------------------+----------------+-----------------
+                      0 |                | 
+(1 fila)
+```
+
+Lectura: la tabla `anomalias` está **vacía**, no solo dentro de la ventana. No
+hay historia de evaluaciones que sirva de base comparativa, lo que confirma que
+el `0 de 10` no es un efecto del filtro de la ventana sino del estado real de
+la base al 2026-09-25.

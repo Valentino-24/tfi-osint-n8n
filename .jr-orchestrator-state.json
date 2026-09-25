@@ -1,0 +1,186 @@
+{
+  "version": 3,
+  "step": "done",
+  "owner": "jr-orchestrator",
+  "kb": {
+    "created_by": "kb-creator",
+    "source": "interactive",
+    "discovery": {
+      "system_type": "pipeline_osint_n8n_postgres",
+      "domain": "ciberseguridad y OSINT",
+      "scale": "single_deployment",
+      "stack": [
+        "n8n 2.22.6",
+        "PostgreSQL 18",
+        "Reddit RSS/Atom",
+        "Node.js crypto HMAC-SHA-256",
+        "Git"
+      ],
+      "needs_infra": true,
+      "problem": "Detectar señales tempranas de phishing en publicaciones públicas de Reddit mediante un pipeline OSINT verificable, trazable y alimentado por evidencia real."
+    },
+    "files": [
+      "knowledge-base/README.md",
+      "knowledge-base/01_vision_y_objetivos.md",
+      "knowledge-base/02_descripcion_general.md",
+      "knowledge-base/03_actores_y_roles.md",
+      "knowledge-base/04_modelo_de_datos.md",
+      "knowledge-base/05_reglas_de_negocio.md",
+      "knowledge-base/06_funcionalidades.md",
+      "knowledge-base/07_flujos_principales.md",
+      "knowledge-base/08_arquitectura_propuesta.md",
+      "knowledge-base/09_decisiones_y_supuestos.md",
+      "knowledge-base/10_preguntas_abiertas.md"
+    ]
+   },
+  "roadmap": {
+    "created_by": "roadmap-generator",
+    "source": "CHANGES.md",
+    "changes": [
+      "C-01",
+      "C-02",
+      "C-03",
+      "C-04",
+      "C-05",
+      "C-06",
+      "C-07",
+      "C-08",
+      "C-09",
+      "C-10",
+      "C-11",
+      "C-12",
+      "C-13",
+      "C-14",
+      "C-15",
+      "C-16",
+      "C-17",
+      "C-18",
+      "C-19",
+      "C-20",
+      "C-21",
+      "C-22",
+      "C-23"
+    ]
+  },
+  "skills": {
+    "created_by": "find-skill",
+    "source": "skills.sh via npx skills@1.7.0, con verificacion de estrellas via GitHub API",
+    "scope": "project",
+    "install_path": ".agents/skills",
+    "installed": [
+      {
+        "name": "n8n-workflow-patterns",
+        "source": "czlonkowski/n8n-skills",
+        "installs": 11000,
+        "repo_stars": 6313,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "medium" },
+        "why": "Patrones de construccion de workflows n8n: es la base sobre la que se implementan los 23 changes del roadmap."
+      },
+      {
+        "name": "n8n-code-javascript",
+        "source": "czlonkowski/n8n-skills",
+        "installs": 6600,
+        "repo_stars": 6313,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "low" },
+        "why": "Code nodes de n8n: es donde vive Node.js crypto/HMAC-SHA-256 de la cadena de evidencia."
+      },
+      {
+        "name": "n8n-validation-expert",
+        "source": "czlonkowski/n8n-skills",
+        "installs": 6300,
+        "repo_stars": 6313,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "low" },
+        "why": "Validacion de workflows: sostiene el requisito de pipeline verificable y trazable."
+      },
+      {
+        "name": "n8n-self-hosting",
+        "source": "czlonkowski/n8n-skills",
+        "installs": 1500,
+        "repo_stars": 6313,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "low" },
+        "why": "kb.discovery.needs_infra es true: despliegue self-hosted de n8n junto a PostgreSQL."
+      },
+      {
+        "name": "n8n-workflow-lifecycle-official",
+        "source": "n8n-io/skills",
+        "installs": 1700,
+        "repo_stars": 503,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "medium" },
+        "why": "Fuente oficial de n8n: ciclo de vida de workflows (import, export, versionado)."
+      },
+      {
+        "name": "n8n-credentials-and-security-official",
+        "source": "n8n-io/skills",
+        "installs": 1500,
+        "repo_stars": 503,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "low" },
+        "why": "Fuente oficial y dominio ciberseguridad: manejo de credenciales y secretos en n8n self-hosted."
+      },
+      {
+        "name": "postgresql-table-design",
+        "source": "wshobson/agents",
+        "installs": 26100,
+        "repo_stars": 39944,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "low" },
+        "why": "Modelo de datos del pipeline (posts, senales, entidades, evidencia) sobre PostgreSQL 18."
+      },
+      {
+        "name": "git-workflow-and-versioning",
+        "source": "addyosmani/agent-skills",
+        "installs": 38800,
+        "repo_stars": 99005,
+        "security": { "gen": "safe", "socket": "0 alerts", "snyk": "low" },
+        "why": "Git es parte del stack declarado: reproducibilidad de corridas y trazabilidad de la evidencia real."
+      }
+    ],
+    "recommended": [
+      {
+        "name": "analyzing-indicators-of-compromise",
+        "source": "mukul975/anthropic-cybersecurity-skills",
+        "installs": 474,
+        "repo_stars": 33367,
+        "status": "deferred",
+        "why": "Repo confiable, pero el playbook es de triage de IOC en host, no de deteccion de phishing desde posts. Reevaluar cuando el clasificador tenga reglas y scoring definidos."
+      },
+      {
+        "name": "collecting-open-source-intelligence",
+        "source": "mukul975/anthropic-cybersecurity-skills",
+        "installs": 269,
+        "repo_stars": 33367,
+        "status": "deferred",
+        "why": "Alineado al dominio OSINT pero generico y con bajo conteo de instalaciones. Candidato si un change de reporte/exportacion necesita estandarizar la recoleccion."
+      }
+    ],
+    "rejected": [
+      { "name": "supabase-postgres-best-practices", "source": "supabase/agent-skills", "installs": 416100, "why": "Especifico de Supabase (RLS, dashboard, project management); el proyecto usa PostgreSQL 18 vanilla en Docker." },
+      { "name": "postgresql-optimization", "source": "github/awesome-copilot", "installs": 15800, "why": "Optimizacion para bases de alto trafico; innecesario en un despliegue unico de tesis." },
+      { "name": "nodejs-backend-patterns", "source": "wshobson/agents", "installs": 46100, "why": "El proyecto no tiene backend Node standalone; Node solo existe dentro de Code nodes de n8n." },
+      { "name": "social-media-osint", "source": "useosint/skills", "installs": 608, "repo_stars": 41, "why": "Repo con 41 stars, exactamente el caso de escepticismo que el propio find-skill exige. No instalable." },
+      { "name": "osint-recon", "source": "briiirussell/cybersecurity-skills", "installs": 300, "repo_stars": 402, "why": "Recon ofensivo de un solo mantenedor; no aplica a deteccion defensiva temprana." },
+      { "name": "n8n-mcp-tools-expert", "source": "czlonkowski/n8n-skills", "installs": 7800, "why": "Requiere servidor MCP de n8n; el proyecto opera sobre workflows JSON versionados, no sobre MCP." },
+      { "name": "n8n-expression-syntax", "source": "czlonkowski/n8n-skills", "installs": 6100, "why": "Queda cubierto por n8n-workflow-patterns y n8n-workflow-lifecycle-official; evita duplicacion." },
+      { "name": "rss-reader, rss-monitor, feedsmith y similares", "source": "diversos autores", "installs": "menos de 250", "why": "Ningun skill de RSS/Atom supera 250 instalaciones ni tiene autor confiable; la ingesta ya la resuelve el nodo RSS Feed Read de n8n." }
+    ]
+  },
+  "registry": {
+    "created_by": "skill-registry",
+    "file": ".atl/skill-registry.md"
+  },
+  "agents": {
+    "created_by": "agent-instruction",
+    "files": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "reglas_applied": [
+      "No hardcodear secretos",
+      "Regenerar el workflow desde el generador",
+      "Reasignar credenciales tras importar",
+      "Validar antes de probar",
+      "Métricas solo desde datos reales",
+      "Desactivar subreddits en lugar de eliminarlos",
+      "No versionar secretos",
+      "Trazar cada métrica a consulta, fecha, ventana y n"
+    ]
+  }
+}

@@ -22,3 +22,6 @@ __pycache__/
 # Temporales de Windows/Office
 ~$*
 Thumbs.db
+
+# Artefactos de build de agentes (indice de skills, se regenera)
+.atl/

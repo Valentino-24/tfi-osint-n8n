@@ -1,0 +1,127 @@
+Salida de psql — caracterización del rate limiting: caso verificado de r/derechogenial
+==============================================================================
+
+| Campo | Valor |
+|---|---|
+| Fecha de captura | 2026-09-25 |
+| Identificador de la ventana | B5 (ventana de recolección, inicio 2026-09-25) |
+| Corrida caracterizada | B4 — ingesta RSS/Plan C, 2026-09-24 (fuera de la ventana B5) |
+| Cambio OpenSpec | `ventana-recoleccion-b5` (C-05), tarea 7.5 |
+| Documento que consume esta salida | `V4/evidencias/CARACTERIZACION_RATE_LIMIT.md` §4 |
+| Tipo de dato | Conteo operativo de la corrida, con su consulta, fecha y `n`. No es métrica de resultados (RN-GL-01) |
+|Modo de conexión | Variables de entorno estándar de PostgreSQL (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`) definidas en la sesión. El rol, la clave y la cadena de conexión NO se registran en este archivo |
+| Forma del comando | `psql -X -q -c "<consulta literal>"` (solo lectura; ningún archivo del proyecto se modifica) |
+
+---
+
+## [Q-B1] Posts ingeridos por subreddit en la corrida B4 (2026-09-24)
+
+Consulta literal:
+
+```sql
+SELECT s.display_name,
+       s.active_monitoring,
+       COUNT(p.id) AS n_posts_b4
+FROM subreddits s
+LEFT JOIN posts p
+       ON p.subreddit_id = s.id
+      AND p.ingested_at >= TIMESTAMPTZ '2026-09-24T00:00:00-03:00'
+      AND p.ingested_at <  TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
+GROUP BY s.display_name, s.active_monitoring
+ORDER BY s.display_name;
+```
+
+Salida real:
+
+```
+  display_name   | active_monitoring | n_posts_b4
+-----------------+-------------------+------------
+ r/argentina     | t                 |        101
+ r/derechogenial | t                 |          0
+ r/devsarg       | t                 |        100
+(3 filas)
+```
+
+Lectura: el `LEFT JOIN` desde `subreddits` conserva el cero de `r/derechogenial`
+(D-5, RN-GL-02). `n = 0` para `r/derechogenial` y `active_monitoring = t`:
+el subreddit **permanece habilitado** y su ausencia de datos se reporta con
+causa (rate limiting de Reddit sobre el feed), no se compensa.
+
+---
+
+## [Q-B2] Total de posts de la corrida B4
+
+Consulta literal:
+
+```sql
+SELECT COUNT(*) AS total_posts_b4
+FROM posts
+WHERE ingested_at >= TIMESTAMPTZ '2026-09-24T00:00:00-03:00'
+  AND ingested_at <  TIMESTAMPTZ '2026-09-25T00:00:00-03:00';
+```
+
+Salida real:
+
+```
+ total_posts_b4
+----------------
+            201
+(1 fila)
+```
+
+Lectura: 101 + 0 + 100 = 201. Coincide con los 201 posts verificados de B4 que
+declaran `VENTANA_B5.md` §5 y `CARACTERIZACION_RATE_LIMIT.md` §4.
+
+---
+
+## [Q-B3] Subreddits monitorizados y su estado
+
+Consulta literal:
+
+```sql
+SELECT id, display_name, active_monitoring
+FROM subreddits
+ORDER BY display_name;
+```
+
+Salida real:
+
+```
+      id       |  display_name   | active_monitoring
+---------------+-----------------+-------------------
+ argentina     | r/argentina     | t
+ derechogenial | r/derechogenial | t
+ devsarg       | r/devsarg       | t
+(3 filas)
+```
+
+Lectura: los **3** subreddits monitorizados con `active_monitoring = t`
+(denominador completo de la cobertura, RN-GL-02). Ninguno se desactiva.
+
+---
+
+## [Q-B4] Rango de `ingested_at` de la corrida B4
+
+Consulta literal:
+
+```sql
+SELECT MIN(ingested_at) AS ingested_at_min,
+       MAX(ingested_at) AS ingested_at_max,
+       COUNT(DISTINCT (ingested_at AT TIME ZONE 'America/Argentina/Buenos_Aires')::date) AS dias_distintos
+FROM posts;
+```
+
+Salida real:
+
+```
+        ingested_at_min        |        ingested_at_max        | dias_distintos
+-------------------------------+-------------------------------+----------------
+ 2026-09-24 17:42:03.321854-03 | 2026-09-24 17:44:04.559032-03 |              1
+(1 fila)
+```
+
+Lectura: los 201 posts se ingirieron en **un solo día local, 2026-09-24**, en
+un intervalo de ~2 minutos (17:42 a 17:44, `America/Argentina/Buenos_Aires`).
+Es decir, la corrida B4 fue **una única ejecución**, no una recolección
+prolongada. Confirma que los 201 posts quedan fuera del corpus de la ventana B5
+(inicio 2026-09-25) por el criterio `ingested_at` de D-1.
