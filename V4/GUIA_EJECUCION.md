@@ -10,7 +10,7 @@
 | B2 DDL | ✅ **Verificado**: las 5 tablas existen (`subreddits`, `posts`, `comments`, `anomalias`, `alertas`) — todas vacías |
 | B3 Workflow | ✅ **Generado y validado** `V4\anexos\B_workflow.json` (15 nodos, import exitoso con `n8n import:workflow`) |
 | B4 Correr | ⏳ Este documento |
-| B5 Ventana | ⏳ **Ventana real abierta y con recolección activa**: inicio **2026-09-25**, corte **`no fijada`** (decisión de los autores con sus directores). Workflow **publicado el 2026-09-25** (`active = 1`): **33 posts** dentro de la ventana al cierre de la pasada de las 15:07, primer ciclo **programado pendiente**. Evidencia y bitácora diaria en `V4\evidencias\VENTANA_B5.md` y `V4\evidencias\bitacora_b5\`. Cierre pendiente (C-05, tarea 6.1) |
+| B5 Ventana | ⏳ **Ventana real abierta, con una interrupción declarada**: inicio **2026-09-25**, corte **`no fijada`** (decisión de los autores con sus directores). El día `2026-09-25` cerró **parcial** con `n = 36` (cubre 14:55–16:00): la recolección se detuvo a las 16:00:05 y el motor de anomalías tenía el SQL roto. Total en base **237**. Evidencia y bitácora diaria en `V4\evidencias\VENTANA_B5.md` (§7.1) y `V4\evidencias\bitacora_b5\`. Cierre pendiente (C-05, tarea 6.1) |
 
 ---
 
@@ -35,22 +35,77 @@
 
 ### 1. Variables de entorno (ANTES de arrancar n8n)
 
-Abrí PowerShell y seteá (persisten solo en esa ventana; para que persistan usá `setx`):
+**No corras `n8n start` a secas.** Sin estas variables el nodo `HMAC Anonymize`
+muere en cada trigger con `Module 'crypto' is disallowed`, y el pipeline deja de
+recolectar sin que n8n avise.
+
+> 🎯 **Atajo: doble clic en `V4\scripts\arrancar_n8n.bat`.** El script lee la clave
+> HMAC de `%USERPROFILE%\.n8n-hmac-key.txt`, verifica que PostgreSQL responda en
+> 5433, setea las cuatro variables y recién ahí arranca n8n. Es la vía recomendada.
+
+#### Las cuatro variables no secretas, persistidas (2026-09-26)
+
+Depender del `.bat` es frágil: si n8n se arranca de cualquier otra forma
+(una terminal nueva, una tarea programada, un acceso directo) las variables no
+están y el nodo HMAC vuelve a morir. Por eso las cuatro variables **no secretas**
+quedan además en el entorno de Usuario (`HKCU\Environment`), y n8n las hereda
+sea cual sea la vía de arranque:
+
+| Variable | Valor | Por qué |
+|---|---|---|
+| `NODE_FUNCTION_ALLOW_BUILTIN` | `crypto` | habilita `require('crypto')` en los nodos Code |
+| `N8N_BLOCK_ENV_ACCESS_IN_NODE` | `false` | deja leer `$env.OSINT_HMAC_KEY` desde el nodo Code |
+| `EXECUTIONS_DATA_MAX_AGE` | `720` | 30 días de log para las consultas de evidencia |
+| `EXECUTIONS_DATA_PRUNE_MAX_COUNT` | `5000` | techo de ejecuciones retenidas |
+
+Se aplicaron una sola vez con `setx` (no hace falta repetirlas):
 
 ```powershell
-# Clave secreta HMAC por despliegue — GENERALA (no uses una fija):
-$hmac = python -c "import secrets; print(secrets.token_hex(32))"
-$env:OSINT_HMAC_KEY = $hmac
-$env:NODE_FUNCTION_ALLOW_BUILTIN = "crypto"      # para require('crypto') en nodos Code
-$env:N8N_BLOCK_ENV_ACCESS_IN_NODE = "false"      # para que $env funcione en nodos Code
+setx NODE_FUNCTION_ALLOW_BUILTIN      "crypto"
+setx N8N_BLOCK_ENV_ACCESS_IN_NODE     "false"
+setx EXECUTIONS_DATA_MAX_AGE          "720"
+setx EXECUTIONS_DATA_PRUNE_MAX_COUNT  "5000"
 ```
 
-> 📌 Guardá el valor de `$hmac` en anotaciones locales: es la "clave secreta por despliegue" (H-01) y se documenta en el Anexo E9 (entorno). Si n8n ya estaba abierto, cerrarlo y reabrirlo con estas variables.
+> ⚠️ **La clave HMAC NO va al registro.** `setx` guarda en texto plano y legible
+> para cualquier proceso del usuario. `OSINT_HMAC_KEY` sigue leyéndose del
+> archivo `%USERPROFILE%\.n8n-hmac-key.txt`, que lo carga el `.bat`.
+
+> ℹ️ `setx` solo afecta a los procesos que se abren **después**: la terminal que
+> ya tenés abierta no las ve. Para el reinicio de n8n no importa (el `.bat` las
+> define igual), pero si querés verla sin abrir n8n, cerrá y abrí la terminal de
+> nuevo, o reiniciá la sesión de Windows.
+
+Si necesitás hacerlo a mano (PowerShell; las variables duran **solo esa ventana**):
+
+```powershell
+# Clave secreta HMAC por despliegue (ver más abajo cómo se persiste)
+$env:OSINT_HMAC_KEY = Get-Content "$env:USERPROFILE\.n8n-hmac-key.txt" -Raw
+$env:NODE_FUNCTION_ALLOW_BUILTIN = "crypto"      # para require('crypto') en nodos Code
+$env:N8N_BLOCK_ENV_ACCESS_IN_NODE = "false"      # para que $env funcione en nodos Code
+$env:EXECUTIONS_DATA_MAX_AGE = "720"             # 30 días de log para las consultas de evidencia
+$env:EXECUTIONS_DATA_PRUNE_MAX_COUNT = "5000"
+```
+
+**Dónde vive la clave.** La clave es la "clave secreta por despliegue" (H-01) y se
+documenta en el Anexo E9 (entorno). **Nunca en el repositorio** — se pushea a
+GitHub. Vive en `%USERPROFILE%\.n8n-hmac-key.txt`, una sola línea de 64 hex.
+
+Si no existe ese archivo, generá uno:
+
+```powershell
+python -c "import secrets; open(__import__('os').path.expanduser('~/.n8n-hmac-key.txt'),'w',newline='').write(secrets.token_hex(32))"
+n8n import:workflow --input=V4\anexos\B_workflow.json
+```
+
+> ⚠️ **Rotarla parte el hash en dos épocas.** Los `author_hash` viejos no se pueden
+> rehashear. Detalle, impacto y mitigación en
+> `V4\evidencias\ROTACION_HMAC_2026-09-26.md`.
 
 ### 2. Arrancar n8n y crear cuenta
 
 ```powershell
-n8n start
+V4\scripts\arrancar_n8n.bat
 ```
 Abrí http://localhost:5678 → creá la cuenta local (usuario/contraseña que quieras).
 
@@ -164,6 +219,7 @@ conexión falla, el script termina con error explícito y **no** escribe una ent
 | Síntoma | Causa probable | Fix |
 |---|---|---|
 | CODE: "Falta la variable de entorno OSINT_HMAC_KEY" | n8n arrancó sin el env | Setear env y reiniciar n8n |
+| CODE: `Module 'crypto' is disallowed` en `HMAC Anonymize` | el proceso de n8n **no** tiene `NODE_FUNCTION_ALLOW_BUILTIN`; n8n 2.22.6 solo se la pasa al task runner si está en su propio entorno | Cerrar **todas** las ventanas de n8n y relanzar con `V4\scripts\arrancar_n8n.bat`. No alcanza con re-ejecutar el workflow: una instancia viva no puede recibir variables nuevas. Si reincide, n8n se está arrancando por otra vía — las cuatro variables ya están en `HKCU\Environment` (§1) |
 | "NODE_FUNCTION_ALLOW_BUILTIN" requerido pero no seteado | `require('crypto')` bloqueado | `$env:NODE_FUNCTION_ALLOW_BUILTIN = "crypto"` y reiniciar |
 | HTTP 403/429 de Reddit (RSS) | Reddit bloquea/rate-limita el IP temporalmente | El nodo RSS Read tiene retry x3 cada 30 s; si persiste, esperar 1 min (ventana de rate limit público); última opción: volver a OAuth con otra cuenta |
 | PostgreSQL: connection refused | Cluster del proyecto apagado | `V4\scripts\arrancar_postgres.bat` |

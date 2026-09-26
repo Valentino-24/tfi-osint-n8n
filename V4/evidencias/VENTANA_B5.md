@@ -129,6 +129,56 @@ Estas reglas gobiernan **todo** desglose por subreddit producido dentro de la ve
 **Estado de la recolección: ACTIVA.** Workflow `TFIOsintV4Monitor01` **publicado** el 2026-09-25
 (`active = 1`, `versionId` `abe9e78c-4854-4243-b2ea-58dbc4a57a9f`).
 
+### 7.1 Incidente del 2026-09-26: interrupción de la recolección y motor de anomalías roto
+
+> **Actualizado 2026-09-26.** La tabla de §7 (abajo) queda como el registro de la pasada de las
+> 15:07. Este bloque es el estado **posterior** y el que describe el corte real de la ventana.
+
+La recolección del 2026-09-25 **no cubrió el día entero**: se detuvo a las **16:00:05** hora local
+(`max(ingested_at) = 2026-09-25 16:00:05-03`) y no se restableció hasta la corrección del
+2026-09-26. El día queda declarado **parcial**.
+
+Cronología, con el identificador de ejecución de n8n como evidencia:
+
+| Momento (local) | Ej. | Qué pasó | Causa |
+|---|---|---|---|
+| 14:55:43 | 9 | 33 posts de `r/argentina` (ejecución **manual**, no programada) | — |
+| 15:30 → 16:00 | 10–14 | 3 posts más; los ticks **programados** de 15 min funcionaron | — |
+| 23:30 | 15 | `Connection refused ::1:5433` en `Upsert Subreddits` | PostgreSQL caído; los nodos Postgres **no tienen `retryOnFail`** |
+| 00:00:01 (26/9) | 26 | `Module 'crypto' is disallowed` en `HMAC Anonymize` | instancia arrancada con `n8n start` **sin las variables de entorno** |
+| 00:01:39 / 00:01:46 | 27 / 28 | 27 error; 28 **`success` con 0 posts** | los 3 feeds devolvieron **HTTP 429** y `Fetch Posts RSS` tiene `continueOnFail` |
+| 00:05:43 | 29 | `no existe la función json_to_recordset(jsonb)` en `Registrar Anomalias y Alertas` | **bug del workflow**, dos veces |
+
+**El motor de anomalías nunca escribió una sola fila.** La tabla `anomalias` tiene 0 registros y
+`anomalias_id_seq.last_value = 1`: la secuencia nunca avanzó, o sea que el `INSERT` no llegó a
+ejecutarse ni una vez. El criterio de suficiencia de 10 días completos (`dias_completos_evaluados`)
+estaba **estructuralmente inalcanzable** mientras el SQL fuera incorrecto.
+
+El bug sobrevivió porque el trigger de las 00:05 **nunca se había ejecutado** antes: la ventana
+arrancó el 2026-09-25 y la instancia estuvo caída en todos los 00:05 previos. La primera ejecución
+posible lo destapó. Eran **dos** defectos encadenados en el mismo statement:
+
+1. `json_to_recordset` solo tiene la firma `(json)`; para `jsonb` la función se llama
+   `jsonb_to_recordset`.
+2. `*to_recordset` exige un **array** JSON en el nivel superior, y el nodo liga `$1` a
+   `JSON.stringify($json)`, que es un objeto suelto → `no se puede invocar ... en un no-array`.
+
+Corregido en `V4/scripts/generar_workflow.py` y revalidado con `PREPARE` sobre PostgreSQL 18
+(resuelve y planifica sin ejecutar). **Pendiente: reimportar el workflow y reasignar la credencial
+Postgres.** La rotación de clave HMAC y el reinicio con variables quedan en
+[`ROTACION_HMAC_2026-09-26.md`](ROTACION_HMAC_2026-09-26.md).
+
+Estado de la base al cierre del 2026-09-26 00:40:
+
+| Métrica operativa | Valor | Origen |
+|---|---|---|
+| Día `2026-09-25` (cerrado) | `n = 36`, **parcial** (cubre 14:55–16:00) | `SELECT` acotado por día local; [`bitacora_b5/2026-09-25.md`](bitacora_b5/2026-09-25.md) regenerado al cierre del día |
+| Posts en la base completa | **237** = 201 (B4, 24/9) + 36 (ventana) | `SELECT` de solo lectura |
+| Último post ingerido | `2026-09-25 16:00:05-03` | `max(ingested_at)` |
+| Distribución acumulada | `r/argentina` 137, `r/devsarg` 100, `r/derechogenial` 0 | `SELECT` con join a `subreddits` |
+| `anomalias` / `alertas` | **0 / 0**, `anomalias_id_seq.last_value = 1` | `SELECT` de solo lectura |
+| Días completos evaluados | **0 / 10** | script `V4/scripts/bitacora_b5.py` |
+
 | Métrica operativa | Valor al cierre de la pasada del 2026-09-25 15:07 | Origen |
 |---|---|---|
 | Estado de la recolección | **Activa** — workflow publicado (`active = 1`) el 2026-09-25 | `SELECT` de solo lectura sobre la base de n8n, `mode=ro` — [`n8n_2026-09-25_estado_y_ejecuciones.txt`](n8n_2026-09-25_estado_y_ejecuciones.txt) |

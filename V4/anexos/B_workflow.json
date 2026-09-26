@@ -13,7 +13,7 @@
           ]
         }
       },
-      "id": "8375c4ee-e45f-432c-b13b-ae7152060704",
+      "id": "fabb4aa0-c544-467e-8ca2-e5ac17ba45b2",
       "name": "Schedule Ingesta",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -26,7 +26,7 @@
       "parameters": {
         "jsCode": "const subs = [\n  { subreddit_id: 'argentina', display_name: 'r/argentina', rss_url: 'https://www.reddit.com/r/argentina/new/.rss?limit=100' },\n  { subreddit_id: 'devsarg', display_name: 'r/devsarg', rss_url: 'https://www.reddit.com/r/devsarg/new/.rss?limit=100' },\n  { subreddit_id: 'derechogenial', display_name: 'r/derechogenial', rss_url: 'https://www.reddit.com/r/derechogenial/new/.rss?limit=100' }\n];\nreturn subs;"
       },
-      "id": "e2667eef-1ccf-43d6-8d61-e9ad9843b204",
+      "id": "4378fd49-455c-4986-b1e8-98ce4017cb78",
       "name": "Prepare Subreddits",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -43,7 +43,7 @@
           "queryReplacement": "={{ [ $json.subreddit_id, $json.display_name ] }}"
         }
       },
-      "id": "d4d22f83-07ae-4bfd-9440-f3a45ed21bd7",
+      "id": "143ecd99-2feb-4861-ac00-d20293df22cb",
       "name": "Upsert Subreddits",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -59,7 +59,7 @@
           "customFields": "author, contentSnippet, guid"
         }
       },
-      "id": "922eadb4-68d5-44b0-a04e-f3b1e6f8648a",
+      "id": "1d1fbd0c-da5f-4c10-b4c6-641f3da54c39",
       "name": "Fetch Posts RSS",
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.2,
@@ -76,7 +76,7 @@
       "parameters": {
         "jsCode": "// Parser para feed Atom RSS de Reddit (nodo RSS Read, rss-parser).\n// id y subreddit_id se derivan del link del post:\n//   https://www.reddit.com/r/{sub}/comments/{id}/{slug}/\n// limitaciones RSS: score y num_comments no vienen -> 0 (documentado).\nconst out = [];\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  const link = String(d.link || '');\n  const m = link.match(/\\/r\\/([a-z0-9_]+)\\/comments\\/([a-z0-9]+)\\//i);\n  if (!m) continue;\n  const authorRaw = (typeof d.author === 'string' ? d.author : (d.author && d.author.name) || '')\n    .replace(/^\\/u\\//, '')\n    .trim();\n  const text = String(d.contentSnippet || '')\n    .replace(/\\s*submitted by\\s+\\S+\\s*/gi, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n  const iso = d.isoDate || d.pubDate || null;\n  out.push({\n    json: {\n      id: m[2],\n      subreddit_id: m[1],\n      title: String(d.title || ''),\n      selftext: text || null,\n      url: link,\n      author: authorRaw || '[deleted]',\n      score: 0,\n      num_comments: 0,\n      created_utc: iso ? Math.floor(new Date(iso).getTime() / 1000) : 0\n    }\n  });\n}\nreturn out;"
       },
-      "id": "ddb07ab3-bb34-4c08-88d8-f1737d182c1a",
+      "id": "29bf255f-33a6-4fc0-b8aa-471b4a45099b",
       "name": "Parse Reddit Posts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -89,7 +89,7 @@
       "parameters": {
         "jsCode": "const crypto = require('crypto');\nconst key = $env.OSINT_HMAC_KEY;\nif (!key) {\n  throw new Error('Falta la variable de entorno OSINT_HMAC_KEY. Seteala antes de arrancar n8n (ver GUIA_EJECUCION.md).');\n}\nconst out = [];\nfor (const item of $input.all()) {\n  out.push({\n    json: {\n      ...item.json,\n      author_hash: crypto.createHmac('sha256', key).update(String(item.json.author)).digest('hex'),\n      created_utc_iso: new Date((item.json.created_utc || 0) * 1000).toISOString()\n    }\n  });\n  delete out[out.length - 1].json.author;\n}\nreturn out;"
       },
-      "id": "533feb08-c34a-4d1d-948a-7f28cf535b9c",
+      "id": "30350063-7881-4f12-9cc0-a98a8533318a",
       "name": "HMAC Anonymize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -102,7 +102,7 @@
       "parameters": {
         "jsCode": "// Clasificador por diccionario (Anexo C base). Texto normalizado sin acentos.\n// Fórmula de puntuación (4.4): score = hits(c) / |keywords(c)| con hits >= MIN_HITS.\nconst DICT = {\n  'Estafas Virtuales': ['estafa', 'estafas', 'estafa virtual', 'transferencia', 'mercado pago', 'mp', 'clonacion', 'clonacion de tarjeta', 'clonar', 'banco', 'billetera', 'cangrejo', 'piramidal', 'defraudacion'],\n  'Phishing': ['phishing', 'suplantacion', 'enlace', 'correo', 'whatsapp', 'cuenta', 'pescar', 'smishing', 'verificacion', 'ingreso falso'],\n  'Filtración de Datos': ['filtracion', 'filtrar', 'leak', 'fuga', 'dni', 'base de datos', 'venta de datos', 'expuesta', 'datos personales', 'vazamiento'],\n  'Vulnerabilidades': ['vulnerabilidad', 'vulnerabilidades', 'bug', 'cve', 'exploit', 'parche', 'actualizacion', 'falla', 'pwn'],\n  'Ransomware': ['ransomware', 'secuestro de datos', 'secuestro', 'encriptado', 'cifrado', 'rescate', 'wannacry', 'criptoransomware']\n};\nconst MIN_HITS = 2;\nconst norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst out = [];\nfor (const item of $input.all()) {\n  const text = norm(item.json.title + ' ' + (item.json.selftext || ''));\n  const words = new Set(text.split(/[^a-z0-9]+/));\n  let best = null;\n  let bestHits = 0;\n  let bestK = 1;\n  for (const cat of Object.keys(DICT)) {\n    let hits = 0;\n    for (const kw of DICT[cat]) {\n      const k = kw.includes(' ') ? (text.includes(kw) ? 1 : 0) : (words.has(kw) ? 1 : 0);\n      hits += k;\n    }\n    if (hits > bestHits) {\n      bestHits = hits;\n      best = cat;\n      bestK = DICT[cat].length;\n    }\n  }\n  if (best && bestHits >= MIN_HITS) {\n    item.json.nlp_category = best;\n    item.json.nlp_score = Math.round((bestHits / bestK) * 10000) / 10000; // normalizado [0,1]\n  } else {\n    item.json.nlp_category = 'No relevante';\n    item.json.nlp_score = 0;\n  }\n  out.push({ json: item.json });\n}\nreturn out;"
       },
-      "id": "06067537-4af5-49d3-a9aa-93e2ef4e51bb",
+      "id": "0123ed94-79ae-4d1f-9dc3-16602a50a6b8",
       "name": "Classify Dictionary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -115,7 +115,7 @@
       "parameters": {
         "jsCode": "// Extracción de entidades (OE4, [N-06]): CVE, emails, IPs, dominios y productos.\nconst PRODUCTS = ['whatsapp', 'telegram', 'mercado pago', 'windows', 'linux', 'android', 'ios', 'chrome', 'firefox', 'bitcoin', 'usdt', 'afi p', 'banco nacion', 'galicia', 'santander', 'uala', 'cvu', 'mercado libre'];\nconst norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst uniq = (a) => Array.from(new Set(a));\nconst out = [];\nfor (const item of $input.all()) {\n  const raw = item.json.title + ' ' + (item.json.selftext || '');\n  const low = norm(raw);\n  const entities = {\n    cves: uniq((low.match(/\\bcve-\\d{4}-\\d{4,7}\\b/g) || []).map((x) => x.toUpperCase())).slice(0, 20),\n    emails: uniq((raw.match(/\\b[\\w.+-]+@[\\w-]+\\.[\\w.]+\\b/g) || [])).slice(0, 20),\n    ips: uniq((low.match(/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/g) || [])).slice(0, 20),\n    domains: uniq((low.match(/\\b(?:[a-z0-9-]+\\.)+(?:com|ar|org|net|io|gov|edu)\\b/g) || []).filter((d) => !d.startsWith('reddit.com'))).slice(0, 20),\n    products: uniq(PRODUCTS.filter((p) => low.includes(p))).slice(0, 20)\n  };\n  item.json.entities = entities;\n  item.json.entities_json = JSON.stringify(entities);\n  out.push({ json: item.json });\n}\nreturn out;"
       },
-      "id": "b8e5d1af-2bbb-4ed0-8117-a115dcaf3719",
+      "id": "04d15cba-5826-410d-bdde-ba36c73c2a3c",
       "name": "Extract Entities",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -132,7 +132,7 @@
           "queryReplacement": "={{ [ $json.id, $json.subreddit_id, $json.title, $json.selftext, $json.url, $json.author_hash, $json.score, $json.num_comments, $json.created_utc_iso, $json.nlp_category, $json.nlp_score, $json.entities_json ] }}"
         }
       },
-      "id": "255a04d0-68af-41d1-9992-bdd3c4089ebf",
+      "id": "9d218d36-19ba-40e2-a422-2d79303c96bd",
       "name": "Upsert Posts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -153,7 +153,7 @@
           ]
         }
       },
-      "id": "7fbb26dd-87d7-4ed9-899f-6229804f83f5",
+      "id": "5d3854f2-e17e-42bb-a4ca-69fab8742d93",
       "name": "Schedule Anomalias",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -168,7 +168,7 @@
         "query": "-- Ventana: ayer [00:00, 00:00) hora de Buenos Aires. Base: media diaria de los 10 días previos.\nSELECT\n  p.nlp_category AS categoria,\n  COUNT(*) FILTER (WHERE p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day'\n                   AND p.ingested_at <  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires')) AS n_observado,\n  COUNT(*) FILTER (WHERE p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '11 day'\n                   AND p.ingested_at <  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day') / 10.0 AS base_media,\n  (date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day') AT TIME ZONE 'America/Argentina/Buenos_Aires' AS ventana_inicio,\n  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') AT TIME ZONE 'America/Argentina/Buenos_Aires' AS ventana_fin\nFROM posts p\nWHERE p.nlp_category IS NOT NULL\n  AND p.nlp_category <> 'No relevante'\n  AND p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '11 day'\nGROUP BY p.nlp_category\nORDER BY p.nlp_category",
         "options": {}
       },
-      "id": "c086d403-4ea7-4659-80cd-85a5212b77e4",
+      "id": "d007b620-881f-469e-a996-11d6b9b210ec",
       "name": "Query Daily Counts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -181,7 +181,7 @@
       "parameters": {
         "jsCode": "// Motor de anomalías (4.5): ventana diaria, base = media diaria de los 10 días previos,\n// umbral = max(cuantil 95 de Poisson + 1, mínimo absoluto 3). Disparo si n_observado >= umbral.\nfunction poissonCdf(k, l) {\n  let s = 0;\n  for (let i = 0; i <= k; i++) {\n    let logP = -l;\n    for (let j = 2; j <= i; j++) {\n      logP += Math.log(l / j);\n    }\n    s += Math.exp(logP);\n  }\n  return Math.min(1, s);\n}\nconst MIN_ABS = 3;\nconst out = [];\nfor (const item of $input.all()) {\n  const lambda = Math.max(0, Number(item.json.base_media) || 0);\n  const n = Math.max(0, Math.round(Number(item.json.n_observado) || 0));\n  let t = 0;\n  if (lambda > 0) {\n    while (t < 500 && (1 - poissonCdf(t, lambda)) > 0.05) {\n      t += 1;\n    }\n  }\n  const umbralPoisson = lambda > 0 ? t + 1 : 1;\n  const umbral = Math.max(umbralPoisson, MIN_ABS);\n  out.push({\n    json: {\n      ventana_inicio: item.json.ventana_inicio,\n      ventana_fin: item.json.ventana_fin,\n      categoria: item.json.categoria,\n      n_observado: n,\n      base_media: Math.round(lambda * 1000) / 1000,\n      umbral: umbral,\n      disparo: n >= umbral\n    }\n  });\n}\nreturn out;"
       },
-      "id": "1e0acb7a-8303-4c8a-a5d0-9a8e804cfa84",
+      "id": "c83bc824-0231-4579-b0a1-aa61fddab9c6",
       "name": "Anomaly Engine",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -193,12 +193,12 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "-- Inserta TODA la evaluación en anomalias; genera alerta solo si hubo disparo.\nWITH ins AS (\n  INSERT INTO anomalias (ventana_inicio, ventana_fin, categoria, n_observado, base_media, umbral, disparo)\n  SELECT * FROM json_to_recordset($1::jsonb)\n    AS x(ventana_inicio timestamptz, ventana_fin timestamptz, categoria varchar, n_observado int, base_media real, umbral real, disparo boolean)\n  RETURNING id, categoria, n_observado, base_media, umbral, disparo, ventana_inicio\n)\nINSERT INTO alertas (anomalia_id, canal, destinatario, payload, estado)\nSELECT id, 'telegram', 'canal_tfi',\n       jsonb_build_object('categoria', categoria, 'n_observado', n_observado, 'base_media', base_media, 'umbral', umbral, 'ventana_inicio', ventana_inicio),\n       'PENDIENTE'\nFROM ins\nWHERE disparo\nRETURNING id, anomalia_id, canal, payload, estado",
+        "query": "-- Inserta TODA la evaluación en anomalias; genera alerta solo si hubo disparo.\n-- OJO 1: la función que acepta jsonb se llama jsonb_to_recordset. json_to_recordset\n-- solo tiene la firma (json); invocarla con un jsonb da\n-- 'no existe la función json_to_recordset(jsonb)' y la evaluación no se registra.\n-- OJO 2: *to_recordset exige un ARRAY json en el nivel superior. El nodo manda\n-- JSON.stringify($json), que es un objeto suelto, y eso da\n-- 'no se puede invocar jsonb_to_recordset en un no-array'. Por eso el\n-- jsonb_build_array: envuelve el objeto en un array de un elemento.\n-- El nodo corre la query una vez por item de entrada, asi que aqui llega\n-- una sola categoria por vez y se inserta una fila por evaluacion.\nWITH ins AS (\n  INSERT INTO anomalias (ventana_inicio, ventana_fin, categoria, n_observado, base_media, umbral, disparo)\n  SELECT * FROM jsonb_to_recordset(jsonb_build_array($1::jsonb))\n    AS x(ventana_inicio timestamptz, ventana_fin timestamptz, categoria varchar, n_observado int, base_media real, umbral real, disparo boolean)\n  RETURNING id, categoria, n_observado, base_media, umbral, disparo, ventana_inicio\n)\nINSERT INTO alertas (anomalia_id, canal, destinatario, payload, estado)\nSELECT id, 'telegram', 'canal_tfi',\n       jsonb_build_object('categoria', categoria, 'n_observado', n_observado, 'base_media', base_media, 'umbral', umbral, 'ventana_inicio', ventana_inicio),\n       'PENDIENTE'\nFROM ins\nWHERE disparo\nRETURNING id, anomalia_id, canal, payload, estado",
         "options": {
           "queryReplacement": "={{ [ JSON.stringify($json) ] }}"
         }
       },
-      "id": "63583e69-62e2-45fa-8828-b7dbad58705f",
+      "id": "2fe5213f-f09c-41f5-88dc-632a1b2d0ece",
       "name": "Registrar Anomalias y Alertas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -218,7 +218,7 @@
         "options": {}
       },
       "disabled": true,
-      "id": "5803cc77-81bd-495b-9ac3-42c6fcb15da5",
+      "id": "a8e5229b-b71e-4d94-b926-fdcea0f64ae8",
       "name": "Send Telegram Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -362,7 +362,7 @@
     "executionOrder": "v1",
     "timezone": "America/Argentina/Buenos_Aires"
   },
-  "versionId": "be996f9d-f720-4096-b859-0ef37c0ade3c",
+  "versionId": "6030479a-caf5-449b-b0f3-ad58c3356db0",
   "meta": {
     "templateCredsSetupCompleted": false
   },
