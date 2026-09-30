@@ -76,14 +76,14 @@
 
 ## 8. Evidencia de selección de corpus
 
-- [ ] 8.1 Archivar la medición de señal por comunidad ya realizada en `V4/evidencias/`, con su consulta, fecha, communities, muestra y `n`
-- [ ] 8.2 Declarar en el documento que la medición distingue capacidad del clasificador y temática de la comunidad
-- [ ] 8.3 Declarar explícitamente que elegir el corpus por su tasa de rendimiento es sobreajuste y está descartado (D-6)
-- [ ] 8.4 Someter a los autores las opciones de composición de corpus con la evidencia a la vista
-- [ ] 8.5 Registrar la decisión de composición: `r/netsec`, `r/Malware`, `r/devsarg`, con fecha, responsable y criterio temático (D-9)
-- [ ] 8.6 Declarar en la evidencia que la tasa de señal del corpus final **no es una estimación de desempeño**, porque el corpus se fijó después de medir esas mismas comunidades y dos de ellas se eligieron por su tasa
-- [ ] 8.7 Declarar que `r/argentina` y `r/DerechoGenial` se desactivaron por decisión de alcance, no por su tasa, y que sus 201 posts se conservan
-- [ ] 8.8 Declarar el criterio de inclusión a priori: tema declarado de seguridad de la información, más `r/devsarg` como comunidad técnica argentina de referencia
+- [x] 8.1 `[hecho-dev]` Archivar la medición de señal por comunidad ya realizada en `V4/evidencias/`, con su consulta, fecha, communities, muestra y `n`
+- [x] 8.2 `[hecho-dev]` Declarar en el documento que la medición distingue capacidad del clasificador y temática de la comunidad
+- [x] 8.3 `[hecho-dev]` Declarar explícitamente que elegir el corpus por su tasa de rendimiento es sobreajuste y está descartado (D-6)
+- [x] 8.4 `[hecho-dev]` Someter a los autores las opciones de composición de corpus con la evidencia a la vista
+- [x] 8.5 `[hecho-dev]` Registrar la decisión de composición: `r/netsec`, `r/Malware`, `r/devsarg`, con fecha, responsable y criterio temático (D-9)
+- [x] 8.6 `[hecho-dev]` Declarar en la evidencia que la tasa de señal del corpus final **no es una estimación de desempeño**, porque el corpus se fijó después de medir esas mismas comunidades y dos de ellas se eligieron por su tasa
+- [x] 8.7 `[hecho-dev]` Declarar que `r/argentina` y `r/DerechoGenial` se desactivaron por decisión de alcance, no por su tasa, y que sus 201 posts se conservan
+- [x] 8.8 `[hecho-dev]` Declarar el criterio de inclusión a priori: tema declarado de seguridad de la información, más `r/devsarg` como comunidad técnica argentina de referencia
 
 ## 9. Documentación
 
@@ -121,3 +121,5 @@ Esto no habilita por sí mismo ninguna métrica. El corpus de resultados sigue s
 ## Fuera de alcance
 
 Ninguna tarea de este checklist ejecuta `DELETE`, `TRUNCATE`, `DROP` ni `ALTER` sobre `tesi_osint`, ni modifica `A_DDL.sql`, ni activa el workflow, ni borra la fila huérfana `derechogenial`, ni desactiva ningún subreddit, ni toca credenciales o la clave HMAC.
+
+> Grupo 8 cerrado: las ocho tareas quedan archivadas en `mediado el 2026-09-30; ver `V4/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md``.

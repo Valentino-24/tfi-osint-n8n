@@ -82,6 +82,8 @@ Dos restricciones del mismo mecanismo condicionan qué términos pueden escribir
 
 **Qué**: la señal por comunidad se mide antes de decidir qué comunidades integran el corpus, y el resultado se archiva en `V4/evidencias/` con su consulta, fecha y `n`. Este change produce esa evidencia; la decisión de alcance corresponde a los autores con sus directores.
 
+**Estado**: medición archivada el 2026-09-30 en `V4/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md` (censo de 520 posts, 5 comunidades, 113 con señal). Las cifras citadas abajo como 19 % y 0 % son las del momento de la decisión y **no son reproducibles hoy**: el umbral bajó de `MIN_HITS=2` a `MIN_HITS=1`. Las vigentes son 66,3 % para `r/Malware` y 1,7 % para `r/devsarg`.
+
 **Por qué**: la medición sobre 100 posts por comunidad con el diccionario nuevo separa dos cosas que se confundían: la capacidad del clasificador y la temática de la comunidad. `r/malware` con 19% y `r/devsarg` con 0% miden lo mismo —el mismo diccionario— y la diferencia de 19 puntos no puede atribuirse al algoritmo.
 
 **Alternativas consideradas**: (a) fijar las comunidades por afinidad temática aparente y medir después, rejected porque es el orden que produjo el desacople actual; (b) elegir la comunidad que maximiza la tasa, rejected explícitamente: elegir el corpus por su rendimiento es sobreajuste del diseño experimental y anula la validez de cualquier cifra resultante; (c) conservar el corpus actual sin medir, rejected porque la medición es lo que sostiene la decisión.
