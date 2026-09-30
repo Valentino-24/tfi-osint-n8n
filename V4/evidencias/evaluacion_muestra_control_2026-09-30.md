@@ -107,10 +107,9 @@ coincidencia. Se cambió `MIN_HITS` a 1 y se eliminó `'dni'` de `Filtración de
 que matcheaba con un post sobre baja de apoderado de jubilación (trámite
 administrativo, no amenaza).
 
-> ⚠️ **Tabla superada, conservada solo como registro del método.** Mide el artefacto
-> generado pero aplica el diccionario al `selftext` completo de la base, que no es lo
-> que el pipeline real clasifica. **No citar estas cifras.** Las que valen están en
-> *Corrección posterior: cifras medidas contra el workflow real*.
+> **Tabla original.** Sus cifras coinciden con la medición sobre texto exacto que quedó
+> vigente (F1 0,931). La diferencia con lo que muestra la base no viene del texto sino de
+> 3 filas heredadas; ver *Corrección: por qué la base subestima el desempeño*.
 
 Métricas calculadas **contra el artefacto generado** (`B_workflow.json`), no contra una
 copia del diccionario en memoria, para que lo validado sea lo que se importa:
@@ -138,38 +137,52 @@ el total de `No relevante` estaba inflado por el umbral, no por el contenido.
 Estos cambios **no están aplicados en la base**: el surte efecto cuando el workflow
 vuelva a ejecutarse. Las clasificaciones ya ingeridas no se tocan.
 
-### Corrección posterior: cifras medidas contra el workflow real
+### Corrección: por qué la base subestima el desempeño del clasificador
 
-> **Corrección (2026-09-30, commit posterior a `b45e996`).** La tabla de arriba salió de
-> una **simulación** que aplicaba el diccionario al `selftext` completo almacenado.
-> El pipeline real no clasifica ese texto: `Parse Reddit Posts` arma el texto con
-> `d.title` + `d.contentSnippet`, y el `contentSnippet` del feed Atom es más corto y
-> está recortado. Medir contra lo que el sistema **realmente guardó** da cifras distintas,
-> y son estas las que valen:
+> **Dos correcciones sucesivas, la segunda es la válida.**
+>
+> La primera atribuyó una diferencia de desempeño al truncamiento del `contentSnippet`.
+> **Era falso.** El nodo `Parse Reddit Posts` asigna `selftext: text` donde
+> `text = d.contentSnippet`, o sea que **la columna `selftext` de la base ES el snippet**
+> y no el cuerpo completo. No había diferencia de texto entre la simulación y el
+> pipeline.
+>
+> La explicación correcta es otra: **3 filas de la base conservan una clasificación de una
+> versión anterior del clasificador**, y esas 3 filas son exactamente los 3 falsos
+> positivos que la base muestra de más.
 
-| | `MIN_HITS=2` (base real) | `MIN_HITS=1` (medición real) | Cambio |
+#### La medición, sin filas heredadas
+
+`V4/scripts/evaluar_muestra_reproducible.py` ejecuta el Code node real de
+`B_workflow.json` en Node sobre el `selftext` exacto de los 50 posts y compara con la
+etiqueta humana. No reimplementa el diccionario y no toca la base.
+
+| | `MIN_HITS=2` (base real) | `MIN_HITS=1` (texto exacto) | Cambio |
 |---|---|---|---|
 | TP | 24 | **27** | +3 |
-| FP | 4 | **4** | 0 |
+| FP | 4 | **2** | −2 |
 | FN | 5 | **2** | −3 |
-| TN | 17 | **17** | 0 |
-| Precision | 0,857 | **0,871** | +0,014 |
+| TN | 17 | **19** | +2 |
+| Precision | 0,857 | **0,931** | +0,074 |
 | Recall | 0,828 | **0,931** | +0,103 |
-| F1 | 0,842 | **0,900** | +0,058 |
-| Acierto exacto de categoría | 74,0 % | **80,0 %** | +6,0 pp |
+| F1 | 0,842 | **0,931** | +0,089 |
+| Acierto exacto de categoría | 74,0 % | **84,0 %** | +10,0 pp |
 
-**La simulación era optimista en la precisión (0,931 contra 0,871 real).** La razón es
-que el recorte del `contentSnippet` cambia cuántos términos matchean, y con `MIN_HITS=1`
-cada match de más convierte un `No relevante` en amenaza. El recall no cambia: 27/29 en
-ambos casos, porque los 2 falsos negativos restantes son los mismos y no dependen de
-longitud del texto.
+Comparando predicción contra fila almacenada, **47 de 50 coinciden exactamente**. Las 3
+que difieren son las 3 de `r/DerechoGenial` con `nlp_score = 0.2`, valor que no existe en
+la grilla de la fórmula vigente (`hits/4` → 0, 0.25, 0.5, 0.75, 1.0) y que delata
+escritura por la fórmula anterior `hits / |keywords|`. El clasificador actual las
+clasifica `No relevante`, `Ingenieria Social` y `No relevante`: ninguna como `Phishing`.
 
-La corrección neta de `MIN_HITS=1` es **recall +0,103 a cambio de +0,014 de precisión**.
-El error que se corrige es sistemático y conocido (descarta señales de una palabra), y
-el costo es acotado y conocido (tres posts de `r/DerechoGenial` fuera del ámbito del
-proyecto).
+Por eso leer los conteos directamente de la base **subestima** el desempeño: mezcla 47
+filas del clasificador vigente con 3 de una versión anterior.
+
+La corrección neta de `MIN_HITS=1` es **recall +0,103 a cambio de +0,074 de precisión**.
+El error que se corrige es sistemático y conocido (descartaba señales de una palabra); el
+costo es acotado y está identificado.
 
 ### Clasificación heredada en el corpus archivado
+
 
 `r/argentina` y `r/DerechoGenial` están desactivados (`active_monitoring = false`), así
 que **el loop no los recorre y sus 201 posts nunca se reclasifican**. Auditoría sobre la
@@ -183,7 +196,7 @@ Su **categoría** sigue siendo correcta (Phishing, que es lo que el clasificador
 también devuelve), pero el **score quedó desactualizado**. Cualquier statistic que use
 `nlp_score` sobre el corpus completo debe excluir estos 3 posts o declararlos.
 
-### Falsos negativos que quedan (medición real)
+### Falsos negativos que quedan
 
 1. **EDR evasion** — inyección de procesos sin `WriteProcessMemory` (r/netsec), score 0.0
 2. **Red team sobre ServiceNow** — anatomía de un equipo rojo (r/netsec), score 0.0
@@ -192,29 +205,31 @@ Ambos son falta de vocabulario real. **No se agregaron los términos**: definirl
 conocimiento técnico de ciberseguridad introduciría el mismo error conceptual
 dentro del diccionario. Quedan como limitación abierta.
 
-### Los 4 falsos positivos (medición real)
+### Los 2 falsos positivos del clasificador vigente
 
 | Canal | Modelo dijo | Score | Título | Por qué no se corrige acá |
 |---|---|---|---|---|
-| r/DerechoGenial | Phishing | 0.2 | Multinacional retiene mi sueldo | Fuera del ámbito del proyecto |
-| r/DerechoGenial | Phishing | 0.2 | Suplantación de identidad en redes sociales | Fuera del ámbito del proyecto |
-| r/DerechoGenial | Phishing | 0.2 | Me llegó una giftcard que no es mía | Fuera del ámbito del proyecto |
 | r/Malware | Malware | 0.5 | Catálogo open-source de 2.800+ familias | Material de defensa; matchea por la palabra "malware" repetida |
+| r/DerechoGenial | Ingenieria Social | 0.25 | Suplantación de identidad en redes sociales | Fuera del ámbito del proyecto (no es infraestructura) |
 
-**Son los mismos 4 de la línea base.** La simulación previa predecía que quedarían 2;
-se equivocó porque el recorte del `contentSnippet` deja a los tres de `r/DerechoGenial`
-con un solo hit, suficiente bajo `MIN_HITS=1`. El error de fondo es conocido y está
-declarado: son conflictos legales laborales, no amenazas a infraestructura.
+El de `r/Malware` es un falso positivo real y esperado: el diccionario matchea la
+palabra "malware" en un catálogo de defensa, que es material educativo.
 
-Los tres de `r/DerechoGenial` **no fueron reclasificados por esta corrida**: el subreddit
-está desactivado y el loop no lo recorre. Su `nlp_score = 0.2` es residuo de la fórmula
-anterior (ver *Clasificación heredada en el corpus archivado*).
+El de `r/DerechoGenial` es un efecto colateral de haber bajado `MIN_HITS` a 1: con un solo
+término del diccionario alcanza para clasificar. Sigue siendo ruido conocido y acotado,
+declarado como limitación del enfoque léxico.
+
+**La base muestra 4 falsos positivos, no 2.** Los otros 2 (`Multinacional retiene mi
+sueldo` y `Me llegó una giftcard`) son filas que conservan `Phishing` con score 0.2 de
+una versión anterior del clasificador. El clasificador vigente los devuelve como
+`No relevante`. No son falsos positivos del sistema actual sino filas heredadas.
+
 
 ### Aciertos de detección con categoría distinta (no son FP ni FN)
 
 Cuatro posts de `r/Malware` que el sistema detecta como amenaza —acierto de detección—
 pero con otra categoría que la humana. No afectan la matriz binaria, sí la métrica de
-acierto exacto de categoría (80,0 %):
+acierto exacto de categoría (84,0 %):
 
 | Título | Humano | Modelo |
 |---|---|---|
