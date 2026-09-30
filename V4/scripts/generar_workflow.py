@@ -27,10 +27,19 @@ OUT = Path(__file__).resolve().parent.parent / "anexos" / "B_workflow.json"
 # Código JS de los nodos Code (n8n v2). r-strings: los backslashes JS quedan literales.
 # ----------------------------------------------------------------------
 # Sin OAuth: feed Atom RSS publico con User-Agent (cuenta Reddit bloqueada para crear apps, .json bloqueados por IP).
+# Corpus mixto (change rediseno-diccionario-evaluacion, decision D-9).
+# Criterio de inclusion: tema declarado de seguridad de la informacion, mas
+# r/devsarg como comunidad tecnica argentina de referencia.
+# OJO - el subreddit_id DEBE llevar la misma forma de mayusculas que aparece en
+# los permalinks del feed, porque se deriva del enlace y se compara de forma
+# exacta contra la FK posts_subreddit_id. Verificado contra feed real:
+#   r/Malware       -> permalinks traen "Malware", NO "malware"
+#   r/DerechoGenial -> permalinks traen "DerechoGenial"
+# Escribirlo en minuscula revierte el bug de clave foranea corregido antes.
 PREPARE_SUBS = r"""const subs = [
-  { subreddit_id: 'argentina', display_name: 'r/argentina', rss_url: 'https://www.reddit.com/r/argentina/new/.rss?limit=100' },
-  { subreddit_id: 'devsarg', display_name: 'r/devsarg', rss_url: 'https://www.reddit.com/r/devsarg/new/.rss?limit=100' },
-  { subreddit_id: 'derechogenial', display_name: 'r/derechogenial', rss_url: 'https://www.reddit.com/r/derechogenial/new/.rss?limit=100' }
+  { subreddit_id: 'netsec', display_name: 'r/netsec', rss_url: 'https://www.reddit.com/r/netsec/new/.rss?limit=100' },
+  { subreddit_id: 'Malware', display_name: 'r/Malware', rss_url: 'https://www.reddit.com/r/Malware/new/.rss?limit=100' },
+  { subreddit_id: 'devsarg', display_name: 'r/devsarg', rss_url: 'https://www.reddit.com/r/devsarg/new/.rss?limit=100' }
 ];
 return subs;"""
 
@@ -38,9 +47,17 @@ PARSE_POSTS = r"""// Parser para feed Atom RSS de Reddit (nodo RSS Read, rss-par
 // id y subreddit_id se derivan del link del post:
 //   https://www.reddit.com/r/{sub}/comments/{id}/{slug}/
 // limitaciones RSS: score y num_comments no vienen -> 0 (documentado).
+//
+// Descarte explicito de items con error (RN-FU-03 / D-10): cuando "Fetch Posts RSS" agota
+// sus 3 intentos y recibe 429, onError=continueRegularOutput deja pasar el item con la
+// propiedad .error en vez de cortar el flujo. Ese item NO es un post: se descarta aqui de
+// forma explicita para que el clasificador nunca vea un objeto de error. El subreddit que
+// fallo queda con 0 posts en la corrida, que es el estado honesto (ver
+// V4/evidencias/CARACTERIZACION_RATE_LIMIT.md seccion 4). El loop continua con el resto.
 const out = [];
 for (const item of $input.all()) {
   const d = item.json || {};
+  if (d.error) continue;              // item de error tras 429/403 agotado
   const link = String(d.link || '');
   const m = link.match(/\/r\/([a-z0-9_]+)\/comments\/([a-z0-9]+)\//i);
   if (!m) continue;
@@ -86,16 +103,34 @@ for (const item of $input.all()) {
 }
 return out;"""
 
-CLASSIFY_CODE = r"""// Clasificador por diccionario (Anexo C base). Texto normalizado sin acentos.
-// Fórmula de puntuación (4.4): score = hits(c) / |keywords(c)| con hits >= MIN_HITS.
+CLASSIFY_CODE = r"""// Clasificador por diccionario bilingue (ES+EN), 9 categorias. Texto normalizado sin acentos.
+// Match: terminos de UNA palabra por token EXACTO (words.has); de VARIAS por substring (text.includes).
+// Restricciones que el diccionario respeta (si se rompen, el termino nunca encontraria el texto):
+//   - sin tildes: la normalizacion NFD las saca del texto, no del termino ('bufer' nunca encontraria el texto);
+//   - sin guiones: el tokenizado parte en /[^a-z0-9]+/, o sea 'zero-day' se parte en 'zero'+'day'
+//     y la cadena con guion nunca aparece como token -> escribi 'zero day';
+//   - con las formas conjugadas reales: 'filtraron' no matchea con 'filtrar'.
+// Se sacaron los cuasisinonimos demasiado genericos (mp, cuenta, enlace, correo, bug, falla,
+// transferencia, banco, filtrar, cangrejo, pescar, actualizacion) por falsos positivos.
+// Fórmula de puntuación (4.4), AHORA SATURANTE: score = min(1, hits(c) / SATURATION), hits >= MIN_HITS.
+// Por qué el cambio: antes era score = hits(c) / |keywords(c)|, y el denominador depende del tamaño
+// del diccionario. Al ampliarlo de 5 a 9 categorías (y de ~10 a ~22 términos cada una), el MISMO
+// post con los mismos 2 hits pasaba de 0.22 a 0.07: la escala se comprime y nlp_score deja de ser
+// comparable entre corridas y entre categorías. SATURATION fija la escala (2 hits=0.5, 3=0.75,
+// 4+=1.0), independiente del tamaño del diccionario, y sigue dentro de [0,1] (CHECK en la DB).
 const DICT = {
-  'Estafas Virtuales': ['estafa', 'estafas', 'estafa virtual', 'transferencia', 'mercado pago', 'mp', 'clonacion', 'clonacion de tarjeta', 'clonar', 'banco', 'billetera', 'cangrejo', 'piramidal', 'defraudacion'],
-  'Phishing': ['phishing', 'suplantacion', 'enlace', 'correo', 'whatsapp', 'cuenta', 'pescar', 'smishing', 'verificacion', 'ingreso falso'],
-  'Filtración de Datos': ['filtracion', 'filtrar', 'leak', 'fuga', 'dni', 'base de datos', 'venta de datos', 'expuesta', 'datos personales', 'vazamiento'],
-  'Vulnerabilidades': ['vulnerabilidad', 'vulnerabilidades', 'bug', 'cve', 'exploit', 'parche', 'actualizacion', 'falla', 'pwn'],
-  'Ransomware': ['ransomware', 'secuestro de datos', 'secuestro', 'encriptado', 'cifrado', 'rescate', 'wannacry', 'criptoransomware']
+  'Phishing': ['phishing', 'phisher', 'smishing', 'vishing', 'spear phishing', 'correo fraudulento', 'correo suplantado', 'remitente falso', 'enlace fraudulento', 'enlace sospechoso', 'pagina falsa', 'sitio falso', 'portal falso', 'ingreso falso', 'verificar identidad', 'verificacion de identidad', 'captura de datos', 'suplantacion de correo', 'business email compromise', 'fake login', 'credential harvest', 'harvesting'],
+  'Robo de Credenciales': ['clonacion de tarjeta', 'tarjeta clonada', 'clonar', 'robo de contrasena', 'robaron mi contrasena', 'cambio de contrasena', 'cambiar mi contrasena', 'acceso no autorizado', 'acceso remoto', 'tomaron control de la cuenta', 'tomo control de mi cuenta', 'sesion robada', 'robo de token', 'segundo factor', 'factor de autenticacion', 'credential stuffing', 'account takeover', 'session hijacking', 'session hijack', 'token theft', 'password theft', 'password dumping', '2fa bypass', 'mfa fatigue', 'sim swap', 'sim swapping', 'otp bypass', 'push bombing', 'adversary in the middle'],
+  'Malware': ['malware', 'virus troyano', 'troyano', 'gusano', 'keylogger', 'rootkit', 'infostealer', 'stealer', 'dropper', 'loader', 'criptominer', 'miner', 'carga util', 'ejecucion remota', 'command and control', 'c2 server', 'rat', 'packed', 'obfuscated', 'ofuscado', 'payload', 'reverse shell', 'bind shell', 'webshell'],
+  'Ransomware': ['ransomware', 'nota de rescate', 'pedir rescate', 'piden rescate', 'bloquearon mis archivos', 'mis archivos estan cifrados', 'sequestro de datos', 'extorsion', 'wannacry', 'lockbit', 'revil', 'blackcat', 'locker', 'decryptor', 'desencriptador'],
+  'Vulnerabilidades': ['cve', 'exploit', 'exploits', 'parche', 'parchear', 'patch tuesday', 'actualizacion de seguridad', 'backdoor', 'puerta trasera', 'zero day', 'prueba de concepto', 'proof of concept', 'inyeccion sql', 'sql injection', 'xss', 'rce', 'ejecucion remota de codigo', 'escalamiento de privilegios', 'buffer overflow', 'desbordamiento de buffer', 'bypass de autenticacion', 'authentication bypass', 'kerberoasting', 'movimiento lateral', 'lateral movement', 'privilege escalation', 'nvd', 'cisa', 'zero day vulnerability', 'poc'],
+  'Filtración de Datos': ['filtracion', 'filtraron', 'filtrado', 'filtran', 'fuga de datos', 'fuga de informacion', 'base filtrada', 'base de datos expuesta', 'bases expuestas', 'base expuesta', 'dni', 'datos personales', 'venta de datos', 'venden datos', 'vazamiento', 'exfiltracion', 'exfiltrated', 'leak', 'leaked', 'leaks', 'breach', 'breached', 'exposed database', 'exposed credentials', 'credentials dump', 'combo list', 'dark web', 'pastebin', 'data dump', 'breach notification'],
+  'Infraestructura y Ataques': ['botnet', 'ddos', 'denegacion de servicio', 'denial of service', 'caida de servicio', 'sitio caido', 'tiraron el sitio', 'tiraron abajo el sitio', 'ataque de red', 'amplificacion', 'reflection attack', 'volumetric', 'ip flood', 'takedown', 'caeron los servidores', 'caida de servidores'],
+  'Hacktivismo': ['hacktivismo', 'hacktivista', 'hackeo', 'hackearon', 'hackear', 'deface', 'defacement', 'defaced', 'dox', 'doxeado', 'doxing', 'anonymous', 'filtracion publicada', 'publicacion de datos filtrados', 'protesta hacker', 'hactivist'],
+  'Ingenieria Social': ['ingenieria social', 'social engineering', 'mecanismo de engano', 'se hacen pasar', 'suplantar identidad', 'suplantacion de identidad', 'baiting', 'confianza ganada', 'falsa llamada', 'llamada del banco', 'falso empleado', 'falsa policia', 'falso soporte', 'pretexting', 'impersonation', 'pretexto', 'scam call', 'fake support', 'vishing script', 'ayuda de escritorio falsa']
 };
 const MIN_HITS = 2;
+const SATURATION = 4; // hits a partir de los cuales el score vale 1.0 (escala fija, ver cabecera)
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const out = [];
 for (const item of $input.all()) {
@@ -103,7 +138,6 @@ for (const item of $input.all()) {
   const words = new Set(text.split(/[^a-z0-9]+/));
   let best = null;
   let bestHits = 0;
-  let bestK = 1;
   for (const cat of Object.keys(DICT)) {
     let hits = 0;
     for (const kw of DICT[cat]) {
@@ -113,12 +147,11 @@ for (const item of $input.all()) {
     if (hits > bestHits) {
       bestHits = hits;
       best = cat;
-      bestK = DICT[cat].length;
     }
   }
   if (best && bestHits >= MIN_HITS) {
     item.json.nlp_category = best;
-    item.json.nlp_score = Math.round((bestHits / bestK) * 10000) / 10000; // normalizado [0,1]
+    item.json.nlp_score = Math.min(1, Math.round((bestHits / SATURATION) * 10000) / 10000); // normalizado [0,1]
   } else {
     item.json.nlp_category = 'No relevante';
     item.json.nlp_score = 0;
@@ -291,6 +324,23 @@ nodes = [
         "type": "n8n-nodes-base.postgres", "typeVersion": 2.6,
         "position": [-620, -560],
     },
+    # Rama B: throttling. splitInBatches (batchSize 1) + Wait 30s entre requests:
+    # el rate limit publico de Reddit es ~1 req/min por IP. Sin esto el ciclo de 15 min dispara
+    # los 3 requests seguidos y el subreddit responde 429 (que continueOnFail deja pasar).
+    # El ciclo lo cierra "Upsert Posts" -> "Loop Over Items" (main[0] = salida "loop").
+    # OJO: el ciclo exige executionOrder v1 en los settings del workflow (ya esta).
+    {
+        "parameters": {"batchSize": 1, "options": {}},
+        "id": nid(), "name": "Loop Over Items",
+        "type": "n8n-nodes-base.splitInBatches", "typeVersion": 3,
+        "position": [-1420, 80],
+    },
+    {
+        "parameters": {"amount": 30, "unit": "seconds"},
+        "id": nid(), "name": "Espera Rate Limit",
+        "type": "n8n-nodes-base.wait", "typeVersion": 1.1,
+        "position": [-1180, 80],
+    },
     # Rama B: posts (feed Atom RSS publico)
     {
         "parameters": {
@@ -302,12 +352,33 @@ nodes = [
         "id": nid(), "name": "Fetch Posts RSS",
         "type": "n8n-nodes-base.rssFeedRead", "typeVersion": 1.2,
         "position": [-940, 80],
+        # Mitigacion RN-FU-03 ante 429/403 de Reddit. Decision D-10 (2026-09-30).
+        #
+        # Los settings van en la RAIZ del nodo, no bajo una clave "settings". En n8n 2.40.6
+        # el motor los lee desde node.<campo>:
+        #   workflow-execute.js:933  -> node.retryOnFail
+        #   workflow-execute.js:937  -> node.maxTries
+        #   workflow-execute.js:938  -> node.waitBetweenTries
+        #   workflow-execute.js:563  -> node.continueOnFail
+        #   workflow-execute.js:564  -> node.onError
+        # Bajo "settings" el motor los ignora por completo: no reintenta y no continua.
+        # Ese fue el motivo real del HTTP 429 que aborto la corrida del 2026-09-30.
+        #
+        # waitBetweenTries = 5000 es el MAXIMO que admite el motor:
+        #   Math.min(5000, Math.max(0, node.waitBetweenTries || 1000))   (:938)
+        # RN-FU-03 pedia 30 s, cifra imposible por configuracion. Decision D-10 (aprobada
+        # 2026-09-30): la regla se relaja a "3 intentos con hasta 5 s" y el tope se declara
+        # como-imposed por el motor, no como una eleccion del proyecto. El espaciado de 30 s
+        # ENTRE subreddits lo aporta el nodo "Espera Rate Limit", que si es ours.
+        #
+        # onError=continueRegularOutput: si un subreddit da 429 tras los 3 intentos, el item
+        # llega con .error y "Parse Reddit Posts" lo descarta; el loop sigue con el resto.
+        # continueOnFail se conserva porque el motor lo acepta como equivalente (:563).
         "retryOnFail": True,
-        "maxRetries": 3,
-        "waitBetweenRetries": 30000,
-        # continueOnFail: si un subreddit da 429 (rate limit publico ~1 req/min por IP),
-        # el resto del ciclo sigue e ingresa igual; el item con error lo descarta el parser.
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
         "continueOnFail": True,
+        "onError": "continueRegularOutput",
     },
     {
         "parameters": {"jsCode": PARSE_POSTS},
@@ -398,13 +469,21 @@ connections = {
     "Schedule Ingesta": {"main": [[{"node": "Prepare Subreddits", "type": "main", "index": 0}]]},
     "Prepare Subreddits": {"main": [[
         {"node": "Upsert Subreddits", "type": "main", "index": 0},
-        {"node": "Fetch Posts RSS", "type": "main", "index": 0},
+        {"node": "Loop Over Items", "type": "main", "index": 0},
     ]]},
+    # splitInBatches: main[0] = "loop" (un item por iteracion), main[1] = "done" (sin conectar).
+    "Loop Over Items": {"main": [
+        [{"node": "Espera Rate Limit", "type": "main", "index": 0}],
+        [],
+    ]},
+    "Espera Rate Limit": {"main": [[{"node": "Fetch Posts RSS", "type": "main", "index": 0}]]},
     "Fetch Posts RSS": {"main": [[{"node": "Parse Reddit Posts", "type": "main", "index": 0}]]},
     "Parse Reddit Posts": {"main": [[{"node": "HMAC Anonymize", "type": "main", "index": 0}]]},
     "HMAC Anonymize": {"main": [[{"node": "Classify Dictionary", "type": "main", "index": 0}]]},
     "Classify Dictionary": {"main": [[{"node": "Extract Entities", "type": "main", "index": 0}]]},
     "Extract Entities": {"main": [[{"node": "Upsert Posts", "type": "main", "index": 0}]]},
+    # Cierra el ciclo: cada item procesado vuelve al loop para el rate limit del siguiente subreddit.
+    "Upsert Posts": {"main": [[{"node": "Loop Over Items", "type": "main", "index": 0}]]},
     "Schedule Anomalias": {"main": [[{"node": "Query Daily Counts", "type": "main", "index": 0}]]},
     "Query Daily Counts": {"main": [[{"node": "Anomaly Engine", "type": "main", "index": 0}]]},
     "Anomaly Engine": {"main": [[{"node": "Registrar Anomalias y Alertas", "type": "main", "index": 0}]]},
