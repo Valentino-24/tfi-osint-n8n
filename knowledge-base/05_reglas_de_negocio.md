@@ -6,7 +6,7 @@ Cada regla tiene un código único `RN-{DOMINIO}-{NN}` para trazabilidad. Las re
 
 - **RN-FU-01**: el sistema monitorea únicamente subreddits habilitados en `subreddits.active_monitoring`.
 - **RN-FU-02**: la fuente operativa actual es el feed RSS/Atom público `new/.rss`; no se requiere OAuth para esa fuente.
-- **RN-FU-03**: cada subreddit se consulta una vez por ciclo de ingesta; ante 429/403 se reintenta hasta tres veces con 30 segundos de espera y se continúa con el resto del flujo.
+- **RN-FU-03**: cada subreddit se consulta una vez por ciclo de ingesta; ante 429/403 se reintenta hasta tres veces con **hasta 5 segundos** de espera entre intentos y se continúa con el resto del flujo, dejando el subreddit afectado con 0 posts en esa corrida. Revisada el 2026-09-30 (decisión D-10): la redacción anterior decía "30 segundos de espera", cifra que el motor de n8n no admite — `waitBetweenTries` está topado a 5000 ms en `workflow-execute.js:938` (`Math.min(5000, …)`), de modo que el tope es impuesto por la plataforma y no una elección del proyecto. El espaciado de 30 s **entre** subreddits lo aporta el nodo `Espera Rate Limit`, que sí es configuración propia. Cumplir los 30 s por reintento exigiría un nodo `Wait` explícito y se descarta por complejidad.
 - **RN-FU-04**: no se Consideran noticias las métricas ausentes del feed; `score`, `num_comments` y `subscribers` quedan en 0 y no se usan para el motor de anomalías.
 - **RN-FU-05**: la recolección programada ejecuta la ingesta cada 15 minutos; el equipo puede ejecutar una corrida manual para verificar el pipeline.
 
