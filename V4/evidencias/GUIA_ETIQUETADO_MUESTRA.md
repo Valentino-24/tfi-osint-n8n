@@ -1,6 +1,16 @@
 # Cómo etiquetar la muestra de control
 
-Guía para el anotador. El criterio de fondo (qué cuenta como amenaza y qué no) **todavía no está acordado** entre autores y directores — es la tarea 6.1, abierta. Esta guía es una propuesta para que puedas empezar, y ajustar las definiciones es justamente de lo que se trata.
+Guía para el anotador.
+
+> **Criterio acordado (2026-09-30, tarea 6.1 cerrada).** Cuenta como amenaza lo que
+> **describe un ataque o campaña en curso, real y verificable**, aunque se publique
+> como reporte. No cuenta el material puramente educativo, de prevención o de
+> catálogo. Sin evidencia de un ataque en curso, la categoría es `No relevante`.
+>
+> Aplicado a los 50 posts, este criterio **no obligó a cambiar ninguna etiqueta**.
+
+Las definiciones de categorías de abajo son las que se usaron. Si un post no encaja
+limpio en ninguna, se elige la más cercana y se anota el motivo en `notas`.
 
 ## Qué hacés
 
@@ -19,7 +29,7 @@ Nueve son categorías de amenaza. La décima es "esto no es una amenaza".
 
 | Categoría | Cuándo la elegís | Ejemplo |
 |---|---|---|
-| **No relevante** | No es una amenaza a seguridad informática. Cualquier otra cosa: historia política,就业,谈恋爱, deportes,首歌. | Un post de concerts en Argentina |
+| **No relevante** | No es una amenaza a seguridad informática. Cualquier otra cosa: historia política, empleo, relaciones amorosas, deportes, canciones. | Un post de concerts en Argentina |
 | **Phishing** | Engaño para robar datos mediante correo o sitio falso. | "Fake login de X, miren esto" |
 | **Robo de Credenciales** | Robo de contraseñas, tarjetas clonadas, sesión secuestrada, salto de 2FA. | "Me clonaron la tarjeta" |
 | **Malware** | Software malicioso: troyanos, keyloggers, stealers, ransomware families sin afectación real todavía. | Análisis técnico de un stealer para macOS |

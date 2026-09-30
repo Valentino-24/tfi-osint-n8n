@@ -13,7 +13,7 @@ Los dos están separados a propósito. Si el anotador ve la respuesta del modelo
 
 ## 2. Procedimiento y su justificación
 
-La población es中小 501 posts clasificados. La distribución es muy desigual:
+La población es de 501 posts clasificados. La distribución es muy desigual:
 
 | Estrato | Población | En la muestra | Peso |
 |---|---|---|---|
