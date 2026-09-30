@@ -15,6 +15,27 @@ asi que un sorteo puro de 50 daria ~3 positivos y la recall no seria
 calculable. Se incluyen los 28 posts con alguna categoria de amenaza y se
 completan con 22 sorteados de `No relevante`. La columna `peso_muestreo`
 permite luego ponderar y estimar metricas sobre la poblacion real.
+
+COMO SE SORTEA REALMENTE (verificado el 2026-09-30)
+--------------------------------------------------
+El sorteo NO se hace en SQL. La consulta se trae las filas y el ordenamiento
+ocurre en Python con `random.Random(20260930)`: se separa por estrato, se
+baraja cada estrato y se toman 28 de `amenaza` (que es el censo completo del
+estrato) y 22 de `no_relevante`.
+
+Consecuencia sobre reproducibilidad: `random.shuffle` es determinista dado un
+estado inicial, pero ese estado inicial es el ORDEN DE RETORNO de la consulta,
+que PostgreSQL no garantiza sin `ORDER BY`. La consulta de este script no lleva
+`ORDER BY`, por lo que el resultado depende del orden fisico de la tabla en el
+momento del sorteo.
+
+Comprobado: reejecutar el script hoy reproduce 8 de 50 filas de la muestra
+exportada, porque la tabla cambio despues (upserts y la corrida de anomalias).
+Agregar `ORDER BY p.id` tampoco reproduce la muestra ya etiquetada: daria otro
+subconjunto y obligaria a reetiquetar.
+
+Por eso los archivos exportados son el registro con valor probatorio y el
+script documenta el METODO, no una receta de reproduccion bit a bit.
 """
 import csv
 import html
@@ -27,7 +48,6 @@ from datetime import datetime, timezone, timedelta
 import psycopg
 
 TZ = timezone(timedelta(hours=-3))
-FECHA = "2026-09-30"
 SEED = 20260930          # fijo y declarado => la muestra es reproducible
 N_TOTAL = 50
 N_CANDIDATOS = 28        # se incluyen todos (censo del estrato)
@@ -35,27 +55,6 @@ N_NO_RELEVANTE = N_TOTAL - N_CANDIDATOS
 
 DIR = r"C:\Users\sever\OneDrive\Desktop\tfi-osint-n8n\V4\evidencias"
 BASE = "muestra_control_50_2026-09-30"
-
-SQL_MUESTRA = """
-WITH candidatos AS (
-    SELECT p.id, s.display_name, p.title, p.selftext, p.url,
-           p.created_utc, p.score, p.num_comments,
-           p.nlp_category, p.nlp_score,
-           CASE WHEN p.nlp_category = 'No relevante'
-                THEN 'no_relevante' ELSE 'amenaza' END AS estrato
-    FROM posts p
-    JOIN subreddits s ON s.id = p.subreddit_id
-    WHERE p.nlp_category IS NOT NULL
-),
-sorteados AS (
-    SELECT * FROM candidatos
-    ORDER BY md5(id || :semilla)
-)
-SELECT * FROM sorteados
-WHERE estrato = 'amenaza'
-   OR estrato = 'no_relevante'
-LIMIT :n
-"""
 
 
 def limpiar(txt, limite):

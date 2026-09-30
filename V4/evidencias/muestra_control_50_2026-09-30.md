@@ -59,11 +59,26 @@ JOIN subreddits s ON s.id = p.subreddit_id
 WHERE p.nlp_category IS NOT NULL;
 ```
 
-Sorteo determinístico por subreddit, con la semilla declarada:
+Sorteo por estrato, con semilla declarada. **El sorteo ocurre en Python, no en
+SQL**: la consulta trae las filas y `random.Random(20260930)` baraja cada
+estrato por separado.
 
-```sql
-ORDER BY md5(p.id || '20260930')
+```python
+rnd = random.Random(20260930)
+rnd.shuffle(amenaza)      # se toman los 28 = censo del estrato
+rnd.shuffle(no_rel)       # se toman 22
+rnd.shuffle(elegidas)
 ```
+
+**Advertencia sobre reproducibilidad.** La consulta no lleva `ORDER BY`, así que
+el orden de retorno —que es el estado inicial del `shuffle`— depende del orden
+físico de la tabla en el momento del sorteo. Verificado el 2026-09-30:
+reejecutar el script reproduce **8 de 50** filas de esta muestra, porque la tabla
+cambió después (upserts y la corrida de anomalías). Agregar `ORDER BY p.id`
+tampoco reproduce el mismo subconjunto.
+
+Los archivos exportados son el registro con valor probatorio. El script
+documenta el método, no una receta de reproducción bit a bit.
 
 ## 6. Cómo etiquetar
 

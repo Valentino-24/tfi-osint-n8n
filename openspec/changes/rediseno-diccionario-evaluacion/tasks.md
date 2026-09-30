@@ -35,11 +35,11 @@
 
 ## 5. Importación y corrida de control
 
-- [ ] 5.1 Reimportar `B_workflow.json` en la instancia n8n 2.40.6
-- [ ] 5.2 Reasignar explícitamente la credencial de PostgreSQL a los nodos que la usan. **No asumir que la importación la conserva**
-- [ ] 5.3 Confirmar que los 16 nodos validan sin errores
-- [ ] 5.4 Ejecutar una corrida de control completa y verificar que las tres comunidades ingieren sin error de clave foránea
-- [ ] 5.5 Verificar que `nlp_score` queda en `[0, 1]` y que `nlp_category` contiene valores de las 9 categorías o `No relevante`
+- [x] 5.1 `[hecho-dev]` Reimportar **Verificado el 2026-09-30.** Workflow `KkotjSD5uO4CXI4D` en ejecución con 16 nodos. `B_workflow.json` en la instancia n8n 2.40.6
+- [x] 5.2 `[hecho-dev]` Reasignar **Verificado el 2026-09-30.** Credencial Postgres reasignada tras importar; los upserts escriben sin error. explícitamente la credencial de PostgreSQL a los nodos que la usan. **No asumir que la importación la conserva**
+- [x] 5.3 `[hecho-dev]` Confirmar que los 16 **Verificado el 2026-09-30.** Validación limpia; ambas ramas (ingesta y anomalías) ejecutadas. nodos validan sin errores
+- [x] 5.4 `[hecho-dev]` Ejecutar una corrida de control completa **Verificado el 2026-09-30.** 503 → 520 posts, 0 errores de clave foránea en las tres comunidades. y verificar que las tres comunidades ingieren sin error de clave foránea
+- [x] 5.5 `[hecho-dev]` Verificar que `nlp_score` **Verificado el 2026-09-30.** Score en `[0,1]` por `min(1, hits/4)`; categoría de las 9 o `No relevante`. queda en `[0, 1]` y que `nlp_category` contiene valores de las 9 categorías o `No relevante`
 - [x] 5.6 Ejecutar una segunda corrida y confirmar que el total de filas no crece. Este es el test de idempotencia del workflow de 16 nodos; la idempotencia del workflow de 14 nodos ya está verificada. **Verificado el 2026-09-30** con el workflow `KkotjSD5uO4CXI4D` (`MIN_HITS=1`): 503 → 520 posts. La aserción no es "el total no crece" sino la que corresponde a un upsert real: 0 ids duplicados, 0 posts perdidos, `ingested_at` inalterado en los 17 ya ingeridos y las 17 filas nuevas con ids que no existían. Crecimiento = 1 post de `r/Malware` + 16 de `r/devsarg`, que es exactamente lo que Reddit publicó en la ventana entre corridas. 85 posts fueron reclasificados de `No relevante` a una categoría de amenaza por el `MIN_HITS=1`, en la misma corrida
     - [x] 5.7 Registrar en la bitácora de C-05 la corrida de control, su fecha, su consulta de conteo y su `n`
 
@@ -66,12 +66,12 @@
 
 ## 7. Evaluación
 
-- [ ] 7.1 Ejecutar el clasificador vigente sobre los 50 posts etiquetados sin modificar el diccionario
-- [ ] 7.2 Calcular la matriz de confusión 9×1 contra la muestra
-- [ ] 7.3 Calcular precisión, recall y F1 con su `n` y su matriz de confusión delante (RN-GL-01)
-- [ ] 7.4 Calcular Cohen's Kappa e declarar su límite de confianza dado el `n` y el desbalance de clases
-- [ ] 7.5 Evaluar el umbral `MIN_HITS` contra la muestra. Recién aquí se decide si 1 o 2 es el valor correcto
-- [ ] 7.6 Documentar los falsos positivos y falsos negativos uno por uno, con su causa léxica
+- [x] 7.1 `[hecho-dev]` Ejecutar el clasificador vigente **Verificado el 2026-09-30.** `V4/scripts/evaluar_muestra_reproducible.py` corre el Code node real de `B_workflow.json` en Node. sobre los 50 posts etiquetados sin modificar el diccionario
+- [x] 7.2 `[hecho-dev]` Calcular la matriz de confusi **Verificado el 2026-09-30.** TP 27, FP 2, FN 2, TN 19.ón 9×1 contra la muestra
+- [x] 7.3 `[hecho-dev]` Calcular precisi **Verificado el 2026-09-30.** P = R = F1 = 0,931 sobre texto exacto; acierto exacto de categoría 84,0 %.ón, recall y F1 con su `n` y su matriz de confusión delante (RN-GL-01)
+- [ ] 7.4 **NO CALCULABLE con la evidencia disponible.** Solo hay un anotador, así que no existe un segundo juez con el que comparar. Se declara el limite en `evaluacion_muestra_control_2026-09-30.md` (seccion 6.5) en lugar de inventar una cifra. Requeriria una segunda persona reetiquetando los mismos 50 posts's Kappa e declarar su límite de confianza dado el `n` y el desbalance de clases
+- [x] 7.5 `[hecho-dev]` Evaluar el umbral `MIN_HITS` **Verificado el 2026-09-30.** `MIN_HITS=1` da F1 0,931; el baseline `MIN_HITS=2` da 0,842. Se decide 1. contra la muestra. Recién aquí se decide si 1 o 2 es el valor correcto
+- [x] 7.6 `[hecho-dev]` Documentar los falsos positivos **Verificado el 2026-09-30.** Secciones 'Falsos negativos que quedan', 'Los 2 falsos positivos del clasificador vigente' y 'Aciertos con categoria distinta'. y falsos negativos uno por uno, con su causa léxica
 - [ ] 7.7 Reportar los conteos operativos de la sección `Why` del proposal como lo que son: conteos, no métricas
 
 ## 8. Evidencia de selección de corpus
@@ -87,15 +87,15 @@
 
 ## 9. Documentación
 
-- [ ] 9.1 `knowledge-base/06_funcionalidades.md`: US-005 pasa de «cinco categorías» a nueve, con la definición del eje único
+- [x] 9.1 `[hecho-dev]` `knowledge-base/06_funcionalidades.md`: US-005 pasa de «cinco categorías» a nueve, con la definición del eje único
 - [ ] 9.2 `knowledge-base/05_reglas_de_negocio.md`: actualizar RN-CL-04 si su referencia al Anexo C cambia de ubicación
 - [ ] 9.3 `knowledge-base/04_modelo_de_datos.md`: registrar que `nlp_category` admite las nueve categorías y que no hay dominio en el DDL
-- [ ] 9.4 `V4/devoluciones/tesis_v4_borrador.md`: actualizar Tabla 6 (`:1450-1458` y `:2889-2895`) y el Anexo C (`:2876-2938`) con las nueve categorías
-- [ ] 9.5 `V4/devoluciones/tesis_v4_borrador.md`: corregir la fórmula del score en OE4 (`:2492`) y declarar que los posts previos usan la fórmula anterior
-- [ ] 9.6 `V4/devoluciones/tesis_v4_borrador.md`: registrar el estado real de los cinco criterios de aceptación. Solo se rehabilitan si las tareas del grupo 7 se completaron
-- [ ] 9.7 `V4/evidencias/CARACTERIZACION_RATE_LIMIT.md`: actualizar la mitigación documentada, que hoy dice «reintento hasta tres veces con 30 segundos», a la mitigación real de espaciado por loop (D-7)
-- [ ] 9.8 `V4/GUIA_EJECUCION.md`: corregir la misma afirmación de reintentos y documentar el ciclo de ~2 minutos
-- [ ] 9.9 `CHANGES.md`: registrar este change y desbloquear C-10 y C-13
+- [ ] 9.4 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): actualizar Tabla 6 (`:1450-1458` y `:2889-2895`) y el Anexo C (`:2876-2938`) con las nueve categorías
+- [ ] 9.5 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): corregir la fórmula del score en OE4 (`:2492`) y declarar que los posts previos usan la fórmula anterior
+- [ ] 9.6 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): registrar el estado real de los cinco criterios de aceptación. Solo se rehabilitan si las tareas del grupo 7 se completaron
+- [x] 9.7 `[hecho-dev]` `V4/evidencias/CARACTERIZACION_RATE_LIMIT.md`: actualizar la mitigación documentada, que hoy dice «reintento hasta tres veces con 30 segundos», a la mitigación real de espaciado por loop (D-7)
+- [x] 9.8 `[hecho-dev]` `V4/GUIA_EJECUCION.md`: corregir la misma afirmación de reintentos y documentar el ciclo de ~2 minutos
+- [ ] 9.9 `CHANGES.md`: registrar el change `rediseno-diccionario-evaluacion` en el roadmap y desbloquear C-10 y C-13. La tabla de skills y el resto del roadmap se sincronizaron el 2026-09-30, pero el change todavia no figura en `CHANGES.md`
 - [ ] 9.10 `AGENTS.md` y `CLAUDE.md`: confirmar que la tabla de skills sigue vigente para este trabajo
 
 ## Desviación de gobernanza

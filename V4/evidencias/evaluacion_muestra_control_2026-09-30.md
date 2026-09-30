@@ -262,13 +262,22 @@ sobre la población de forma directa**, sino dentro de estratos definidos por el
 propio modelo evaluado. No debe describirse como un muestreo "no condicionado a la
 categoría".
 
-**6.3 El sorteo no es reproducible como está documentado.**
-La documentación de la muestra afirma que el orden se obtiene con
-`ORDER BY md5(...)` en SQL, pero `generar_muestra_control.py` mezcla en Python con
-`random.Random(20260930)` sobre el orden de retorno de la consulta. Con la misma base
-y la misma semilla el resultado se reproduce; ante un cambio en el plan de ejecución
-de la consulta puede cambiar. Corregir antes de usar la muestra como referencia
-reproducible.
+**6.3 El sorteo no es reproducible, y no se puede arreglar sin reetiquetar.**
+La documentación de la muestra afirmaba que el orden se obtenía con
+`ORDER BY md5(...)` en SQL. **Eso nunca se ejecutó**: era una constante
+`SQL_MUESTRA` sin conectar dentro de `generar_muestra_control.py`, es decir
+código muerto. El sorteo real ocurre en Python, con `random.Random(20260930)`
+sobre el orden de retorno de la consulta, que no lleva `ORDER BY`.
+
+Consecuencia medida: reejecutar el script reproduce **8 de 50** filas de la
+muestra exportada, porque la tabla cambió después del sorteo (upserts y la
+corrida de anomalías). Agregar `ORDER BY p.id` tampoco sirve: produce otro
+subconjunto y obligaría a reetiquetar las 50 filas.
+
+Se optó por **no** forzar la reproducibilidad: los archivos exportados
+(`..._ETIQUETAS.csv` y `..._TEXTO_EXACTO.jsonl`) son el registro con valor
+probatorio, y el script documenta el método. Para futuras muestras, la
+corrección es poner `ORDER BY` en la consulta **antes** de sortear.
 
 **6.4 Sin evaluator externo ni revisão por pares.**
 No hubo validación por un tercero. Para una tesis de facultad el control es empírico
