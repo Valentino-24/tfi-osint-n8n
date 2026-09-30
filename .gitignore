@@ -25,3 +25,34 @@ Thumbs.db
 
 # Artefactos de build de agentes (indice de skills, se regenera)
 .atl/
+
+# --- agregado 2026-09-30: respaldos de la base y del workflow ---
+# El .gitignore venia eliminado del working tree, con lo que nada estaba
+# protegido y cualquier clave o dump quedaba a un `git add` de versionarse.
+# Reglas duras del proyecto: nunca versionar secretos ni datos de produccion.
+
+# Dumps y respaldos de PostgreSQL / n8n (contienen datos reales y claves)
+*.dump
+*.backup
+*.sql.gz
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+pg_*.sql
+pg_before_*.sql
+n8nbk*/
+n8n_db.backup-*
+
+# Exportes de la instancia n8n (pueden traer credenciales resueltas)
+n8n_export*.json
+import_*.json
+
+# Configuracion local de n8n (env.txt con N8N_ENCRYPTION_KEY y HMAC)
+env.txt
+*.env.txt
+
+# Temporales de opencode
+.opencode/node_modules/
+.opencode/package-lock.json
+.opencode/package.json
