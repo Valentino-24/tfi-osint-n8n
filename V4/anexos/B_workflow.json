@@ -13,7 +13,7 @@
           ]
         }
       },
-      "id": "fabb4aa0-c544-467e-8ca2-e5ac17ba45b2",
+      "id": "57ffab90-b8cf-4001-9440-3cd862961aa9",
       "name": "Schedule Ingesta",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -24,9 +24,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const subs = [\n  { subreddit_id: 'argentina', display_name: 'r/argentina', rss_url: 'https://www.reddit.com/r/argentina/new/.rss?limit=100' },\n  { subreddit_id: 'devsarg', display_name: 'r/devsarg', rss_url: 'https://www.reddit.com/r/devsarg/new/.rss?limit=100' },\n  { subreddit_id: 'derechogenial', display_name: 'r/derechogenial', rss_url: 'https://www.reddit.com/r/derechogenial/new/.rss?limit=100' }\n];\nreturn subs;"
+        "jsCode": "const subs = [\n  { subreddit_id: 'netsec', display_name: 'r/netsec', rss_url: 'https://www.reddit.com/r/netsec/new/.rss?limit=100' },\n  { subreddit_id: 'Malware', display_name: 'r/Malware', rss_url: 'https://www.reddit.com/r/Malware/new/.rss?limit=100' },\n  { subreddit_id: 'devsarg', display_name: 'r/devsarg', rss_url: 'https://www.reddit.com/r/devsarg/new/.rss?limit=100' }\n];\nreturn subs;"
       },
-      "id": "4378fd49-455c-4986-b1e8-98ce4017cb78",
+      "id": "e2bea58f-f6e0-4f27-8124-c7e7042cd069",
       "name": "Prepare Subreddits",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -43,7 +43,7 @@
           "queryReplacement": "={{ [ $json.subreddit_id, $json.display_name ] }}"
         }
       },
-      "id": "143ecd99-2feb-4861-ac00-d20293df22cb",
+      "id": "61ba9634-3d0c-4705-b3a9-52b2af59b22a",
       "name": "Upsert Subreddits",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -54,12 +54,40 @@
     },
     {
       "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "4c141b24-cd38-48e7-a9f9-b89edcfee955",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1420,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "0e224634-a2f6-4854-8a73-502b898d9ab1",
+      "name": "Espera Rate Limit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1180,
+        80
+      ]
+    },
+    {
+      "parameters": {
         "url": "={{ $json.rss_url }}",
         "options": {
           "customFields": "author, contentSnippet, guid"
         }
       },
-      "id": "1d1fbd0c-da5f-4c10-b4c6-641f3da54c39",
+      "id": "414a35ad-62b8-4dd8-a5a7-f22ebac4a434",
       "name": "Fetch Posts RSS",
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.2,
@@ -68,15 +96,16 @@
         80
       ],
       "retryOnFail": true,
-      "maxRetries": 3,
-      "waitBetweenRetries": 30000,
-      "continueOnFail": true
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Parser para feed Atom RSS de Reddit (nodo RSS Read, rss-parser).\n// id y subreddit_id se derivan del link del post:\n//   https://www.reddit.com/r/{sub}/comments/{id}/{slug}/\n// limitaciones RSS: score y num_comments no vienen -> 0 (documentado).\nconst out = [];\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  const link = String(d.link || '');\n  const m = link.match(/\\/r\\/([a-z0-9_]+)\\/comments\\/([a-z0-9]+)\\//i);\n  if (!m) continue;\n  const authorRaw = (typeof d.author === 'string' ? d.author : (d.author && d.author.name) || '')\n    .replace(/^\\/u\\//, '')\n    .trim();\n  const text = String(d.contentSnippet || '')\n    .replace(/\\s*submitted by\\s+\\S+\\s*/gi, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n  const iso = d.isoDate || d.pubDate || null;\n  out.push({\n    json: {\n      id: m[2],\n      subreddit_id: m[1],\n      title: String(d.title || ''),\n      selftext: text || null,\n      url: link,\n      author: authorRaw || '[deleted]',\n      score: 0,\n      num_comments: 0,\n      created_utc: iso ? Math.floor(new Date(iso).getTime() / 1000) : 0\n    }\n  });\n}\nreturn out;"
+        "jsCode": "// Parser para feed Atom RSS de Reddit (nodo RSS Read, rss-parser).\n// id y subreddit_id se derivan del link del post:\n//   https://www.reddit.com/r/{sub}/comments/{id}/{slug}/\n// limitaciones RSS: score y num_comments no vienen -> 0 (documentado).\n//\n// Descarte explicito de items con error (RN-FU-03 / D-10): cuando \"Fetch Posts RSS\" agota\n// sus 3 intentos y recibe 429, onError=continueRegularOutput deja pasar el item con la\n// propiedad .error en vez de cortar el flujo. Ese item NO es un post: se descarta aqui de\n// forma explicita para que el clasificador nunca vea un objeto de error. El subreddit que\n// fallo queda con 0 posts en la corrida, que es el estado honesto (ver\n// V4/evidencias/CARACTERIZACION_RATE_LIMIT.md seccion 4). El loop continua con el resto.\nconst out = [];\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  if (d.error) continue;              // item de error tras 429/403 agotado\n  const link = String(d.link || '');\n  const m = link.match(/\\/r\\/([a-z0-9_]+)\\/comments\\/([a-z0-9]+)\\//i);\n  if (!m) continue;\n  const authorRaw = (typeof d.author === 'string' ? d.author : (d.author && d.author.name) || '')\n    .replace(/^\\/u\\//, '')\n    .trim();\n  const text = String(d.contentSnippet || '')\n    .replace(/\\s*submitted by\\s+\\S+\\s*/gi, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n  const iso = d.isoDate || d.pubDate || null;\n  out.push({\n    json: {\n      id: m[2],\n      subreddit_id: m[1],\n      title: String(d.title || ''),\n      selftext: text || null,\n      url: link,\n      author: authorRaw || '[deleted]',\n      score: 0,\n      num_comments: 0,\n      created_utc: iso ? Math.floor(new Date(iso).getTime() / 1000) : 0\n    }\n  });\n}\nreturn out;"
       },
-      "id": "29bf255f-33a6-4fc0-b8aa-471b4a45099b",
+      "id": "2935b13f-4d5b-42d7-a371-40cc423704c0",
       "name": "Parse Reddit Posts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -89,7 +118,7 @@
       "parameters": {
         "jsCode": "const crypto = require('crypto');\nconst key = $env.OSINT_HMAC_KEY;\nif (!key) {\n  throw new Error('Falta la variable de entorno OSINT_HMAC_KEY. Seteala antes de arrancar n8n (ver GUIA_EJECUCION.md).');\n}\nconst out = [];\nfor (const item of $input.all()) {\n  out.push({\n    json: {\n      ...item.json,\n      author_hash: crypto.createHmac('sha256', key).update(String(item.json.author)).digest('hex'),\n      created_utc_iso: new Date((item.json.created_utc || 0) * 1000).toISOString()\n    }\n  });\n  delete out[out.length - 1].json.author;\n}\nreturn out;"
       },
-      "id": "30350063-7881-4f12-9cc0-a98a8533318a",
+      "id": "9d8e76fb-51c0-4ca8-8da4-a87ec4e6aeec",
       "name": "HMAC Anonymize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -100,9 +129,9 @@
     },
     {
       "parameters": {
-        "jsCode": "// Clasificador por diccionario (Anexo C base). Texto normalizado sin acentos.\n// Fórmula de puntuación (4.4): score = hits(c) / |keywords(c)| con hits >= MIN_HITS.\nconst DICT = {\n  'Estafas Virtuales': ['estafa', 'estafas', 'estafa virtual', 'transferencia', 'mercado pago', 'mp', 'clonacion', 'clonacion de tarjeta', 'clonar', 'banco', 'billetera', 'cangrejo', 'piramidal', 'defraudacion'],\n  'Phishing': ['phishing', 'suplantacion', 'enlace', 'correo', 'whatsapp', 'cuenta', 'pescar', 'smishing', 'verificacion', 'ingreso falso'],\n  'Filtración de Datos': ['filtracion', 'filtrar', 'leak', 'fuga', 'dni', 'base de datos', 'venta de datos', 'expuesta', 'datos personales', 'vazamiento'],\n  'Vulnerabilidades': ['vulnerabilidad', 'vulnerabilidades', 'bug', 'cve', 'exploit', 'parche', 'actualizacion', 'falla', 'pwn'],\n  'Ransomware': ['ransomware', 'secuestro de datos', 'secuestro', 'encriptado', 'cifrado', 'rescate', 'wannacry', 'criptoransomware']\n};\nconst MIN_HITS = 2;\nconst norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst out = [];\nfor (const item of $input.all()) {\n  const text = norm(item.json.title + ' ' + (item.json.selftext || ''));\n  const words = new Set(text.split(/[^a-z0-9]+/));\n  let best = null;\n  let bestHits = 0;\n  let bestK = 1;\n  for (const cat of Object.keys(DICT)) {\n    let hits = 0;\n    for (const kw of DICT[cat]) {\n      const k = kw.includes(' ') ? (text.includes(kw) ? 1 : 0) : (words.has(kw) ? 1 : 0);\n      hits += k;\n    }\n    if (hits > bestHits) {\n      bestHits = hits;\n      best = cat;\n      bestK = DICT[cat].length;\n    }\n  }\n  if (best && bestHits >= MIN_HITS) {\n    item.json.nlp_category = best;\n    item.json.nlp_score = Math.round((bestHits / bestK) * 10000) / 10000; // normalizado [0,1]\n  } else {\n    item.json.nlp_category = 'No relevante';\n    item.json.nlp_score = 0;\n  }\n  out.push({ json: item.json });\n}\nreturn out;"
+        "jsCode": "// Clasificador por diccionario bilingue (ES+EN), 9 categorias. Texto normalizado sin acentos.\n// Match: terminos de UNA palabra por token EXACTO (words.has); de VARIAS por substring (text.includes).\n// Restricciones que el diccionario respeta (si se rompen, el termino nunca encontraria el texto):\n//   - sin tildes: la normalizacion NFD las saca del texto, no del termino ('bufer' nunca encontraria el texto);\n//   - sin guiones: el tokenizado parte en /[^a-z0-9]+/, o sea 'zero-day' se parte en 'zero'+'day'\n//     y la cadena con guion nunca aparece como token -> escribi 'zero day';\n//   - con las formas conjugadas reales: 'filtraron' no matchea con 'filtrar'.\n// Se sacaron los cuasisinonimos demasiado genericos (mp, cuenta, enlace, correo, bug, falla,\n// transferencia, banco, filtrar, cangrejo, pescar, actualizacion) por falsos positivos.\n// Fórmula de puntuación (4.4), AHORA SATURANTE: score = min(1, hits(c) / SATURATION), hits >= MIN_HITS.\n// Por qué el cambio: antes era score = hits(c) / |keywords(c)|, y el denominador depende del tamaño\n// del diccionario. Al ampliarlo de 5 a 9 categorías (y de ~10 a ~22 términos cada una), el MISMO\n// post con los mismos 2 hits pasaba de 0.22 a 0.07: la escala se comprime y nlp_score deja de ser\n// comparable entre corridas y entre categorías. SATURATION fija la escala (2 hits=0.5, 3=0.75,\n// 4+=1.0), independiente del tamaño del diccionario, y sigue dentro de [0,1] (CHECK en la DB).\nconst DICT = {\n  'Phishing': ['phishing', 'phisher', 'smishing', 'vishing', 'spear phishing', 'correo fraudulento', 'correo suplantado', 'remitente falso', 'enlace fraudulento', 'enlace sospechoso', 'pagina falsa', 'sitio falso', 'portal falso', 'ingreso falso', 'verificar identidad', 'verificacion de identidad', 'captura de datos', 'suplantacion de correo', 'business email compromise', 'fake login', 'credential harvest', 'harvesting'],\n  'Robo de Credenciales': ['clonacion de tarjeta', 'tarjeta clonada', 'clonar', 'robo de contrasena', 'robaron mi contrasena', 'cambio de contrasena', 'cambiar mi contrasena', 'acceso no autorizado', 'acceso remoto', 'tomaron control de la cuenta', 'tomo control de mi cuenta', 'sesion robada', 'robo de token', 'segundo factor', 'factor de autenticacion', 'credential stuffing', 'account takeover', 'session hijacking', 'session hijack', 'token theft', 'password theft', 'password dumping', '2fa bypass', 'mfa fatigue', 'sim swap', 'sim swapping', 'otp bypass', 'push bombing', 'adversary in the middle'],\n  'Malware': ['malware', 'virus troyano', 'troyano', 'gusano', 'keylogger', 'rootkit', 'infostealer', 'stealer', 'dropper', 'loader', 'criptominer', 'miner', 'carga util', 'ejecucion remota', 'command and control', 'c2 server', 'rat', 'packed', 'obfuscated', 'ofuscado', 'payload', 'reverse shell', 'bind shell', 'webshell'],\n  'Ransomware': ['ransomware', 'nota de rescate', 'pedir rescate', 'piden rescate', 'bloquearon mis archivos', 'mis archivos estan cifrados', 'sequestro de datos', 'extorsion', 'wannacry', 'lockbit', 'revil', 'blackcat', 'locker', 'decryptor', 'desencriptador'],\n  'Vulnerabilidades': ['cve', 'exploit', 'exploits', 'parche', 'parchear', 'patch tuesday', 'actualizacion de seguridad', 'backdoor', 'puerta trasera', 'zero day', 'prueba de concepto', 'proof of concept', 'inyeccion sql', 'sql injection', 'xss', 'rce', 'ejecucion remota de codigo', 'escalamiento de privilegios', 'buffer overflow', 'desbordamiento de buffer', 'bypass de autenticacion', 'authentication bypass', 'kerberoasting', 'movimiento lateral', 'lateral movement', 'privilege escalation', 'nvd', 'cisa', 'zero day vulnerability', 'poc'],\n  'Filtración de Datos': ['filtracion', 'filtraron', 'filtrado', 'filtran', 'fuga de datos', 'fuga de informacion', 'base filtrada', 'base de datos expuesta', 'bases expuestas', 'base expuesta', 'dni', 'datos personales', 'venta de datos', 'venden datos', 'vazamiento', 'exfiltracion', 'exfiltrated', 'leak', 'leaked', 'leaks', 'breach', 'breached', 'exposed database', 'exposed credentials', 'credentials dump', 'combo list', 'dark web', 'pastebin', 'data dump', 'breach notification'],\n  'Infraestructura y Ataques': ['botnet', 'ddos', 'denegacion de servicio', 'denial of service', 'caida de servicio', 'sitio caido', 'tiraron el sitio', 'tiraron abajo el sitio', 'ataque de red', 'amplificacion', 'reflection attack', 'volumetric', 'ip flood', 'takedown', 'caeron los servidores', 'caida de servidores'],\n  'Hacktivismo': ['hacktivismo', 'hacktivista', 'hackeo', 'hackearon', 'hackear', 'deface', 'defacement', 'defaced', 'dox', 'doxeado', 'doxing', 'anonymous', 'filtracion publicada', 'publicacion de datos filtrados', 'protesta hacker', 'hactivist'],\n  'Ingenieria Social': ['ingenieria social', 'social engineering', 'mecanismo de engano', 'se hacen pasar', 'suplantar identidad', 'suplantacion de identidad', 'baiting', 'confianza ganada', 'falsa llamada', 'llamada del banco', 'falso empleado', 'falsa policia', 'falso soporte', 'pretexting', 'impersonation', 'pretexto', 'scam call', 'fake support', 'vishing script', 'ayuda de escritorio falsa']\n};\nconst MIN_HITS = 2;\nconst SATURATION = 4; // hits a partir de los cuales el score vale 1.0 (escala fija, ver cabecera)\nconst norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst out = [];\nfor (const item of $input.all()) {\n  const text = norm(item.json.title + ' ' + (item.json.selftext || ''));\n  const words = new Set(text.split(/[^a-z0-9]+/));\n  let best = null;\n  let bestHits = 0;\n  for (const cat of Object.keys(DICT)) {\n    let hits = 0;\n    for (const kw of DICT[cat]) {\n      const k = kw.includes(' ') ? (text.includes(kw) ? 1 : 0) : (words.has(kw) ? 1 : 0);\n      hits += k;\n    }\n    if (hits > bestHits) {\n      bestHits = hits;\n      best = cat;\n    }\n  }\n  if (best && bestHits >= MIN_HITS) {\n    item.json.nlp_category = best;\n    item.json.nlp_score = Math.min(1, Math.round((bestHits / SATURATION) * 10000) / 10000); // normalizado [0,1]\n  } else {\n    item.json.nlp_category = 'No relevante';\n    item.json.nlp_score = 0;\n  }\n  out.push({ json: item.json });\n}\nreturn out;"
       },
-      "id": "0123ed94-79ae-4d1f-9dc3-16602a50a6b8",
+      "id": "c9e7e0ca-4a98-4814-8bbf-5553a95c398f",
       "name": "Classify Dictionary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -115,7 +144,7 @@
       "parameters": {
         "jsCode": "// Extracción de entidades (OE4, [N-06]): CVE, emails, IPs, dominios y productos.\nconst PRODUCTS = ['whatsapp', 'telegram', 'mercado pago', 'windows', 'linux', 'android', 'ios', 'chrome', 'firefox', 'bitcoin', 'usdt', 'afi p', 'banco nacion', 'galicia', 'santander', 'uala', 'cvu', 'mercado libre'];\nconst norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst uniq = (a) => Array.from(new Set(a));\nconst out = [];\nfor (const item of $input.all()) {\n  const raw = item.json.title + ' ' + (item.json.selftext || '');\n  const low = norm(raw);\n  const entities = {\n    cves: uniq((low.match(/\\bcve-\\d{4}-\\d{4,7}\\b/g) || []).map((x) => x.toUpperCase())).slice(0, 20),\n    emails: uniq((raw.match(/\\b[\\w.+-]+@[\\w-]+\\.[\\w.]+\\b/g) || [])).slice(0, 20),\n    ips: uniq((low.match(/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/g) || [])).slice(0, 20),\n    domains: uniq((low.match(/\\b(?:[a-z0-9-]+\\.)+(?:com|ar|org|net|io|gov|edu)\\b/g) || []).filter((d) => !d.startsWith('reddit.com'))).slice(0, 20),\n    products: uniq(PRODUCTS.filter((p) => low.includes(p))).slice(0, 20)\n  };\n  item.json.entities = entities;\n  item.json.entities_json = JSON.stringify(entities);\n  out.push({ json: item.json });\n}\nreturn out;"
       },
-      "id": "04d15cba-5826-410d-bdde-ba36c73c2a3c",
+      "id": "ed60fdb2-c554-45c8-b70c-38ee15be510f",
       "name": "Extract Entities",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -132,7 +161,7 @@
           "queryReplacement": "={{ [ $json.id, $json.subreddit_id, $json.title, $json.selftext, $json.url, $json.author_hash, $json.score, $json.num_comments, $json.created_utc_iso, $json.nlp_category, $json.nlp_score, $json.entities_json ] }}"
         }
       },
-      "id": "9d218d36-19ba-40e2-a422-2d79303c96bd",
+      "id": "ca62fbd1-35e4-4d82-ac6b-35654aa24ef8",
       "name": "Upsert Posts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -153,7 +182,7 @@
           ]
         }
       },
-      "id": "5d3854f2-e17e-42bb-a4ca-69fab8742d93",
+      "id": "d6769dbe-7147-4d9c-a244-0f9e326f117a",
       "name": "Schedule Anomalias",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -168,7 +197,7 @@
         "query": "-- Ventana: ayer [00:00, 00:00) hora de Buenos Aires. Base: media diaria de los 10 días previos.\nSELECT\n  p.nlp_category AS categoria,\n  COUNT(*) FILTER (WHERE p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day'\n                   AND p.ingested_at <  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires')) AS n_observado,\n  COUNT(*) FILTER (WHERE p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '11 day'\n                   AND p.ingested_at <  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day') / 10.0 AS base_media,\n  (date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '1 day') AT TIME ZONE 'America/Argentina/Buenos_Aires' AS ventana_inicio,\n  date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') AT TIME ZONE 'America/Argentina/Buenos_Aires' AS ventana_fin\nFROM posts p\nWHERE p.nlp_category IS NOT NULL\n  AND p.nlp_category <> 'No relevante'\n  AND p.ingested_at >= date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires') - interval '11 day'\nGROUP BY p.nlp_category\nORDER BY p.nlp_category",
         "options": {}
       },
-      "id": "d007b620-881f-469e-a996-11d6b9b210ec",
+      "id": "f080c8bb-995b-442e-ac4e-dfd41b257e8e",
       "name": "Query Daily Counts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -181,7 +210,7 @@
       "parameters": {
         "jsCode": "// Motor de anomalías (4.5): ventana diaria, base = media diaria de los 10 días previos,\n// umbral = max(cuantil 95 de Poisson + 1, mínimo absoluto 3). Disparo si n_observado >= umbral.\nfunction poissonCdf(k, l) {\n  let s = 0;\n  for (let i = 0; i <= k; i++) {\n    let logP = -l;\n    for (let j = 2; j <= i; j++) {\n      logP += Math.log(l / j);\n    }\n    s += Math.exp(logP);\n  }\n  return Math.min(1, s);\n}\nconst MIN_ABS = 3;\nconst out = [];\nfor (const item of $input.all()) {\n  const lambda = Math.max(0, Number(item.json.base_media) || 0);\n  const n = Math.max(0, Math.round(Number(item.json.n_observado) || 0));\n  let t = 0;\n  if (lambda > 0) {\n    while (t < 500 && (1 - poissonCdf(t, lambda)) > 0.05) {\n      t += 1;\n    }\n  }\n  const umbralPoisson = lambda > 0 ? t + 1 : 1;\n  const umbral = Math.max(umbralPoisson, MIN_ABS);\n  out.push({\n    json: {\n      ventana_inicio: item.json.ventana_inicio,\n      ventana_fin: item.json.ventana_fin,\n      categoria: item.json.categoria,\n      n_observado: n,\n      base_media: Math.round(lambda * 1000) / 1000,\n      umbral: umbral,\n      disparo: n >= umbral\n    }\n  });\n}\nreturn out;"
       },
-      "id": "c83bc824-0231-4579-b0a1-aa61fddab9c6",
+      "id": "8d8be6f7-e9ef-46de-85a9-806f9e731c5a",
       "name": "Anomaly Engine",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -198,7 +227,7 @@
           "queryReplacement": "={{ [ JSON.stringify($json) ] }}"
         }
       },
-      "id": "2fe5213f-f09c-41f5-88dc-632a1b2d0ece",
+      "id": "22c0f677-2bb5-4658-983f-7e16bc5cb321",
       "name": "Registrar Anomalias y Alertas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -218,7 +247,7 @@
         "options": {}
       },
       "disabled": true,
-      "id": "a8e5229b-b71e-4d94-b926-fdcea0f64ae8",
+      "id": "09b7b734-8965-488a-87f4-e9dfcbb5fed7",
       "name": "Send Telegram Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -249,6 +278,29 @@
             "type": "main",
             "index": 0
           },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Espera Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Espera Rate Limit": {
+      "main": [
+        [
           {
             "node": "Fetch Posts RSS",
             "type": "main",
@@ -312,6 +364,17 @@
         ]
       ]
     },
+    "Upsert Posts": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Schedule Anomalias": {
       "main": [
         [
@@ -362,7 +425,7 @@
     "executionOrder": "v1",
     "timezone": "America/Argentina/Buenos_Aires"
   },
-  "versionId": "6030479a-caf5-449b-b0f3-ad58c3356db0",
+  "versionId": "b4ce9d40-d32c-451d-b77a-ca6422deca74",
   "meta": {
     "templateCredsSetupCompleted": false
   },
