@@ -29,7 +29,7 @@ Schedule -> Prepare -> RSS Read -> Parse -> HMAC -> Clasificar
 ```
 
 **Casos de error**:
-- 429/403 en un feed: reintento hasta tres veces con 30 segundos; continuar con el resto.
+- 429/403 en un feed: reintento hasta tres veces con hasta 5 segundos entre intentos; continuar con el resto.
 - Respuesta vacía: no crear filas ficticias; conservar el estado de la corrida.
 - Variable HMAC ausente: la ejecución debe detenerse con error explícito.
 - Falta de credencial Postgres: reasignar la credencial en n8n; no inventar una conexión alternativa.

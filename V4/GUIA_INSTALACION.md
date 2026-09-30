@@ -5,7 +5,7 @@
 > | Componente | Estado |
 > |---|---|
 > | **PostgreSQL 18** (cluster PROPIO del proyecto, puerto **5433**) | ✅ Corriendo |
-> | **n8n v2.22.6** (vía npm) | ✅ Instalado (falta arrancarlo y crear la cuenta) |
+> | **n8n v2.40.6** (Docker, imagen `n8nio/n8n:2.40.6`) | ✅ En ejecución en `http://localhost:5678` |
 > | Base `tesi_osint` + rol `tesi_app` | ✅ Creados y verificados |
 >
 > **¿Por qué cluster propio y no el PostgreSQL del sistema?** La instalación del sistema (puerto 5432) tiene contraseña de superusuario desconocida y modificarla requiere permisos de administrador. Creé un cluster **nuevo del proyecto** (en `V4\pgdata`) que arranca como usuario normal, no toca tu instalación y queda documentado como parte del TFI. Es incluso más prolijo para la tesis.
@@ -18,7 +18,7 @@
 |---|---|
 | Host / Puerto PostgreSQL | `localhost:5433` |
 | Superusuario `postgres` | password `tesi_super_2026` |
-| Rol aplicación `tesi_app` | password `tesi_app_2026` |
+| Rol `postgres` | la password vive solo en el contenedor; nunca se escribe en el repo |
 | Base de datos | `tesi_osint` |
 | n8n | http://localhost:5678 (creás cuenta local vos) |
 
@@ -46,10 +46,12 @@ Se abre el navegador en **http://localhost:5678** → creá la cuenta de adminis
 
 ```powershell
 # ¿Está el cluster del proyecto? (debe decir: running, port 5433)
-& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D "C:\Users\valen\Desktop\Tesis\V4\pgdata" status
+# El cluster vive en el volumen Docker tfi_pgdata, no en el filesystem de Windows.
+# Ver el estado del contenedor:
+docker ps --filter name=tfi-postgres
 
 # ¿Anda la conexión con el rol de la app?
-$env:PGPASSWORD = "tesi_app_2026"
+$env:PGPASSWORD = Read-Host "Password del rol postgres"
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -w -U tesi_app -h localhost -p 5433 -d tesi_osint -c "SELECT 1;"
 ```
 
@@ -72,7 +74,7 @@ $env:PGPASSWORD = "tesi_app_2026"
 | | Ítem |
 |---|---|
 | ✅ | PostgreSQL 5433 corriendo (cluster propio) |
-| ✅ | n8n instalado (v2.22.6) |
+| ✅ | n8n en ejecución en Docker (v2.40.6) |
 | ✅ | rol `tesi_app` + base `tesi_osint` creados y verificados |
 | ⏳ | n8n arrancado por vos + cuenta local creada en localhost:5678 |
 | ⏳ | (B2) tablas creadas con el DDL |

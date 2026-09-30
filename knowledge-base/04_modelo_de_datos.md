@@ -78,7 +78,10 @@ La tabla existe para el modelo y las consultas, pero el pipeline RSS actual no l
 - `canal VARCHAR(50) NOT NULL`
 - `destinatario VARCHAR(200)`
 - `payload JSONB`
-- `estado VARCHAR(20) DEFAULT 'ENVIADA'`
+- `estado VARCHAR(20) DEFAULT 'ENVIADA'` — **pero el workflow inserta siempre `'PENDIENTE'`**
+  de forma explícita, así que el default del DDL nunca se usa en la práctica. Una fila
+  queda `ENVIADA` solo si algún proceso posterior la actualiza, y hoy no hay ninguno.
+  Discrepancia conocida entre esquema y comportamiento: ver `10_preguntas_abiertas.md`.
 - `created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP`
 
 ## Seed data inicial

@@ -148,10 +148,10 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-01] `entorno-postgres-n8n`
 - **Estado**: `[x]` verificado
 - **Scope**:
-  - PostgreSQL 18 instalado con cluster del proyecto en `V4/pgdata`, escuchando en puerto `5433`; base `tesi_osint` creada
-  - Scripts de arranque/parada: `V4/scripts/arrancar_postgres.bat`, `arrancar_postgres_silencioso.bat`, `parar_postgres.bat`
-  - n8n 2.22.6 instalado y accesible en `http://localhost:5678` con cuenta local del operador
-  - Rol de aplicación `tesi_app` con acceso a `tesi_osint` (credencial de desarrollo; nunca versionada)
+    - PostgreSQL 18 en **Docker** (contenedor `tfi-postgres`, volumen `tfi_pgdata`), escuchando en puerto `5433`; base `tesi_osint` creada
+    - Scripts nativos `arrancar_postgres.bat` / `parar_postgres.bat`: **obsoletos**, el cluster vive en el contenedor
+    - n8n 2.40.6 en Docker (contenedor `tfi-n8n`) y accesible en `http://localhost:5678` con cuenta local del operador
+    - Rol `postgres` con acceso a `tesi_osint` (credencial en el contenedor; nunca versionada). No existe un rol `tesi_app`
   - Variables de entorno documentadas en `V4/GUIA_EJECUCION.md` §1: `OSINT_HMAC_KEY`, `NODE_FUNCTION_ALLOW_BUILTIN=crypto`, `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `PGPASSWORD`
   - Verificación: cluster arriba + n8n responde + `psql` conecta a `tesi_osint` en `localhost:5433`
 - **Dependencias**: ninguna

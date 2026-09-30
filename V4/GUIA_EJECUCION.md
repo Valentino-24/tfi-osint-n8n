@@ -6,9 +6,9 @@
 
 | Paso | Estado |
 |---|---|
-| B1 Entorno | ✅ PostgreSQL 18 (5433) + n8n 2.22.6 + base `tesi_osint` |
+| B1 Entorno | ✅ PostgreSQL 18 en Docker (puerto 5433) + n8n 2.40.6 + base `tesi_osint` |
 | B2 DDL | ✅ **Verificado**: las 5 tablas existen (`subreddits`, `posts`, `comments`, `anomalias`, `alertas`) — todas vacías |
-| B3 Workflow | ✅ **Generado y validado** `V4\anexos\B_workflow.json` (15 nodos, import exitoso con `n8n import:workflow`) |
+| B3 Workflow | ✅ **Generado y validado** `V4\anexos\B_workflow.json` (16 nodos, import exitoso desde la UI de n8n) |
 | B4 Correr | ⏳ Este documento |
 | B5 Ventana | ⏳ **Ventana real abierta, con una interrupción declarada**: inicio **2026-09-25**, corte **`no fijada`** (decisión de los autores con sus directores). El día `2026-09-25` cerró **parcial** con `n = 36` (cubre 14:55–16:00): la recolección se detuvo a las 16:00:05 y el motor de anomalías tenía el SQL roto. Total en base **237**. Evidencia y bitácora diaria en `V4\evidencias\VENTANA_B5.md` (§7.1) y `V4\evidencias\bitacora_b5\`. Cierre pendiente (C-05, tarea 6.1) |
 
@@ -19,7 +19,7 @@
 **Trigger 1 — Ingesta (cada 15 min):**
 `Schedule` → `Prepare Subreddits` (r/argentina, r/devsarg, r/derechogenial)
 → rama A: upsert de subreddits (subscribers en 0 — no disponible via RSS)
-→ rama B: `new/.rss` (feed Atom público) → parse (id y subreddit salen del link del post) → **HMAC-SHA-256** (seudonimiza author) → **clasificador por diccionario** (5 categorías + "No relevante", score [0,1]) → **extracción de entidades** (CVE, emails, IPs, dominios, productos) → **upsert `ON CONFLICT (id) DO UPDATE`** (idempotente; `ingested_at` no se toca → sirve para latencia).
+→ rama B: `new/.rss` (feed Atom público) → parse (id y subreddit salen del link del post) → **HMAC-SHA-256** (seudonimiza author) → **clasificador por diccionario** (9 categorías + "No relevante", score [0,1]) → **extracción de entidades** (CVE, emails, IPs, dominios, productos) → **upsert `ON CONFLICT (id) DO UPDATE`** (idempotente; `ingested_at` no se toca → sirve para latencia).
 
 > **Decisión 2026-09-24 (Plan C):** la cuenta Reddit está bloqueada para crear apps (`prefs/apps` → banner Responsible Builder Policy, requiere developer account) y los endpoints `.json` públicos dan **403 "blocked by network security"** desde esta IP. El workflow usa entonces los **feeds RSS públicos (Atom)** con el nodo *RSS Read*: 3 requests por ciclo de 15 min (rate limit público ~10/min, retry x3 cada 30 s por si pega 429). **Limitación:** el RSS no trae `score`, `num_comments` ni suscriptores → quedan en 0 (ningún nodo del pipeline depende de ellos; el motor de anomalías usa counts por categoría). Si en el futuro se consigue una app de Reddit (developer account), se regenera el workflow con OAuth desde `V4/scripts/generar_workflow.py` y se recuperan esos campos.
 
@@ -118,7 +118,7 @@ Abrí http://localhost:5678 → creá la cuenta local (usuario/contraseña que q
 
 | Credencial | Dónde | Valores |
 |---|---|---|
-| **Postgres** | Nodos `Upsert Subreddits`, `Upsert Posts`, `Query Daily Counts`, `Registrar Anomalias y Alertas` (4 nodos) | Host `localhost`, Puerto `5433`, DB `tesi_osint`, Usuario `tesi_app`, Password `tesi_app_2026` |
+| **Postgres** | Nodos `Upsert Subreddits`, `Upsert Posts`, `Query Daily Counts`, `Registrar Anomalias y Alertas` (4 nodos) | Host `localhost`, Puerto `5433`, DB `tesi_osint`, Usuario `postgres`, Password defined en el contenedor `tfi-postgres` (nunca en el repo) |
 | **Telegram** (opcional) | Nodo `Send Telegram Alert` | Crear bot con @BotFather → `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID` como env; luego habilitar el nodo |
 
 > No hace falta credencial Reddit: el workflow consulta los endpoints públicos sin OAuth (ver nota en "El workflow"). Si en el futuro se vuelve a OAuth, se agrega la credential tipo httpBasicAuth en el nodo `Get Reddit Token` regenerando el workflow desde el generador.
@@ -130,7 +130,7 @@ Abrí http://localhost:5678 → creá la cuenta local (usuario/contraseña que q
 3. Verificá en la base:
 
 ```powershell
-$env:PGPASSWORD = "tesi_app_2026"
+$env:PGPASSWORD = Read-Host "Password del rol postgres"
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -w -U tesi_app -h localhost -p 5433 -d tesi_osint -c "SELECT COUNT(*) FROM posts;"
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -w -U tesi_app -h localhost -p 5433 -d tesi_osint -c "SELECT subreddit_id, title, nlp_category, nlp_score FROM posts ORDER BY ingested_at DESC LIMIT 10;"
 ```
@@ -219,7 +219,7 @@ conexión falla, el script termina con error explícito y **no** escribe una ent
 | Síntoma | Causa probable | Fix |
 |---|---|---|
 | CODE: "Falta la variable de entorno OSINT_HMAC_KEY" | n8n arrancó sin el env | Setear env y reiniciar n8n |
-| CODE: `Module 'crypto' is disallowed` en `HMAC Anonymize` | el proceso de n8n **no** tiene `NODE_FUNCTION_ALLOW_BUILTIN`; n8n 2.22.6 solo se la pasa al task runner si está en su propio entorno | Cerrar **todas** las ventanas de n8n y relanzar con `V4\scripts\arrancar_n8n.bat`. No alcanza con re-ejecutar el workflow: una instancia viva no puede recibir variables nuevas. Si reincide, n8n se está arrancando por otra vía — las cuatro variables ya están en `HKCU\Environment` (§1) |
+| CODE: `Module 'crypto' is disallowed` en `HMAC Anonymize` | el proceso de n8n **no** tiene `NODE_FUNCTION_ALLOW_BUILTIN`; hay que pasársela por variable de entorno (se observó en 2.22.6 y aplica igual en 2.40.6) | al task runner si está en su propio entorno | Cerrar **todas** las ventanas de n8n y relanzar con `V4\scripts\arrancar_n8n.bat`. No alcanza con re-ejecutar el workflow: una instancia viva no puede recibir variables nuevas. Si reincide, n8n se está arrancando por otra vía — las cuatro variables ya están en `HKCU\Environment` (§1) |
 | "NODE_FUNCTION_ALLOW_BUILTIN" requerido pero no seteado | `require('crypto')` bloqueado | `$env:NODE_FUNCTION_ALLOW_BUILTIN = "crypto"` y reiniciar |
 | HTTP 403/429 de Reddit (RSS) | Reddit bloquea/rate-limita el IP temporalmente | El nodo RSS Read tiene retry x3 cada 30 s; si persiste, esperar 1 min (ventana de rate limit público); última opción: volver a OAuth con otra cuenta |
 | PostgreSQL: connection refused | Cluster del proyecto apagado | `V4\scripts\arrancar_postgres.bat` |

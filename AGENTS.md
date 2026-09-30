@@ -7,7 +7,7 @@
 
 | Capa | Tecnología | Versión / detalle |
 |------|------------|-------------------|
-| Orquestación | n8n | 2.22.6 |
+| Orquestación | n8n | 2.40.6 (Docker `tfi-n8n`) |
 | Persistencia | PostgreSQL | 18, cluster local en puerto 5433 |
 | Base de datos | `tesi_osint` | `V4/anexos/A_DDL.sql` |
 | Fuente de datos | Reddit RSS/Atom público | Feeds `new/.rss` |

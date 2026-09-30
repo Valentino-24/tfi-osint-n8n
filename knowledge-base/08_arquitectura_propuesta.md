@@ -55,6 +55,6 @@ Tesis/
 | `N8N_BLOCK_ENV_ACCESS_IN_NODE` | Permite leer variables desde nodos Code | `false` | Sí, afecta seguridad |
 | `TELEGRAM_BOT_TOKEN` | Token del bot, solo si se habilita Telegram | token de BotFather | Sí |
 | `TELEGRAM_CHAT_ID` | Destinatario de la alerta | id numérico del chat | Sí |
-| `PGPASSWORD` | Password del rol PostgreSQL en consultas locales | `tesi_app_2026` en entorno de desarrollo | Sí |
+| `PGPASSWORD` | Password del rol PostgreSQL en consultas locales | Se pide por prompt o se lee de una variable de entorno; nunca se escribe en el repo | Sí |
 
 La configuración completa por etapas está en `V4/GUIA_EJECUCION.md` y `V4/GUIA_INSTALACION.md`.

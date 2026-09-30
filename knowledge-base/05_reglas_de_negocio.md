@@ -4,7 +4,13 @@ Cada regla tiene un código único `RN-{DOMINIO}-{NN}` para trazabilidad. Las re
 
 ## Dominio: fuentes y recolección (RN-FU)
 
-- **RN-FU-01**: el sistema monitorea únicamente subreddits habilitados en `subreddits.active_monitoring`.
+- **RN-FU-01**: el sistema monitorea únicamente los subreddits habilitados. **Ojo:** en la
+  implementación actual el Code node `Prepare Subreddits` devuelve una lista fija de tres
+  (`netsec`, `Malware`, `devsarg`) y **no lee la tabla `subreddits`**, así que
+  `active_monitoring` NO gobierna la recolección: gobierna el registro y los análisis.
+  Para cambiar qué se recolecta hay que editar `generar_workflow.py` y regenerar el
+  artefacto, no tocar la base. La fila `derechogenial` está activa y con 0 posts en
+  consecuencia de esa disimetría.
 - **RN-FU-02**: la fuente operativa actual es el feed RSS/Atom público `new/.rss`; no se requiere OAuth para esa fuente.
 - **RN-FU-03**: cada subreddit se consulta una vez por ciclo de ingesta; ante 429/403 se reintenta hasta tres veces con **hasta 5 segundos** de espera entre intentos y se continúa con el resto del flujo, dejando el subreddit afectado con 0 posts en esa corrida. Revisada el 2026-09-30 (decisión D-10): la redacción anterior decía "30 segundos de espera", cifra que el motor de n8n no admite — `waitBetweenTries` está topado a 5000 ms en `workflow-execute.js:938` (`Math.min(5000, …)`), de modo que el tope es impuesto por la plataforma y no una elección del proyecto. El espaciado de 30 s **entre** subreddits lo aporta el nodo `Espera Rate Limit`, que sí es configuración propia. Cumplir los 30 s por reintento exigiría un nodo `Wait` explícito y se descarta por complejidad.
 - **RN-FU-04**: no se Consideran noticias las métricas ausentes del feed; `score`, `num_comments` y `subscribers` quedan en 0 y no se usan para el motor de anomalías.

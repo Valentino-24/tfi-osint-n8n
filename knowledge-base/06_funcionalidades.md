@@ -22,7 +22,7 @@ Las funcionalidades se organizan por épica y se expresan como historias de usua
 **Para** no perder toda la corrida por un límite temporal de Reddit.
 
 **Criterios de aceptación**:
-- [x] Se reintenta hasta tres veces con espera de 30 segundos.
+- [x] Se reintenta hasta tres veces con espera de hasta 5 segundos entre intentos (`waitBetweenTries = 5000`). Entre un subreddit y el siguiente se esperan 30 s con el nodo `Espera Rate Limit`. El techo de 5 s lo impone el motor de n8n, que acota el backoff nativo.
 - [x] El flujo tiene comportamiento `continueOnFail` para conservar lo ya traído.
 - [ ] Documentar la ventana exacta de rate limiting que se observe en las corridas finales.
 
@@ -62,7 +62,7 @@ Las funcionalidades se organizan por épica y se expresan como historias de usua
 **Para** separar señales de phishing de conversaciones no relevantes.
 
 **Criterios de aceptación**:
-- [x] Se usa un diccionario taxonómico de cinco categorías más `No relevante`.
+- [x] Se usa un diccionario taxonómico de nueve categorías más `No relevante`: Phishing, Robo de Credenciales, Malware, Ransomware, Vulnerabilidades, Filtración de Datos, Infraestructura y Ataques, Hacktivismo e Ingeniería Social. Son 210 términos.
 - [x] `nlp_score` está normalizado entre 0 y 1.
 - [ ] Publicar el diccionario completo como Anexo C.
 

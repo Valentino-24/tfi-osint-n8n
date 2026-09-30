@@ -2,7 +2,12 @@
 
 ## Inconsistencias detectadas
 
-### IN-01 — La guía declara 15 nodos y la verificación final 14
+### ~~IN-01 — La guía declara 15 nodos y la verificación final 14~~ — RESUELTA 2026-09-30
+
+**Estado**: resuelta. El workflow tiene **16 nodos** (`B_workflow.json`, 16 nodos;
+`generar_workflow.py` declara 16). Las dos ramas, ingesta y anomalías, fueron
+ejecutadas en runtime y verificadas. La guía decía 15 y la verificación previa 14;
+ambas cifras quedaron desactualizadas al crecer el workflow. La guía ya dice 16.
 **Documento A dice**: `GUIA_EJECUCION.md` describe el workflow como 15 nodos.
 **Documento B dice**: la sesión de verificación reportó 14 nodos.
 **Impacto**: afecta la Figura 3, el Anexo B y la trazabilidad del artefacto.
