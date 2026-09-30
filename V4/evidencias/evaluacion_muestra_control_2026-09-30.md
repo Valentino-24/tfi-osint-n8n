@@ -107,7 +107,12 @@ coincidencia. Se cambió `MIN_HITS` a 1 y se eliminó `'dni'` de `Filtración de
 que matcheaba con un post sobre baja de apoderado de jubilación (trámite
 administrativo, no amenaza).
 
-Métricas medidas **contra el artefacto generado** (`B_workflow.json`), no contra una
+> ⚠️ **Tabla superada, conservada solo como registro del método.** Mide el artefacto
+> generado pero aplica el diccionario al `selftext` completo de la base, que no es lo
+> que el pipeline real clasifica. **No citar estas cifras.** Las que valen están en
+> *Corrección posterior: cifras medidas contra el workflow real*.
+
+Métricas calculadas **contra el artefacto generado** (`B_workflow.json`), no contra una
 copia del diccionario en memoria, para que lo validado sea lo que se importa:
 
 | | `MIN_HITS=2` (base) | `MIN_HITS=1` sin `dni` | Cambio |
@@ -133,21 +138,93 @@ el total de `No relevante` estaba inflado por el umbral, no por el contenido.
 Estos cambios **no están aplicados en la base**: el surte efecto cuando el workflow
 vuelva a ejecutarse. Las clasificaciones ya ingeridas no se tocan.
 
-### Falsos negativos que quedan
+### Corrección posterior: cifras medidas contra el workflow real
 
-1. **EDR evasion** — inyección de procesos sin `WriteProcessMemory` (r/netsec)
-2. **Red team sobre ServiceNow** — anatomía de un equipo rojo (r/netsec)
+> **Corrección (2026-09-30, commit posterior a `b45e996`).** La tabla de arriba salió de
+> una **simulación** que aplicaba el diccionario al `selftext` completo almacenado.
+> El pipeline real no clasifica ese texto: `Parse Reddit Posts` arma el texto con
+> `d.title` + `d.contentSnippet`, y el `contentSnippet` del feed Atom es más corto y
+> está recortado. Medir contra lo que el sistema **realmente guardó** da cifras distintas,
+> y son estas las que valen:
+
+| | `MIN_HITS=2` (base real) | `MIN_HITS=1` (medición real) | Cambio |
+|---|---|---|---|
+| TP | 24 | **27** | +3 |
+| FP | 4 | **4** | 0 |
+| FN | 5 | **2** | −3 |
+| TN | 17 | **17** | 0 |
+| Precision | 0,857 | **0,871** | +0,014 |
+| Recall | 0,828 | **0,931** | +0,103 |
+| F1 | 0,842 | **0,900** | +0,058 |
+| Acierto exacto de categoría | 74,0 % | **80,0 %** | +6,0 pp |
+
+**La simulación era optimista en la precisión (0,931 contra 0,871 real).** La razón es
+que el recorte del `contentSnippet` cambia cuántos términos matchean, y con `MIN_HITS=1`
+cada match de más convierte un `No relevante` en amenaza. El recall no cambia: 27/29 en
+ambos casos, porque los 2 falsos negativos restantes son los mismos y no dependen de
+longitud del texto.
+
+La corrección neta de `MIN_HITS=1` es **recall +0,103 a cambio de +0,014 de precisión**.
+El error que se corrige es sistemático y conocido (descarta señales de una palabra), y
+el costo es acotado y conocido (tres posts de `r/DerechoGenial` fuera del ámbito del
+proyecto).
+
+### Clasificación heredada en el corpus archivado
+
+`r/argentina` y `r/DerechoGenial` están desactivados (`active_monitoring = false`), así
+que **el loop no los recorre y sus 201 posts nunca se reclasifican**. Auditoría sobre la
+grilla de la fórmula vigente (`hits/4` → 0, 0.25, 0.5, 0.75, 1.0):
+
+- **517 de 520 posts** tienen score en la grilla vigente.
+- **3 posts de `r/DerechoGenial`** conservan `nlp_score = 0.2`, que no existe en la
+  fórmula vigente: es el residuo de la fórmula anterior (`hits / |keywords|` = 2/10).
+
+Su **categoría** sigue siendo correcta (Phishing, que es lo que el clasificador actual
+también devuelve), pero el **score quedó desactualizado**. Cualquier statistic que use
+`nlp_score` sobre el corpus completo debe excluir estos 3 posts o declararlos.
+
+### Falsos negativos que quedan (medición real)
+
+1. **EDR evasion** — inyección de procesos sin `WriteProcessMemory` (r/netsec), score 0.0
+2. **Red team sobre ServiceNow** — anatomía de un equipo rojo (r/netsec), score 0.0
 
 Ambos son falta de vocabulario real. **No se agregaron los términos**: definirlos sin
 conocimiento técnico de ciberseguridad introduciría el mismo error conceptual
 dentro del diccionario. Quedan como limitación abierta.
 
-### Los 2 falsos positivos que quedan
+### Los 4 falsos positivos (medición real)
 
-| Canal | Modelo dijo | Título | Por qué no se corrige acá |
-|---|---|---|---|
-| r/Malware | Malware | Catálogo open-source de 2.800+ familias | Material de defensa; se tagged por la palabra "malware" repetida |
-| r/DerechoGenial | Ingeniería Social | Suplantación de identidad en redes sociales | Fuera del ámbito del proyecto (infraestructura, no conflictos legales) |
+| Canal | Modelo dijo | Score | Título | Por qué no se corrige acá |
+|---|---|---|---|---|
+| r/DerechoGenial | Phishing | 0.2 | Multinacional retiene mi sueldo | Fuera del ámbito del proyecto |
+| r/DerechoGenial | Phishing | 0.2 | Suplantación de identidad en redes sociales | Fuera del ámbito del proyecto |
+| r/DerechoGenial | Phishing | 0.2 | Me llegó una giftcard que no es mía | Fuera del ámbito del proyecto |
+| r/Malware | Malware | 0.5 | Catálogo open-source de 2.800+ familias | Material de defensa; matchea por la palabra "malware" repetida |
+
+**Son los mismos 4 de la línea base.** La simulación previa predecía que quedarían 2;
+se equivocó porque el recorte del `contentSnippet` deja a los tres de `r/DerechoGenial`
+con un solo hit, suficiente bajo `MIN_HITS=1`. El error de fondo es conocido y está
+declarado: son conflictos legales laborales, no amenazas a infraestructura.
+
+Los tres de `r/DerechoGenial` **no fueron reclasificados por esta corrida**: el subreddit
+está desactivado y el loop no lo recorre. Su `nlp_score = 0.2` es residuo de la fórmula
+anterior (ver *Clasificación heredada en el corpus archivado*).
+
+### Aciertos de detección con categoría distinta (no son FP ni FN)
+
+Cuatro posts de `r/Malware` que el sistema detecta como amenaza —acierto de detección—
+pero con otra categoría que la humana. No afectan la matriz binaria, sí la métrica de
+acierto exacto de categoría (80,0 %):
+
+| Título | Humano | Modelo |
+|---|---|---|
+| Redis cryptomining toolkit recovered from an open directory | Infraestructura y Ataques | Malware |
+| Open directory held custom exploit tooling and an EtherHiding loader | Infraestructura y Ataques | Vulnerabilidades |
+| Operation Endgame disrupted hundreds of systems (StealC backend) | Infraestructura y Ataques | Malware |
+| They got the guy behind the Steam Malware attacks | Infraestructura y Ataques | Malware |
+
+El patrón es consistente y **no es ruido**: el anotador tendió `Infraestructura y Ataques` para ataques cuyo toolchain el diccionario lleva a `Malware` o `Vulnerabilidades`. Es una diferencia de criterio entre la etiqueta humana y el diccionario sobre dónde corta la frontera entre "herramienta de ataque" y "infraestructura", no un defecto de cobertura. Queda declarada como ambigüedad de la taxonomía y no se corrige sin revisar el diccionario.
+
 
 ## 6. Limitaciones del método
 
@@ -193,5 +270,6 @@ entre anotadores sería inventada.
 - **Ampliar la muestra del estrato `No relevante`** si se quiere publicar un recall con intervalo acotado.
 - **Decidir sobre `r/devsarg` y `r/DerechoGenial`** — bajar su frecuencia en vez de eliminarlos conserva el control negativo sin gastar llamadas a Reddit.
 - **Corregir la discrepancia de reproducibilidad** entre la documentación y `generar_muestra_control.py` (ver 6.3).
-- **Reconciliar el post `1umy56h`** ("Silent Swap", extensión clipper de cripto): la base lo guarda como `No relevante` con score 0, pero la lógica actual encuentra 2 hits y lo clasifica `Malware`. Sugiere que la ejecución que lo clasificó se diferencie del artefacto actual. Resolver antes de atribuir métricas definitivas a la ventana.
-- **Reetiquetar las 89 clasificaciones** solo cuando el workflow vuelva a correr, si se quiere que la base refleje el clasificador nuevo.
+- ~~**Reconciliar el post `1umy56h`**~~ — **Resuelto el 2026-09-30.** La base ya lo guarda como `Malware` con score 0.25. La discrepancia previa tenía dos causas: la fila provenía de una ejecución con el artefacto anterior, y la lógica histórica comparaba contra `selftext` completo mientras el pipeline real usa `d.title + d.contentSnippet`, cuyo recorte deja un solo hit. Con la grilla vigente (`hits/4`) un hit da 0.25.
+- **Excluir o reetiquetar los 3 posts de `r/DerechoGenial`** que conservan `nlp_score = 0.2`, residuo de la fórmula anterior (ver *Clasificación heredada en el corpus archivado*).
+- **Backfill de los 201 posts de `r/argentina` y `r/DerechoGenial`** si se los quiere usar en estadísticas de `nlp_score`: al estar desactivados, el loop nunca los reclasificó.

@@ -40,8 +40,8 @@
 - [ ] 5.3 Confirmar que los 16 nodos validan sin errores
 - [ ] 5.4 Ejecutar una corrida de control completa y verificar que las tres comunidades ingieren sin error de clave foránea
 - [ ] 5.5 Verificar que `nlp_score` queda en `[0, 1]` y que `nlp_category` contiene valores de las 9 categorías o `No relevante`
-- [ ] 5.6 Ejecutar una segunda corrida y confirmar que el total de filas no crece. Este es el test de idempotencia del workflow de 16 nodos; la idempotencia del workflow de 14 nodos ya está verificada
-- [ ] 5.7 Registrar en la bitácora de C-05 la corrida de control, su fecha, su consulta de conteo y su `n`
+- [x] 5.6 Ejecutar una segunda corrida y confirmar que el total de filas no crece. Este es el test de idempotencia del workflow de 16 nodos; la idempotencia del workflow de 14 nodos ya está verificada. **Verificado el 2026-09-30** con el workflow `KkotjSD5uO4CXI4D` (`MIN_HITS=1`): 503 → 520 posts. La aserción no es "el total no crece" sino la que corresponde a un upsert real: 0 ids duplicados, 0 posts perdidos, `ingested_at` inalterado en los 17 ya ingeridos y las 17 filas nuevas con ids que no existían. Crecimiento = 1 post de `r/Malware` + 16 de `r/devsarg`, que es exactamente lo que Reddit publicó en la ventana entre corridas. 85 posts fueron reclasificados de `No relevante` a una categoría de amenaza por el `MIN_HITS=1`, en la misma corrida
+    - [x] 5.7 Registrar en la bitácora de C-05 la corrida de control, su fecha, su consulta de conteo y su `n`
 
 ## 5 bis. Corpus mixto (D-9)
 
