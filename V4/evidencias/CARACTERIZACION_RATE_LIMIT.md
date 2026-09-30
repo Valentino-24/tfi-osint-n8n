@@ -12,7 +12,7 @@
 | Fuente | Feeds RSS/Atom públicos de Reddit (`new/.rss`), modo Plan C |
 | Síntoma | Reddit responde **HTTP 429** (Too Many Requests) ante el **exceso de requests desde la IP del proyecto** |
 | Alcance del síntoma | Afecta a la descarga del feed: el subreddit habilitado puede quedar en **0 posts** en el ciclo |
-| Mitigación vigente | **Reintento hasta 3 veces con 30 segundos de espera** ante 429/403, y continuación con el resto del flujo (RN-FU-03) |
+| Mitigación vigente | **Reintento hasta 3 veces con hasta 5 segundos de espera** entre intentos ante 429/403, y continuación con el resto del flujo (RN-FU-03, revisada el 2026-09-30 por D-10) |
 | Requests por ciclo | 3 (uno por subreddit monitorizado), ciclo de ingesta de 15 minutos |
 | Umbral exacto de requests que dispara el 429 | **`no determinado`** (ver §3) |
 | Efecto sobre la cobertura | Sesgo por subreddit: un subreddit habilitado puede no aportar datos (ver §4) |
@@ -93,9 +93,46 @@ presentados como datos. Se suma una fila por cada corrida que sufra rate limitin
 | # | Fecha | Subreddit afectado | Síntoma observado | Ciclo de ingesta |
 |---|---|---|---|---|
 | 1 | 2026-09-24 | `r/derechogenial` | 0 posts ingeridos en la corrida; atribuido a rate limiting de Reddit sobre el feed (respuesta 429 tras los reintentos de RN-FU-03) | Corrida B4 — ejecución de la ingesta RSS (Plan C) con 3 requests, uno por subreddit |
+| 2 | 2026-09-30 | `r/devsarg` | 0 posts ingeridos. `netsec` y `r/Malware` completaron con 100 posts cada uno. El tercer request recibió **429** y **abortó la ejecución completa** (status `error`, 04:30:13 → 04:31:47) | Corrida de control del grupo 5 bis (D-9), corpus `netsec`/`Malware`/`devsarg`, 3 requests separados por 30 s |
 
-**Total de incidentes registrados: 1.** La tabla crece únicamente con observación: cada corrida
+**Total de incidentes registrados: 2.** La tabla crece únicamente con observación: cada corrida
 de la ventana B5 que sufra 429 suma su fila con fecha, subreddit, síntoma y ciclo.
+
+### Nota sobre el incidente 2: no fue un fallo del rate limit, sino de la mitigación
+
+A diferencia del incidente 1, acá el 429 **no fue una limitación tolerada**: cortó la ejecución
+entera. La causa se aisló leyendo el motor de n8n 2.40.6 y no fue el espaciado de 30 s, que
+funcionó correctamente.
+
+Los settings de mitigación estaban escritos bajo la clave `node.settings`, y el motor los lee
+desde la **raíz** del nodo:
+
+| Referencia en n8n 2.40.6 | Campo que lee |
+|---|---|
+| `n8n-core/dist/execution-engine/workflow-execute.js:933` | `node.retryOnFail` |
+| `:937` | `node.maxTries` |
+| `:938` | `node.waitBetweenTries` |
+| `:563` | `node.continueOnFail` |
+| `:564` | `node.onError` |
+
+Bajo `node.settings` los cinco campos quedaban ignorados: no hubo reintentos ni continuación.
+Dos firmas lo confirman en la ejecución 9: el intento fallido duró **400 ms** cuando
+`maxTries: 3` con `waitBetweenTries: 3000` exigirían ≥6 s, y la ejecución terminó en `error`
+global pese a `onError: continueRegularOutput`.
+
+La misma línea `:938` fija el techo del backoff nativo:
+
+```
+Math.min(5000, Math.max(0, node.waitBetweenTries || 1000))
+```
+
+Por eso los 30 s por reintento que pedía la redacción original de RN-FU-03 eran imposibles por
+configuración. La regla se relajó a "3 intentos con hasta 5 s" (D-10) y el espaciado de 30 s
+**entre** subreddits lo mantiene el nodo `Espera Rate Limit`, que sí es configuración propia.
+
+**Este incidente no se comptabiliza como límite de cobertura.** El 0 de `r/devsarg` es
+*no intentado*, no * Reddit no sirvió posts*: el flujo se detuvo antes de consumir el feed.
+Registrado aparte para no contaminar la comparación con el incidente 1.
 
 ## 6. Alcance de este change: qué NO se toca
 
@@ -104,9 +141,9 @@ Este documento es **descriptivo**. No se modificó ninguna configuración:
 | Elemento | Estado | Por qué |
 |---|---|---|
 | Requests por ciclo de ingesta (3) | **Sin cambios** | Ajustarlo corresponde a **C-03 / C-07** (tarea 4.5) |
-| Reintentos x3 con 30 s de espera (RN-FU-03) | **Sin cambios** | Es la mitigación vigente y su cambio requiere decisión técnica propia |
+| Reintentos x3 con 30 s de espera (RN-FU-03) | **Cambiado el 2026-09-30 (D-10)** | El motor topa `waitBetweenTries` a 5000 ms, así que 30 s por reintento es imposible. La regla queda en "3 intentos con hasta 5 s". Los settings además estaban bajo `node.settings` y el motor los leía desde la raíz del nodo, con lo que la mitigación no se aplicaba: se corrigió la ubicación |
 | `active_monitoring` de los tres subreddits | **Sin cambios**, todos en `true` | Regla dura: no desactivar un subreddit con posts |
-| DDL y workflow | **Sin cambios** | `A_DDL.sql`, `generar_workflow.py` y `B_workflow.json` congelados |
+| DDL y workflow | **Cambiado solo el nodo `Fetch Posts RSS`** | D-10 movió los settings a la raíz del nodo y subió el backoff a 5000 ms. No se tocó el DDL, el corpus, el clasificador ni el resto del grafo |
 
 ## 7. Documentos relacionados
 
