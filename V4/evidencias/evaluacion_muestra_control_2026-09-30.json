@@ -1,0 +1,89 @@
+{
+  "generado": "2026-09-30T15:05:56.558225-03:00",
+  "muestra": {
+    "n": 50,
+    "archivo": "muestra_control_50_2026-09-30_ETIQUETAS.csv",
+    "anotador": [
+      "Enzo Severino"
+    ],
+    "fecha_etiquetado": [
+      "30/09/2026"
+    ],
+    "diseno": "estratificada: censo de 28 amenazas + 22 sorteados de No relevante",
+    "semilla": "20260930"
+  },
+  "criterio": {
+    "estado": "acordado 2026-09-30 (tarea 6.1)",
+    "texto": "Cuenta como amenaza lo que describe un ataque o campana en curso, real y verificable, aunque se publique como reporte. No cuenta el material puramente educativo, de prevencion o catalogo.",
+    "anotadores": 1,
+    "kappa": null,
+    "kappa_motivo": "Cohen's Kappa no es calculable con un solo anotador. No hay acuerdo entre anotadores que reportar y esta cifra no puede presentarse como tal."
+  },
+  "matriz_confusion_binaria": {
+    "TP": 24,
+    "FP": 4,
+    "FN": 5,
+    "TN": 17,
+    "definicion": "amenaza si/no; TP = el modelo detecto una amenaza real"
+  },
+  "metricas_no_ponderadas": {
+    "precision": 0.8571,
+    "recall": 0.8276,
+    "f1": 0.8421,
+    "acierto_exacto_categoria": 0.74,
+    "acierto_exacto_sobre": "37/50"
+  },
+  "fiabilidad_del_recall": {
+    "estrato_no_relevante": "5/22",
+    "proporcion_amenazas_ocultas": 0.2273,
+    "ic95": [
+      0.0522,
+      0.4024
+    ],
+    "proyeccion_no_detectadas_en_473": [
+      25,
+      190
+    ],
+    "n_requerido_para_ic_de_5_puntos": 270,
+    "nota": "Con n=50 el intervalo es demasiado ancho para publicar una cifra de recall. El punto de partida es orientativo, no una metrica de la ventana."
+  },
+  "concordancia_por_subreddit": {
+    "r/DerechoGenial": {
+      "n": 10,
+      "amenazas_humano": 0,
+      "amenazas_modelo": 3,
+      "categoria_exacta": 7
+    },
+    "r/Malware": {
+      "n": 23,
+      "amenazas_humano": 20,
+      "amenazas_modelo": 19,
+      "categoria_exacta": 16
+    },
+    "r/devsarg": {
+      "n": 8,
+      "amenazas_humano": 0,
+      "amenazas_modelo": 0,
+      "categoria_exacta": 8
+    },
+    "r/netsec": {
+      "n": 9,
+      "amenazas_humano": 9,
+      "amenazas_modelo": 6,
+      "categoria_exacta": 6
+    }
+  },
+  "confusion_por_categoria": {
+    "No relevante | Phishing": 3,
+    "Vulnerabilidades | Vulnerabilidades": 9,
+    "Malware | Malware": 11,
+    "Infraestructura y Ataques | Malware": 3,
+    "Infraestructura y Ataques | Vulnerabilidades": 1,
+    "No relevante | Malware": 1,
+    "No relevante | No relevante": 17,
+    "Ransomware | No relevante": 1,
+    "Malware | No relevante": 2,
+    "Infraestructura y Ataques | No relevante": 1,
+    "Vulnerabilidades | No relevante": 1
+  }
+}
