@@ -6,7 +6,7 @@
 - [x] 1.2 `[hecho-dev]` Redistribuir los términos de `Estafas Virtuales` en `Phishing`, `Robo de Credenciales` e `Ingenieria Social`; eliminar `Estafas Virtuales` como categoría
 - [x] 1.3 `[hecho-dev]` Retirar los términos genéricos que coinciden por trivialidad: `mp`, `cuenta`, `enlace`, `correo`, `bug`, `falla`, `transferencia`, `banco`, `filtrar`, `cangrejo`, `pescar`, `actualizacion`
 - [x] 1.4 `[hecho-dev]` Agregar formas conjugadas en castellano por ausencia de lematización (D-4): `filtraron`, `filtran`, `filtrado`, `hackearon`, `hackear`, `suplantan`, `clonar`, `pidieron`
-- [x] 1.5 `[hecho-dev]` Verificar invariantes del diccionario: sin acentos, sin guiones, sin duplicados, sin términos vacíos. Total resultante: 202 términos
+- [x] 1.5 `[hecho-dev]` Verificar invariantes del diccionario: sin acentos, sin guiones, sin duplicados, sin términos vacíos. Total resultante: 201 términos
 - [x] 1.6 `[hecho-dev]` Actualizar el comentario de cabecera de `CLASSIFY_CODE` con el criterio de construcción del diccionario (D-5)
 
 ## 2. Fórmula de score
@@ -72,7 +72,8 @@
 - [ ] 7.4 **NO CALCULABLE con la evidencia disponible.** Solo hay un anotador, así que no existe un segundo juez con el que comparar. Se declara el limite en `evaluacion_muestra_control_2026-09-30.md` (seccion 6.5) en lugar de inventar una cifra. Requeriria una segunda persona reetiquetando los mismos 50 posts's Kappa e declarar su límite de confianza dado el `n` y el desbalance de clases
 - [x] 7.5 `[hecho-dev]` Evaluar el umbral `MIN_HITS` **Verificado el 2026-09-30.** `MIN_HITS=1` da F1 0,931; el baseline `MIN_HITS=2` da 0,842. Se decide 1. contra la muestra. Recién aquí se decide si 1 o 2 es el valor correcto
 - [x] 7.6 `[hecho-dev]` Documentar los falsos positivos **Verificado el 2026-09-30.** Secciones 'Falsos negativos que quedan', 'Los 2 falsos positivos del clasificador vigente' y 'Aciertos con categoria distinta'. y falsos negativos uno por uno, con su causa léxica
-- [ ] 7.7 Reportar los conteos operativos de la sección `Why` del proposal como lo que son: conteos, no métricas
+- [x] 7.7 Reportar los conteos operativos de la sección `Why` del proposal como lo que son: conteos, no métricas
+  **Verificado.** El parrafo de `Why` ya declara los conteos como operativos y no metricas de desempenho, citando RN-GL-01. Los conteos citados (3 clasificaciones positivas, 1 falso positivo, 0 de 301) no se presentan como P/R/F1.
 
 ## 8. Evidencia de selección de corpus
 
@@ -88,15 +89,22 @@
 ## 9. Documentación
 
 - [x] 9.1 `[hecho-dev]` `knowledge-base/06_funcionalidades.md`: US-005 pasa de «cinco categorías» a nueve, con la definición del eje único
-- [ ] 9.2 `knowledge-base/05_reglas_de_negocio.md`: actualizar RN-CL-04 si su referencia al Anexo C cambia de ubicación
-- [ ] 9.3 `knowledge-base/04_modelo_de_datos.md`: registrar que `nlp_category` admite las nueve categorías y que no hay dominio en el DDL
-- [ ] 9.4 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): actualizar Tabla 6 (`:1450-1458` y `:2889-2895`) y el Anexo C (`:2876-2938`) con las nueve categorías
-- [ ] 9.5 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): corregir la fórmula del score en OE4 (`:2492`) y declarar que los posts previos usan la fórmula anterior
-- [ ] 9.6 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): registrar el estado real de los cinco criterios de aceptación. Solo se rehabilitan si las tareas del grupo 7 se completaron
+- [x] 9.2 `knowledge-base/05_reglas_de_negocio.md`: actualizar RN-CL-04 si su referencia al Anexo C cambia de ubicación
+  **Hecho 2026-10-01.** `RN-CL-04` ya no afirma que el Anexo C contenga las entradas: declara el `DICT` de `generar_workflow.py:143-153` como fuente autoritativa y el Anexo C como pendiente (change C-13).
+- [x] 9.3 `knowledge-base/04_modelo_de_datos.md`: registrar que `nlp_category` admite las nueve categorías y que no hay dominio en el DDL
+  **Hecho 2026-10-01.** `04_modelo_de_datos.md` registra las nueve categorias con sus conteos (201 terminos), que `nlp_category` es `VARCHAR(100)` sin `CHECK`/`ENUM`/dominio y que la integridad la garantiza el clasificador, no el esquema. `A_DDL.sql` sin cambios.
+- [x] 9.4 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): actualizar Tabla 6 (`:1450-1458` y `:2889-2895`) y el Anexo C (`:2876-2938`) con las nueve categorías
+  **Hecho 2026-10-01.** Tabla 6 de la tesis actualizada a las nueve categorias y el Anexo C remite a la fuente autoritativa. Backup en `tesis_v4.md.bak`.
+- [x] 9.5 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): corregir la fórmula del score en OE4 (`:2492`) y declarar que los posts previos usan la fórmula anterior
+  **Hecho 2026-10-01.** OE4 documenta la formula saturante `min(1, hits/SATURATION)` con `SATURATION=4` y `MIN_HITS=1`, y declara que los posts previos conservan la formula lineal anterior y no son comparables.
+- [x] 9.6 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): registrar el estado real de los cinco criterios de aceptación. Solo se rehabilitan si las tareas del grupo 7 se completaron
+  **Hecho 2026-10-01.** Los cinco criterios quedan con su estado real. Kappa se declara **no calculable** (un solo anotador) en lugar de la cifra inventada de 0,78 que figuraba en la seccion 3.3. Cada metrica lleva `n=50` y fecha 2026-09-30.
 - [x] 9.7 `[hecho-dev]` `V4/evidencias/CARACTERIZACION_RATE_LIMIT.md`: actualizar la mitigación documentada, que hoy dice «reintento hasta tres veces con 30 segundos», a la mitigación real de espaciado por loop (D-7)
 - [x] 9.8 `[hecho-dev]` `V4/GUIA_EJECUCION.md`: corregir la misma afirmación de reintentos y documentar el ciclo de ~2 minutos
-- [ ] 9.9 `CHANGES.md`: registrar el change `rediseno-diccionario-evaluacion` en el roadmap y desbloquear C-10 y C-13. La tabla de skills y el resto del roadmap se sincronizaron el 2026-09-30, pero el change todavia no figura en `CHANGES.md`
-- [ ] 9.10 `AGENTS.md` y `CLAUDE.md`: confirmar que la tabla de skills sigue vigente para este trabajo
+- [x] 9.9 `CHANGES.md`: registrar el change `rediseno-diccionario-evaluacion` en el roadmap y desbloquear C-10 y C-13. La tabla de skills y el resto del roadmap se sincronizaron el 2026-09-30, pero el change todavia no figura en `CHANGES.md`
+  **Hecho 2026-10-01.** Registrado en `CHANGES.md` como **C-24** en estado `[~] parcial`. C-10 y C-13 quedan **desbloqueados** por C-24, no cumplidos: siguen en `[ ]`.
+- [x] 9.10 `AGENTS.md` y `CLAUDE.md`: confirmar que la tabla de skills sigue vigente para este trabajo
+  **Verificado, sin cambios.** Las 8 skills de la tabla de `AGENTS.md` y `CLAUDE.md` existen con su `SKILL.md` en `.agents/skills/` y `.claude/skills/`. Cero faltantes, cero huerfanas. Se corrigio aparte el conteo de changes de 23 a 24.
 
 ## Desviación de gobernanza
 

@@ -4,8 +4,18 @@
 > Cada change es atómico: un agente puede ejecutarlo en una sesión (~4-6 horas).
 > **Leer este archivo antes de ejecutar cualquier `/opsx:propose`.**
 
-> **Estado real al momento de generar este roadmap:** el prototipo **ya está construido y corriendo** (pasos B1–B4 verificados sobre la fuente RSS / Plan C). Los changes `C-01` a `C-04` están marcados `[x]` porque se ejecutaron **antes** de inicializar OpenSpec: no están en `openspec/changes/archive/`, su artefacto verificable es `V4/anexos/A_DDL.sql`, `V4/anexos/B_workflow.json` y la base `tesi_osint`. Todo lo que sigue (B5, B6 y la reconstrucción del documento) está `[ ]`.
+> **Estado real al momento de generar este roadmap:** el prototipo **ya está construido y corriendo** (pasos B1–B4 verificados sobre la fuente RSS / Plan C). Los changes `C-01` a `C-04` están marcados `[x]` porque se ejecutaron **antes** de inicializar OpenSpec: no están en `openspec/changes/archive/`, su artefacto verificable es `V4/anexos/A_DDL.sql`, `V4/anexos/B_workflow.json` y la base `tesi_osint`. Todo lo que sigue (B5, B6 y la reconstrucción del documento) está `[ ]`, salvo `C-24`, que se describe abajo.
 > **Regla de honestidad vigente (RN-GL-01):** ninguna cifra de este roadmap ni de la tesis se inventa. Las cifras quoted abajo provienen de la corrida verificada de B4 y de la base real.
+
+### Leyenda de estados
+
+| Marca | Significado |
+|---|---|
+| `[x] verificado` | Change cerrado y archivado en `openspec/changes/archive/`, con artefacto comprobable |
+| `[~] parcial` | Change **ejecutado pero no cerrado**: vive en `openspec/changes/<nombre>/` con tareas abiertas. Sus entregables existen y son verificables, pero el change todavía no se puede archivar |
+| `[ ] pendiente` | Change planificado, no ejecutado |
+
+> **`C-24` `rediseno-diccionario-evaluacion` es `[~] parcial`.** Está implementado (55 de 65 tareas) pero **no archivado**: su `tasks.md` conserva tareas abiertas, así que no puede marcarse `[x]`. Se registra acá porque **el clasificador vigente del proyecto es el de nueve categorías**, no el de cinco, y porque es la precondición de `C-10` y `C-13`, que se construyen contra ese diccionario.
 
 ---
 
@@ -31,13 +41,14 @@ C-01 entorno-postgres-n8n  [x]
                     ├── C-05 ventana-recoleccion-b5
                     │     ├── C-08 evidencias-e4-tabla3-y-e6-latencia
                     │     │     ├── C-09 evidencias-e7-motor-anomalias
-                    │     │     └── C-10 evidencias-e5-matriz-confusion
+                    │     │     └── C-10 evidencias-e5-matriz-confusion   ◄── C-24
                     │     │             └── C-15 evaluador-externo-e14
                     │     └── C-11 evidencias-e8-captura-recaptura
                     ├── C-07 semantica-ingested-at
+                    ├── C-24 rediseno-diccionario-evaluacion  [~]   ◄── C-04, C-05
                     └── C-06 sincronizacion-documental-v4
                           ├── C-12 evidencias-artefacto-e1-e2-e3-e10
-                          ├── C-13 anexo-c-diccionario-taxonomico-e11
+                          ├── C-13 anexo-c-diccionario-taxonomico-e11   ◄── C-24
                           ├── C-14 entorno-y-canales-e9-e12-e13
                           └── C-18 capitulo-1-2   ◄── C-16, C-17
                                 └── C-19 capitulo-3-4   ◄── C-13, C-07, C-12
@@ -52,6 +63,8 @@ C-17 antecedente-e15-rivas-dengra   ──┴──► C-18
 
 C-22 figuras-2-3-4-e-indices   ◄── C-12, C-08
 ```
+
+> `◄── C-24` marca un **desbloqueo**: `C-24` se ejecutó y dejó disponible lo que ese change necesita. No significa que `C-10` ni `C-13` estén cumplidos — sus entregables consolidados (la evidencia E5 y el Anexo C escrito) todavía no existen.
 
 ### Paralelismo por fase
 
@@ -76,6 +89,7 @@ GATE 4: C-04 ✓                       ← PRIMER FORK (3 paralelos sobre el sis
   → C-05 ventana-recoleccion-b5      [Agente A]
   → C-06 sincronizacion-documental-v4 [Agente B]
   → C-07 semantica-ingested-at        [Agente C]
+  → C-24 rediseno-diccionario-evaluacion  [~] parcial, ya ejecutado — habilita C-10 y C-13
 
 GATE 5: C-05 ✓ + C-07 ✓              ← FORK
   → C-08 evidencias-e4-tabla3-y-e6-latencia      [Agente A]
@@ -83,12 +97,12 @@ GATE 5: C-05 ✓ + C-07 ✓              ← FORK
 
 GATE 6: C-06 ✓                       ← FORK
   → C-12 evidencias-artefacto-e1-e2-e3-e10  [Agente A]
-  → C-13 anexo-c-diccionario-taxonomico-e11 [Agente B]
+  → C-13 anexo-c-diccionario-taxonomico-e11 [Agente B]  ◄── C-24 (parcial) ya ejecutado
   → C-14 entorno-y-canales-e9-e12-e13       [Agente C]
 
 GATE 7: C-08 ✓                       ← FORK
   → C-09 evidencias-e7-motor-anomalias   [Agente A]
-  → C-10 evidencias-e5-matriz-confusion  [Agente B]
+  → C-10 evidencias-e5-matriz-confusion  [Agente B]  ◄── C-24 (parcial) ya ejecutado
 
 GATE 8: C-10 ✓
   → C-15 evaluador-externo-e14  [Agente B]
@@ -119,6 +133,7 @@ C-01 → C-02 → C-03 → C-04 → C-05 → C-08 → C-09  → C-20 → C-21 �
 
 > `*` C-09 y C-10 están al mismo nivel y ambos alimentan C-20: cualquiera de los dos puede cerrar el camino crítico, pero **ambos** son necesarios para que el Cap. 5 no tenga capítulos vacíos.
 > **Los cuatro primeros ya están ejecutados.** El tramo crítico *pendiente* es: `C-05 → C-08 → C-09 → C-20 → C-21 → C-23` (6 changes). La ventana de recolección (C-05) es el reloj del proyecto: todo lo cuantitativo depende de cuánto tiempo se deje correr el sistema.
+> **`C-24` no es un eslabón del camino crítico** —no lo atrasa ni lo acorta— pero es la precondición de `C-10` y `C-13`, así que si se pudiera perder el change, el camino crítico quedaría sin su rama de evaluación.
 
 ### Plan óptimo con 3 agentes
 
@@ -138,6 +153,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ```
 
 > El Agente B arranca su cadena larga (C-17 → C-06 → C-12/C-13/C-14 → C-22) desde el paso 1 porque es la que más encadenamientos tiene. El Agente C no puede empezar C-18 hasta cerrar C-16, C-17 y C-06 — es la restricción de paralelismo más fuerte del plan.
+> `C-24` no ocupa ningún paso de esta tabla: **ya está ejecutado** y lo que le falta (`tasks.md` con tareas abiertas) es documentación de cierre, no trabajo de pipeline.
 
 ---
 
@@ -190,7 +206,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Estado**: `[x]` verificado
 - **Scope**:
   - `V4/scripts/generar_workflow.py` como generador (fuente de verdad); `V4/anexos/B_workflow.json` como artefacto importable
-  - Trigger 1 `Schedule Ingesta` cada 15 min: `Prepare Subreddits` → upsert `subreddits` → `RSS Read` (`new/.rss`) → parse (id y subreddit desde el link) → `HMAC-SHA-256` → clasificador por diccionario (5 categorías + `No relevante`, score `[0,1]`) → extracción de entidades (CVE, emails, IPs, dominios, productos) → `Upsert Posts` con `ON CONFLICT (id) DO UPDATE`
+  - Trigger 1 `Schedule Ingesta` cada 15 min: `Prepare Subreddits` → upsert `subreddits` → `RSS Read` (`new/.rss`) → parse (id y subreddit desde el link) → `HMAC-SHA-256` → clasificador por diccionario (**5 categorías** + `No relevante`, score `[0,1]`; **vigente solo hasta `C-24`**, que lo rediseñó a nueve categorías sobre un único eje de tipo de amenaza) → extracción de entidades (CVE, emails, IPs, dominios, productos) → `Upsert Posts` con `ON CONFLICT (id) DO UPDATE`
   - Trigger 2 `Schedule Anomalias` diario 00:05: counts por categoría de ayer + media diaria de los 10 días previos → umbral `max(cuantil 95 de Poisson, 3)` → registro en `anomalias` → `alertas` con estado inicial si hubo disparo → `Send Telegram Alert` **deshabilitado por defecto**
   - `continueOnFail` + retry x3 con espera de 30 s ante 429/403 de Reddit (RN-FU-03)
   - Fuente RSS / Atom público (Plan C, DD-01): la API `.json` da 403 "blocked by network security" y la creación de apps está bloqueada por la Responsible Builder Policy
@@ -231,6 +247,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ## FASE 1 — Ventana de datos y sincronización documental
 
 > Primer fork real del proyecto. `C-05` es puramente temporal (el sistema tiene que correr), por eso se lanza primero y en paralelo con las correcciones documentales.
+> `C-24` cierra esta fase. No es documental ni es temporal: es un **cambio de pipeline**, pero es la precondición de `C-10` (Fase 2) y `C-13` (Fase 3), así que va acá y no más abajo.
 
 ### [C-05] `ventana-recoleccion-b5`
 - **Estado**: `[ ]` pendiente
@@ -289,6 +306,37 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 
 ---
 
+### [C-24] `rediseno-diccionario-evaluacion`
+- **Estado**: `[~]` parcial — 55 de 65 tareas completas, **no archivado**. Vive en `openspec/changes/rediseno-diccionario-evaluacion/` (a diferencia de `C-01` a `C-04`, sí tiene change formal en OpenSpec, pero todavía sin cerrar)
+- **Scope**:
+  - **Redefinición de `DICT`** en `V4/scripts/generar_workflow.py:143`: de 5 a **9 categorías** sobre un único eje —*tipo de amenaza*—, en castellano e inglés: `Phishing`, `Robo de Credenciales`, `Malware`, `Ransomware`, `Vulnerabilidades`, `Filtración de Datos`, `Infraestructura y Ataques`, `Hacktivismo`, `Ingenieria Social`. **201 términos**, verificados sin acentos, sin guiones, sin duplicados y sin términos vacíos (contados sobre el `DICT` del generador, 22+29+24+15+30+29+16+16+20)
+  - La categoría **`Estafas Virtuales` se elimina**: sus términos se redistribuyen en `Phishing`, `Robo de Credenciales` e `Ingenieria Social`
+  - El **contexto geográfico argentino deja de ser categoría** y pasa a las entidades `PRODUCTS`, que no cambian
+  - Se retiran los términos genéricos que matcheaban por trivialidad (`mp`, `cuenta`, `enlace`, `correo`, `bug`, `falla`, `transferencia`, `banco`, `filtrar`, `cangrejo`, `pescar`, `actualizacion`) y se agregan formas conjugadas en castellano, porque el clasificador hace match por token exacto sobre `text.split(/[^a-z0-9]+/)` y **no lematiza** — la limitación se documenta como parte del método
+  - **Fórmula de `nlp_score`**: de `hits / |keywords(cat)|` a **saturante**, `min(1, hits / SATURATION)` con `SATURATION = 4`. La anterior se normalizaba contra el tamaño del diccionario, así que ampliar el diccionario degradaba la escala sin cambiar el resultado de la clasificación; la nueva es estable ante cambios del diccionario y respeta el `CHECK (nlp_score BETWEEN 0 AND 1)` del DDL
+  - **`MIN_HITS = 1`**, calibrado contra la muestra de control y no contra datos de producción. Con `MIN_HITS = 2` el F1 era 0,842
+  - Artefacto `V4/anexos/B_workflow.json`: de 14 a **16 nodos** (se incorporan `Loop Over Items` y `Espera Rate Limit` con el rate limiting espaciado). Se regenera desde el generador, nunca a mano. **`V4/anexos/A_DDL.sql` no cambia**: `nlp_category` es `VARCHAR(100)` sin `CHECK`, `ENUM` ni dominio, y ninguna tabla, columna ni índice se altera
+  - **Muestra de control de `n = 50`** posts etiquetada a mano el **2026-09-30** por Enzo Severino, con su consulta, fecha, ventana y `n` en `V4/evidencias/muestra_control_50_2026-09-30*`. Muestreo estratificado: los 28 posts con categoría de amenaza entran como censo del estrato y 22 se sortean de los 473 `No relevante`, con semilla declarada `20260930`
+  - **Métricas sobre `n = 50`, fecha 2026-09-30** (`V4/evidencias/evaluacion_muestra_control_2026-09-30.md`, reproducible con `V4/scripts/evaluar_muestra_control.py` y `evaluar_muestra_reproducible.py` sobre el `selftext` exacto): **TP 27, FP 2, FN 2, TN 19** → precisión = recall = F1 = **0,931**; acierto exacto de categoría **84,0 %**
+  - **Cohen's Kappa NO es calculable**: hay un solo anotador, así que no existe un segundo juez con el que comparar. El límite se declara en lugar de publicar una cifra de concordancia (tarea 7.4, abierta)
+  - La muestra **no está libre de condiciones**: se estratificó usando la categoría que el propio modelo evaluado ya había asignado, y el sorteo real ocurre en Python (`random.Random(20260930)`) y no es reproducible con el método documentado en SQL. Ambas desviaciones están declaradas en `§6.2` y `§6.3` de la evaluación
+  - **Corpus de la ventana fijado** en `r/netsec`, `r/Malware` y `r/devsarg`. `r/argentina` y `r/DerechoGenial` se desactivan con `active_monitoring = false` y **conservan sus 201 posts** (prohibido `DELETE`). La fila huérfana `derechogenial` en minúscula queda sin tocar y documentada como inconsistencia conocida
+  - La ventana **no se reinicia** y su fecha de inicio no se mueve: C-05 debe registrar los **dos segmentos de cobertura** con corpus distintos, y toda métrica por comunidad debe indicar a cuál pertenece
+  - La **tasa de señal del corpus fijado no estima desempeño**: el corpus se eligió después de medir esas mismas comunidades y dos se eligieron por su tasa. Elegir el corpus por su rendimiento es sobreajuste y está descartado (D-6)
+  - **El change no se puede archivar todavía**: `tasks.md` tiene 10 tareas abiertas de 65. Ocho son de fondo y no dependen de nada de este roadmap — 6.5 (no superposición de la muestra con el corpus de resultados de B5, verificable solo cuando la ventana cierre), 7.4 (Kappa no calculable), 7.7 (reportar los conteos operativos del `Why` como conteos y no como métricas) y 9.2 a 9.6 (KB de reglas y modelo de datos, más Tabla 6, Anexo C, fórmula del score y criterios de aceptación en la tesis, que vive fuera del repo). Las dos restantes, 9.9 y 9.10, son el registro en este roadmap y la verificación de la tabla de skills de `AGENTS.md` y `CLAUDE.md`
+  - **Desviación de gobernanza declarada**: los grupos 1 a 5 se ejecutaron el 2026-09-30 **antes** de que el change existiera, contra lo que exige RN-GL-03. El change se registra después de los hechos; la trazabilidad se recupera con las ocho decisiones de `design.md` (con su alternativa rechazada) y con la corrida de 301 posts del 2026-09-30, que es la que motivó el rediseño y es reproducible con las consultas citadas
+- **Dependencias**: C-04, C-05
+- **Desbloquea**: C-10 (la matriz de confusión ya existe, calculada sobre las 9 categorías), C-13 (el Anexo C ahora tiene fuente autoritativa: el `DICT` de `V4/scripts/generar_workflow.py`)
+- **Governance**: ALTO — rompe el criterio de aceptación de US-005 ("un diccionario taxonómico de cinco categorías"), que `C-13` cierra, y se ejecutó con desviación de RN-GL-03
+- **Leer antes**:
+  - `openspec/changes/rediseno-diccionario-evaluacion/proposal.md`, `design.md` y `tasks.md`
+  - `knowledge-base/06_funcionalidades.md` §US-005, §US-006
+  - `knowledge-base/05_reglas_de_negocio.md` §Dominio: clasificación y entidades (RN-CL)
+  - `V4/evidencias/evaluacion_muestra_control_2026-09-30.md` §6 (limitaciones del método)
+  - `V4/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md`
+
+---
+
 ## FASE 2 — Evidencias cuantitativas del sistema (B6)
 
 > Todo se cuenta con SQL sobre la base real. Si una consulta no alcanza, se retira la métrica — no se completa con datos de versiones anteriores.
@@ -330,18 +378,19 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ---
 
 ### [C-10] `evidencias-e5-matriz-confusion`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[ ]` pendiente — **desbloqueado por `C-24`**, no cumplido
 - **Scope**:
-  - **E5**: construir la **matriz de confusión 6×6** (5 categorías taxonómicas + `No relevante`) de la muestra de control: etiquetas humanas vs. `nlp_category` predicha
-  - Constituir la muestra de control con el **n declarado** y el criterio de muestreo documentado; muestreo estratificado sobre la base real, nunca sobre cifras de V2/V3
-  - Script en `V4/scripts/` que calcula la matriz desde dos CSV (etiquetas humanas + predicciones) y la persiste como evidencia fechada
-  - Fórmula explícita de la **tasa de falsos positivos** en 3.3 (H-04) y reportar intervalos de confianza
-  - Regla de desempate del etiquetado a 3 votos (H-13); evaluar y documentar el sesgo de evaluación endógena
+  - **E5**: consolidar la **matriz de confusión 10×10** (9 categorías taxonómicas + `No relevante`) de la muestra de control: etiquetas humanas vs. `nlp_category` predicha. `C-24` **ya calculó la matriz binaria** de detección de amenaza — TP 27, FP 2, FN 2, TN 19 sobre `n = 50` del 2026-09-30 — pero **no** la matriz por categoría que E5 pide, ni el intervalo de confianza
+  - Constituir la muestra de control con el **n declarado** y el criterio de muestreo documentado; muestreo estratificado sobre la base real, nunca sobre cifras de V2/V3. **Ya hecho en `C-24`** con `n = 50`, con sus dos desviaciones declaradas (muestra condicionada por la predicción del modelo; sorteo no reproducible por el método documentado)
+  - Script en `V4/scripts/` que calcula la matriz desde dos CSV (etiquetas humanas + predicciones) y la persiste como evidencia fechada. **Ya existe**: `V4/scripts/evaluar_muestra_control.py` y `evaluar_muestra_reproducible.py`, con salida en `V4/evidencias/evaluacion_muestra_control_2026-09-30.*`
+  - Fórmula explícita de la **tasa de falsos positivos** en 3.3 (H-04) y reportar intervalos de confianza. Con `n = 50` el recall **no es publicable**: el IC 95 % de la tasa de amenazas ocultas en el estrato `No relevante` es **[5,2 % , 40,2 %]**. Para un intervalo de ±5 puntos en ese estrato hacen falta ~270 posts
+  - Regla de desempate del etiquetado a 3 votos (H-13); evaluar y documentar el sesgo de evaluación endógena. **No se puede cumplir con la evidencia disponible**: hay un solo anotador y Cohen's Kappa no es calculable. La regla de 3 votos queda para `C-15`, con evaluador externo
   - Mantener separados los conteos de comentarios: `comments` no es poblada por el pipeline RSS, la Tabla 2 se reconstruye solo con posts (m-16)
-  - **Bloqueado por**: definir la submuestra de control y obtener los 3 votos (decisión de los autores)
-- **Dependencias**: C-08
+  - **Bloqueado por**: nada del lado de `C-24`. Queda pendiente la decisión de los autores sobre si ampliar la muestra del estrato `No relevante` para poder publicar un recall con intervalo acotado
+- **Dependencias**: C-08, C-24 *(desbloqueo registrado el 2026-09-30: `C-24` está `[~]` parcial — el diccionario y la matriz binaria existen, la evidencia E5 consolidada todavía no)*
 - **Governance**: ALTO
 - **Leer antes**:
+  - `openspec/changes/rediseno-diccionario-evaluacion/design.md` y `V4/evidencias/evaluacion_muestra_control_2026-09-30.md`
   - `knowledge-base/06_funcionalidades.md` §US-010
   - `knowledge-base/05_reglas_de_negocio.md` §Dominio: clasificación y entidades (RN-CL-01, RN-CL-05)
   - `knowledge-base/10_preguntas_abiertas.md` §Preguntas abiertas priorizadas
@@ -389,16 +438,18 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ---
 
 ### [C-13] `anexo-c-diccionario-taxonomico-e11`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[ ]` pendiente — **desbloqueado por `C-24`**, no cumplido. `V4/anexos/C_diccionario.md` todavía **no existe**
 - **Scope**:
-  - **E11**: extraer del nodo Code del workflow el **diccionario taxonómico completo** — las 5 categorías y todas sus palabras — y publicarlo como `V4/anexos/C_diccionario.md` (cierra US-005)
-  - Documentar la **fórmula exacta del score** y su normalización a `[0,1]`, con ejemplos calculados a mano que se puedan verificar contra `posts.nlp_score` de la base (H-17)
-  - Documentar el **componente de extracción de entidades**: qué reconoce (CVE, emails, IPs, dominios, productos), con qué expresión y con 3–5 ejemplos reales tomados de `posts.entities` (N-06)
+  - **E11**: publicar el **diccionario taxonómico completo** como `V4/anexos/C_diccionario.md` — las **9 categorías** y sus **201 términos** (cierra US-005). **Fuente autoritativa: el `DICT` de `V4/scripts/generar_workflow.py:143`**, de donde sale el Code node; el artefacto `V4/anexos/B_workflow.json` es su copia materializada y no se edita a mano. `C-24` eliminó `Estafas Virtuales` como categoría y redefinió el eje único como tipo de amenaza, así que el Anexo C se escribe contra ese diccionario y no contra el de cinco categorías
+  - Documentar la **fórmula exacta del score** y su normalización a `[0,1]`: `min(1, hits / SATURATION)` con `SATURATION = 4` y `MIN_HITS = 1`, con ejemplos calculados a mano que se puedan verificar contra `posts.nlp_score` de la base (H-17). La fórmula anterior `hits / |keywords(cat)|` deja de ser la vigente y **3 posts de `r/DerechoGenial` conservan `nlp_score = 0.2`, residuo de ella** — ese valor no existe en la grilla actual (`hits/4` → 0, 0,25, 0,5, 0,75, 1,0) y hay que declararlo
+  - Documentar el **componente de extracción de entidades**: qué reconoce (CVE, emails, IPs, dominios, productos), con qué expresión y con 3–5 ejemplos reales tomados de `posts.entities` (N-06). El contexto geográfico argentino, que era categoría del diccionario viejo, ahora vive acá, en `PRODUCTS`
+  - Declarar la **limitación de no lematización**: el match es por token exacto sobre `text.split(/[^a-z0-9]+/)`, por lo que el diccionario declara las formas conjugadas que necesita y no las deduplica por raíz
   - Si el diccionario no puede documentarse completo, **reclasificar OE4** en lugar de dejarlo en el respaldo de la categoría vacía
-  - La matriz de confusión de C-10 se calcula contra estas categorías: cualquier cambio acá obliga a recalcularla
-- **Dependencias**: C-06
+  - La matriz de confusión de C-10 se calcula contra estas 9 categorías: cualquier cambio acá obliga a recalcularla
+- **Dependencias**: C-06, C-24 *(desbloqueo registrado el 2026-09-30: `C-24` está `[~]` parcial — el `DICT` autoritativo ya existe, el Anexo C escrito todavía no)*
 - **Governance**: MEDIO
 - **Leer antes**:
+  - `openspec/changes/rediseno-diccionario-evaluacion/design.md` y `tasks.md` grupo 1
   - `knowledge-base/05_reglas_de_negocio.md` §Dominio: clasificación y entidades (RN-CL)
   - `knowledge-base/06_funcionalidades.md` §US-005, §US-006
   - `knowledge-base/04_modelo_de_datos.md` §Entidades (posts)
@@ -428,7 +479,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Estado**: `[ ]` pendiente
 - **Scope**:
   - **E14**: obtener la **submuestra de 100 posts etiquetada por un evaluador externo** (no por los autores del pipeline) para la evaluation independiente
-  - Calcular **Kappa de Fleiss** contra el consenso interno de C-10 y reportarlo con su `n` e intervalo de confianza
+  - Calcular **Kappa de Fleiss** contra el consenso interno de C-10 y reportarlo con su `n` e intervalo de confianza. El "consenso interno" hoy **no existe**: `C-24` etiquetó con un solo anotador y declaró Cohen's Kappa no calculable, así que hace falta al menos un segundo juez — interno o externo — antes de que cualquier cifra de concordancia sea publicable
   - Definir el **control de acceso mínimo** del evaluador: extract exportable con `nlp_category` y las entidades, sin `author_hash` ni datos que permitan reidentificación (RN-PS-04, m-19)
   - Documentar la política de **enmascaramiento de atributos indirectos**: sector + provincia + tipo + fecha pueden reidentificar aunque el autor esté seudonimizado
   - Si no se consigue evaluador externo, **declararlo como limitación explícita** del Cap. 6 y no simular el consenso
@@ -519,8 +570,9 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-20] `capitulo-5-6`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - **Cap. 5 (§5.2, §5.3)**: **Tabla 3 desde SQL** con la salida de C-08 y el residual rotulado; **explicar por qué los recuentos difieren de V2** (la ventana cambió, RN-GL-02); **matriz de confusión 6×6** de C-10; reportar `n`, media, DS, P50, P95 de latencia y el throughput de C-08; separar métricas **operativas vs. banco de pruebas**; validar los 3 casos contra el motor real y reportar el **número real de disparos** de C-09
+  - **Cap. 5 (§5.2, §5.3)**: **Tabla 3 desde SQL** con la salida de C-08 y el residual rotulado — los recuentos saldrán sobre las **9 categorías** de `C-24`, no sobre las cinco; **explicar por qué los recuentos difieren de V2** (la ventana cambió y el diccionario también, RN-GL-02); **matriz de confusión 10×10** de C-10; reportar `n`, media, DS, P50, P95 de latencia y el throughput de C-08; separar métricas **operativas vs. banco de pruebas**; validar los 3 casos contra el motor real y reportar el **número real de disparos** de C-09
   - **Cap. 6 (§6.1–§6.3)**: reescribir la comparación con la literatura sobre **estimación de amenazas reales corregida por precisión**, no sobre salidas crudas del clasificador (N-02); precisar **qué dato exacto** del informe Fortinet se contrasta (categoría, porcentaje, página); citar fuentes primarias de penetración de plataformas con URL y fecha o reformular en términos cualitativos; mantener el sesgo de evaluación endógena como **limitación declarada** e incorporar la regla de desempate del etiquetado
+  - Publicar el F1 con su `n = 50` y su fecha (2026-09-30) o **retirarlo**: con un solo anotador y un intervalo de confianza abierto en el estrato `No relevante`, el recall no es publicable tal como está (tarea 7.4 abierta, `C-10`)
   - Cada tabla y cada cifra del capítulo **deben apuntar a su archivo en `V4/evidencias/`** con fecha y consulta
   - Ninguna cifra que provenga de V2/V3 sobrevive sin recalcularse contra la base
 - **Dependencias**: C-19, C-08, C-09, C-10, C-11
@@ -606,10 +658,10 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 | C-07 | `semantica-ingested-at` | 1 | `[ ]` pendiente | C-04 | ALTO |
 | C-08 | `evidencias-e4-tabla3-y-e6-latencia` | 2 | `[ ]` pendiente | C-05, C-07 | MEDIO |
 | C-09 | `evidencias-e7-motor-anomalias` | 2 | `[ ]` pendiente | C-05, C-08 | ALTO |
-| C-10 | `evidencias-e5-matriz-confusion` | 2 | `[ ]` pendiente | C-08 | ALTO |
+| C-10 | `evidencias-e5-matriz-confusion` | 2 | `[ ]` pendiente | C-08, C-24 | ALTO |
 | C-11 | `evidencias-e8-captura-recaptura` | 2 | `[ ]` pendiente | C-05 | MEDIO |
 | C-12 | `evidencias-artefacto-e1-e2-e3-e10` | 3 | `[ ]` pendiente | C-06 | MEDIO |
-| C-13 | `anexo-c-diccionario-taxonomico-e11` | 3 | `[ ]` pendiente | C-06 | MEDIO |
+| C-13 | `anexo-c-diccionario-taxonomico-e11` | 3 | `[ ]` pendiente | C-06, C-24 | MEDIO |
 | C-14 | `entorno-y-canales-e9-e12-e13` | 3 | `[ ]` pendiente | C-06 | MEDIO |
 | C-15 | `evaluador-externo-e14` | 3 | `[ ]` pendiente | C-10 | ALTO |
 | C-16 | `normalizacion-base-textual-v2` | 4 | `[ ]` pendiente | — | BAJO |
@@ -620,10 +672,15 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 | C-21 | `capitulo-7-8-resumen-titulo` | 4 | `[ ]` pendiente | C-20 | MEDIO |
 | C-22 | `figuras-2-3-4-e-indices` | 5 | `[ ]` pendiente | C-12, C-08 | BAJO |
 | C-23 | `auto-auditoria-final` | 5 | `[ ]` pendiente | C-21, C-22 | ALTO |
+| C-24 | `rediseno-diccionario-evaluacion` | 1 | `[~]` parcial | C-04, C-05 | ALTO |
 
 **Cobertura de evidencias E1–E15:** E1, E2, E3, E10 → C-12 · E4, E6 → C-08 · E5 → C-10 · E7 → C-09 · E8 → C-11 · E9, E12, E13 → C-14 · E11 → C-13 · E14 → C-15 · E15 → C-17.
 
+> `C-24` no cambia la cobertura: **no produce ninguna evidencia consolidada**. Aporta la matriz binaria preliminar de E5 y el `DICT` autoritativo de E11, pero E5 sigue siendo de `C-10` y E11 de `C-13`. Sus entregables son el diccionario vigente, el corpus fijado y la muestra etiquetada — todos ya en `V4/` y verificables.
+
 **Primer change recomendado:** `C-05` `ventana-recoleccion-b5` — no produciría artefactos por sí solo, pero es el **reloj del proyecto**: la ventana real define qué métricas son calculables, y todo el tramo crítico pendiente cuelga de ella. Si los autores quieren producir artefactos visibles en el primer paso, el paralelo natural es `C-16` (normalizar la base textual de V2), que no depende de nada.
+
+> Antes de arrancar C-05, leer la sección «Consecuencia de D-9 sobre la ventana de C-05» de `openspec/changes/rediseno-diccionario-evaluacion/tasks.md`: `C-24` cambió el corpus de la ventana y dejó **dos segmentos de cobertura** con comunidades distintas, y `C-05` debe registrarlo sin reiniciar la ventana.
 
 ```text
 /opsx:propose C-05-ventana-recoleccion-b5

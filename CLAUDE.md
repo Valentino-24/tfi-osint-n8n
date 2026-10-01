@@ -55,7 +55,7 @@ Cargar la skill correspondiente al contexto antes de escribir código o modifica
 
 El plan completo está en [CHANGES.md](CHANGES.md).
 
-- **Total**: 23 changes en 6 fases.
+- **Total**: 24 changes en 6 fases.
 - **Fundación verificada**: C-01 a C-04 (B1–B4, ingesta RSS/Plan C).
 - **Camino crítico pendiente**: `C-05 → C-08 → C-09 → C-20 → C-21 → C-23`.
 - **Primer change**: C-05 `ventana-recoleccion-b5`.
