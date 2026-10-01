@@ -37,6 +37,30 @@ ambas cifras quedaron desactualizadas al crecer el workflow. La guía ya dice 16
 **Impacto**: reduce calidad editorial y puede filtrar términos no deseados a la tesis.
 **Resolución propuesta**: revisar la KB antes de usarla como fuente del documento final.
 
+### IN-06 — El extractor de entidades matchea por subcadena, sin límites de palabra
+**Detectado**: 2026-10-01, durante la jornada 1 de la ventana B5, al revisar el campo `entities`
+de los posts ingeridos.
+**Documento A dice**: `Extract Entities` extrae CVE, emails, IPs, dominios y productos, y es la
+fuente del campo `entities` que la tesis usa como evidencia de OE4.
+**Documento B dice**: el nodo busca el término con `includes()` sobre el texto normalizado, sin
+exigir límites de palabra. Un término que aparece **dentro** de otra palabra se cuenta como
+mención.
+**Caso verificado**: el post *"WordPress malware in official WooCommerce theme (**Kiosko**):
+hidden admin users and corrupt..."* quedó con `entities->'products' = ["ios"]`, extraído de
+"K**ios**ko". El término del diccionario es `ios` (iOS de Apple) y no aparece en el texto.
+**Impacto acotado**: la **clasificación no se ve afectada** — ese post fue clasificado
+`Malware` por otros términos del diccionario. Lo que se degrada es la **calidad del campo
+`entities`**, que queda con falsos positivos y por lo tanto no es confiable como evidencia
+cuantitativa de menciones sin un ajuste posterior.
+**Por qué no se corrige ahora**: la ventana B5 está en curso. Cambiar el extractor a mitad de
+ventana haría incomparables los `entities` de los días anteriores y posteriores. El cambio de
+comportamiento debe ocurrir **fuera de la ventana** y declararse como cambio de versión.
+**Resolución propuesta**: agregar límites de palabra al extractor (regex con `\b`, o
+comparación por token) en `V4/scripts/generar_workflow.py`, regenerar el artefacto, y tratar el
+campo `entities` ya recolectado como afectado por la limitación conocida. Requiere change
+propio en el roadmap y decisión de los autores sobre si se recalcula `entities` sobre el
+corpus ya ingerido o se declara la limitación tal cual.
+
 ## Preguntas abiertas priorizadas
 
 | Prioridad | Pregunta | Bloquea | Decisor |
@@ -48,6 +72,7 @@ ambas cifras quedaron desactualizadas al crecer el workflow. La guía ya dice 16
 | Media | ¿Se obtiene una developer account de Reddit para recuperar score/comentarios? | Alcance de la fuente y OE2 | Autores |
 | Media | ¿La tabla `comments` queda como parte del modelo no implementada? | Descripción del artefacto y alcance | Autores |
 | Media | ¿Cuál es la fórmula exacta y documentada del score? | Sección 4.4 y evaluación | Autores / técnica |
+| Media | ¿Se corrigen los límites de palabra del extractor de entidades fuera de la ventana B5, y se recalcula `entities` sobre el corpus ya ingerido? (IN-06) | Calidad del campo `entities`, evidencia de OE4 | Autores / técnica |
 | Baja | ¿Se puede obtener E15 (copia del antecedente de Rivas y Dengra)? | Marco teórico H-10 | Autores / biblioteca |
 | Baja | ¿Se versionan las evidencias binarias grandes o solo exports reproducibles? | Tamaño y higiene del repositorio | Autor operador |
 

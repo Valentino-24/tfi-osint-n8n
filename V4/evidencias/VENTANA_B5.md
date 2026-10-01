@@ -348,3 +348,94 @@ automática del 2026-10-01 13:15:12. Lo que cambia es la **viabilidad**: con el 
 `00:05` la tabla `anomalias` no podía llenarse en esta máquina. La primera evaluación con el
 horario nuevo corresponde al día completo del 2026-10-01 y debe dispararse el 2026-10-02 a
 las 12:05; su ejecución queda registrada como evidencia de que el horario quedó operativo.
+
+## 11. Corte diario del 2026-10-01 y su alcance
+
+**2026-10-01, 19:02–19:07 Buenos Aires.** Fin de la jornada de recolección del primer día de
+la ventana. El día quedó **parcial**, no cerrado.
+
+### Qué se cortó y cómo se cortó
+
+| HECHO | VALOR | VERIFICADO POR |
+|---|---|---|
+| Última ejecución programada | **`#38`**, `mode = trigger`, `status = success` | SQLite de n8n, `execution_entity` |
+| Inicio de `#38` | `2026-10-01 19:00:29` (BA) | `startedAt` convertido desde UTC |
+| Fin de `#38` | **`2026-10-01 19:02:05`** (BA) | `stoppedAt` convertido desde UTC |
+| Último `ingested_at` | `2026-10-01 19:02:05.767799` (BA) | `max(ingested_at)` sobre `posts` |
+| Ejecuciones programadas en el día | **24**, todas `success` | `execution_entity` con `mode = trigger` desde `#15` |
+| Estado del workflow al cierre | **`active = 0`**, `activeVersionId = NULL` — despublicado | `workflow_entity` |
+| Tick de las 19:15 | **no ocurrió** (no existe ejecución `#39`) | `max(id) = 38` |
+
+### El corte quedó acotado a un intervalo, no a un instante
+
+El instante exacto del **Unpublished** **no es observable**: n8n no registra la marca de la
+despublicación y `workflow_entity.updatedAt` no se modifica al despublicar (su valor
+`2026-10-01 17:06:28` UTC corresponde a una edición anterior de la jornada, no al corte). Lo
+que sí queda acotado por evidencia es:
+
+```text
+despublicación ∈ (2026-10-01 19:02:05 BA , 2026-10-01 19:15:00 BA)
+```
+
+El cota inferior es el fin de `#38`. El superior es el tick de las 19:15, que habría
+disparado `Schedule Ingesta` si el workflow hubiera seguido publicado. Dentro de ese
+intervalo se observó `active = 0` a las **19:07:38** BA.
+
+Se declara el intervalo y no un instante porque el instante no se midió. Fijar
+`19:07:38` como hora de corte sería afirmar algo que la evidencia no muestra (RN-GL-01).
+
+### Zona horaria: las marcas de n8n no están en hora local
+
+El contenedor `tfi-n8n` corre en **UTC** y la base SQLite guarda las marcas como texto naive
+en UTC. **Todas las horas de este documento se convirtieron a `America/Argentina/Buenos_Aires`
+antes de anotarse.** Convertir con `.astimezone()` sobre una marca naive sin marcarla como UTC
+produce un valor corrido tres horas y hace creer que la recolección terminó a las 22:02.
+
+| Evento | Valor crudo en n8n (UTC) | En Buenos Aires |
+|---|---|---|
+| Inicio de `#38` | `2026-10-01 22:00:29` | `2026-10-01 19:00:29` |
+| Fin de `#38` | `2026-10-01 22:02:05` | `2026-10-01 19:02:05` |
+| `updatedAt` del workflow | `2026-10-01 17:06:28` | `2026-10-01 14:06:28` |
+
+### Estado de la base al cierre de la jornada
+
+| Métrica operativa | Valor | Origen |
+|---|---|---|
+| Posts en `posts` | **307** | `COUNT(*)` de solo lectura |
+| Posts ingeridos el 2026-10-01 | **307** — ninguno de la corrida B4 (24/9) sobrevivió al `TRUNCATE` | `COUNT(*)` por fecha local |
+| Distribución acumulada | `r/netsec` **101**, `r/Malware` **100**, `r/devsarg` **106** | `SELECT` con join a `subreddits` |
+| Con señal clasificada | **112** (36,5 %) | `nlp_category <> 'No relevante'` |
+| `anomalias` / `alertas` | **0 / 0** | `SELECT` de solo lectura |
+| Días completos evaluados | **0 / 10** | script `V4/scripts/bitacora_b5.py` |
+
+Sobre `anomalias = 0`: es el estado **esperado**. La primera evaluación con el horario de las
+`12:05` corresponde al día completo del 2026-10-01 y se dispara el **2026-10-02 a las 12:05**,
+con el equipo encendido. Mientras la ventana siga abierta, un `0` en `anomalias` es
+**limitación de la base comparativa**, nunca ausencia de anomalías (RN-AN-06).
+
+### Consecuencias para la ventana
+
+1. **El día 2026-10-01 es parcial** por corte de jornada a las 19:02:05. Queda declarado como
+   tal, no como día completo.
+2. **Se abre un intervalo sin recolección** desde el corte hasta que el equipo vuelva a
+   encenderse y el workflow se publique de nuevo. Los disparos perdidos **no se recuperan**:
+   `Schedule Ingesta` no acumula los ticks que no llegaron a dispararse mientras el workflow
+   estuvo inactivo.
+3. **La reanudación es idempotente.** Republicar y volver a disparar no duplica posts: el
+   `upsert` resuelve por `id` y el motor de anomalías tiene el guardia `NOT EXISTS` de §10.
+4. **El corte no altera la fecha de inicio** de la ventana ni su criterio de suficiencia: sigue
+   siendo `2026-10-01 13:15:12` y 10 días completos evaluados.
+5. **Ningún subreddit se desactiva** para compensar el hueco. Los tres del alcance siguen con
+   `active_monitoring = true` y sus ceros, si aparecen, se reportan con su causa (RN-GL-02).
+
+### Procedimiento de reanudación
+
+Cuando el equipo vuelva a estar disponible:
+
+1. Levantar `tfi-postgres` y `tfi-n8n`.
+2. Publicar el workflow `KkotjSD5uO4CXI4D` (**Publish**, no *Active*: en n8n 2.x el control es
+   *Publish*) y verificar que siga siendo el de 16 nodos, versión
+   `cfa84977-223a-460e-87a1-5bf0e5557699`, con 4/4 credenciales `Postgres account`.
+3. Registrar en este documento el intervalo sin recolección y la hora de reanudación.
+4. Regenerar la entrada de bitácora del día con `V4/scripts/bitacora_b5.py`.
+
