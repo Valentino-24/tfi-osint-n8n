@@ -9,13 +9,25 @@
 | Campo | Valor |
 |---|---|
 | Identificador de la ventana | **B5** |
-| Fecha de inicio | **2026-09-25** (fija, inmutable) |
+| Fecha de inicio (primer intento, **abortado**) | 2026-09-25 — ver §7.1. La recolección se interrumpió y los datos se descartaron |
+| Fecha de reinicio del corpus | **2026-10-01 13:05:59** (`America/Argentina/Buenos_Aires`) — `TRUNCATE` de `posts`, `comments`, `anomalias`, `alertas` |
+| **Fecha de inicio operativa** | **2026-10-01 13:15:12** (`America/Argentina/Buenos_Aires`) — instante de la **ejecución automática #15**, la primera que corrió con el workflow publicado tras el reinicio. Es la fecha que define la ventana |
 | Fecha de corte | **`no fijada`** — decisión abierta de los autores con sus directores (ver §3) |
-| Duración | No declarada: depende de la fecha de corte, que todavía no existe |
+| Duración | 10 días desde el inicio operativo, y 11 en total si se cuenta el día evaluado del motor de anomalías (§4) |
 | Zona horaria de los límites | `America/Argentina/Buenos_Aires` (zona de ejecución del sistema) |
 | Bitácora diaria | [`V4/evidencias/bitacora_b5/`](bitacora_b5/) — una entrada `YYYY-MM-DD.md` por día |
 | Criterio de suficiencia | 10 días completos de evaluaciones en `anomalias` (ver §4) |
 | Estado al redactar este documento | **ABIERTA** — 0 de 10 días completos evaluados |
+
+> **Por qué el inicio es 13:15:12 y no 13:05:59.** El `TRUNCATE` vació las tablas a
+> las 13:05:59, pero el workflow seguía sin publicar en ese momento: la recolección
+> no había empezado. El primer disparador de `Schedule Ingesta` corrió a las
+> 13:15:12 (ejecución `#15`, `mode = trigger`, `status = success`) y los primeros
+> posts quedaron con `ingested_at` entre 13:15:43 y 13:16:49. Tomar el corte del
+> `TRUNCATE` daría una ventana con minutos sin datos, que no es lo que el sistema
+> recolectó. El disparador no acumula intervalos perdidos: `Schedule Ingesta`
+> corre cada 15 minutos alineados al reloj y no recupera las corrida perdidas
+> mientras el workflow estuvo inactivo.
 
 ## 2. Criterio del corpus
 
@@ -229,3 +241,52 @@ Estado de la base al cierre del 2026-09-26 00:40:
 | `V4/scripts/bitacora_b5.py` | Generador de la bitácora (solo lectura) |
 | `openspec/changes/ventana-recoleccion-b5/design.md` | Decisiones D-1 a D-8 que gobiernan este documento |
 | `openspec/changes/ventana-recoleccion-b5/specs/decision-cierre-ventana/spec.md` | Requisitos de la decisión de cierre, abierta (tareas 6.1 a 6.5) |
+
+## 9. Registro de arranque de la ventana operativa (2026-10-01)
+
+Bitácora del reinicio del corpus y del comienzo efectivo de la recolección.
+
+| HORA (Buenos Aires) | HECHO | VERIFICADO POR |
+|---|---|---|
+| 13:05:59 | `TRUNCATE posts, comments, anomalias, alertas RESTART IDENTITY` ejecutado. `subreddits` intacta con sus 6 filas | salida de `V4/scripts/reset_ventana.py` |
+| 13:15:12 | Ejecución automática `#15` (`mode = trigger`, `status = success`). **Inicio operativo de la ventana** | SQLite de n8n, tabla `execution_entity` |
+| 13:15:43 | Primer `ingested_at` de la ventana, en `r/netsec` | consulta sobre `posts` |
+| 13:16:16 | Primer `ingested_at` en `r/Malware` | ídem |
+| 13:16:49 | Primer `ingested_at` en `r/devsarg` | ídem |
+
+Primera corrida, verificada a las 13:17:
+
+```sql
+SELECT s.display_name, COUNT(*) AS n,
+       MIN(p.ingested_at AT TIME ZONE 'America/Argentina/Buenos_Aires') AS primero
+FROM posts p JOIN subreddits s ON s.id = p.subreddit_id
+GROUP BY s.display_name ORDER BY s.display_name;
+```
+
+```
+ r/devsarg  | 100 | 2026-10-01 13:16:49.358551
+ r/Malware | 100 | 2026-10-01 13:16:16.508202
+ r/netsec   | 100 | 2026-10-01 13:15:43.944968
+```
+
+**300 posts en la primera corrida.** El volumen inicial no indica el ritmo de la
+ventana: el feed Atom devuelve las publicaciones recientes de cada comunidad, no
+solo las publicaciones nuevas. El ritmo sostenido se observa a partir del
+segundo día.
+
+### Estado de la instancia al arrancar
+
+- Contenedores `tfi-n8n` (n8n 2.40.6) y `tfi-postgres` (PostgreSQL 18) levantados.
+- Workflow `KkotjSD5uO4CXI4D` **publicado**: `active = 1`, `activeVersionId = 564b10c4-680d-4369-a292-e542b813b1ea`.
+- 16 nodos. `Schedule Ingesta` y `Schedule Anomalias` habilitados; único nodo
+  deshabilitado: `Send Telegram Alert`, sin credenciales disponibles.
+- En n8n 2.x el control de ejecución programada es el botón **Publish**, no un
+  toggle **Active** como en la 1.x. Publicar fija `activeVersionId`.
+
+### Incidencia durante el arranque
+
+El primer intento de `reset_ventana.py` **falló y no borró nada**: el `TRUNCATE`
+omitía la tabla `comments`, que referencia `posts` por clave foránea, y
+PostgreSQL revierte la sentencia entera. Se corrigió el script para descubrir
+las tablas hijas por FK desde `pg_constraint` en lugar de hardcodear la lista, y
+verificar que cada una quede en cero. La segunda ejecución sí completó.

@@ -152,7 +152,23 @@ def main():
                     print("Cancelado. No se modifico nada.")
                     return 0
 
-            cur.execute("TRUNCATE posts, anomalias, alertas RESTART IDENTITY")
+            # `TRUNCATE` exige incluir TODAS las tablas hijas que referencian a las
+            # que se truncan, o la sentencia falla entera y no borra nada.
+            # Se descubren dinamicamente para que agregar una tabla al esquema no
+            # vuelva a romper este script.
+            cur.execute("""
+                SELECT DISTINCT c.conrelid::regclass::text
+                FROM pg_constraint c
+                WHERE c.contype = 'f'
+                  AND c.confrelid IN ('posts'::regclass, 'anomalias'::regclass,
+                                      'alertas'::regclass)
+            """)
+            hijas = [r[0] for r in cur.fetchall()]
+            tablas = sorted({"posts", "anomalias", "alertas"} | set(hijas))
+            if hijas:
+                print(f"\nTablas hijas por FK, incluidas en el TRUNCATE: {', '.join(hijas)}")
+
+            cur.execute(f"TRUNCATE {', '.join(tablas)} RESTART IDENTITY")
             print("\nTRUNCATE ejecutado.")
 
             cur.execute("SELECT count(*) FROM posts");        p2 = cur.fetchone()[0]
@@ -165,6 +181,12 @@ def main():
             print(f"  anomalias  : {a2}")
             print(f"  alertas    : {l2}")
             print(f"  subreddits : {s2}  (intactos, con su configuracion)")
+            for t in hijas:
+                cur.execute(f"SELECT count(*) FROM {t}")
+                if cur.fetchone()[0] != 0:
+                    raise SystemExit(f"la tabla hija {t} quedo con filas")
+            if hijas:
+                print(f"  hijas      : {', '.join(f'{t}=0' for t in hijas)}")
             assert (p2, a2, l2) == (0, 0, 0), "el truncate no dejo las tablas vacias"
 
     print()
