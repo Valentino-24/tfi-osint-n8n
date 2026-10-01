@@ -290,3 +290,61 @@ omitía la tabla `comments`, que referencia `posts` por clave foránea, y
 PostgreSQL revierte la sentencia entera. Se corrigió el script para descubrir
 las tablas hijas por FK desde `pg_constraint` en lugar de hardcodear la lista, y
 verificar que cada una quede en cero. La segunda ejecución sí completó.
+
+## 10. Cambio declarado dentro de la ventana: evaluacion de anomalias al mediodia
+
+**2026-10-01, ~17:00 Buenos Aires.** Ventana en curso, 4 horas de recolección. Motivo: la
+máquina que corre la instancia **no está encendida de noche**, así que el trigger de las
+`00:05` se perdía todos los días y la tabla `anomalias` no llenaba nunca.
+
+### Qué cambió
+
+| | Antes | Después |
+|---|---|---|
+| `Schedule Anomalias` | `00:05` | **`12:05`** |
+| `Registrar Anomalias y Alertas` | `INSERT` directo | **`INSERT` idempotente** (guardia `NOT EXISTS`) |
+| `Schedule Ingesta` | cada 15 min | **cada 15 min, sin cambios** |
+| `Anomaly Engine` | Poisson + `MIN_ABS = 3` | **sin cambios** |
+| Versión publicada | `564b10c4-680d-4369-a292-e542b813b1ea` | **`cfa84977-223a-460e-87a1-5bf0e5557699`** |
+
+El texto íntegro de los 4 nodos Postgres y las 2 credenciales se preservaron; verificado en
+la instancia: 16 nodos, 14 conexiones, 4/4 nodos con `Postgres account`.
+
+### Por qué el horario no altera el resultado
+
+La ventana que evalúa el trigger no depende de la hora de ejecución. `Query Daily Counts`
+la calcula con `date_trunc('day', now() AT TIME ZONE 'America/Argentina/Buenos_Aires')`, o
+sea **siempre el día calendario `[00:00, 00:00)` de ayer**. A las `12:05` ese día ya está
+cerrado y el resultado es idéntico al que daría a las `00:05`. Cambiar la hora no cambia
+ni el período evaluado ni los conteos ni el umbral.
+
+### Por qué el candado `NOT EXISTS`
+
+`anomalias` **no tiene restricción de unicidad** sobre `(ventana_inicio, ventana_fin,
+categoria)`; solo la clave primaria por `id`. Sin el guardia, ejecutar el nodo dos veces el
+mismo día inserta la misma evaluación dos veces y `dias_completos_evaluados` —que cuenta
+filas por día— queda inflado. Con el guardia, relanzar el nodo a mano para recuperar un
+día perdido no duplica nada, y tampoco se generan alertas repetidas porque el `INSERT` de
+`alertas` sale de la CTE `ins`, que queda vacía si la evaluación ya existía.
+
+Probado sobre la base antes de publicar, dentro de una transacción revertida: tres
+ejecuciones consecutivas de la misma ventana y categoría dieron **1 fila y 1 alerta**; una
+categoría distinta en la misma ventana se insertó normal. La base quedó en
+`anomalias=0, alertas=0` tras el `ROLLBACK`.
+
+### Incidencia durante la aplicación
+
+La primera importación **agregó** una segunda cadena de 16 nodos con sufijo `1` en lugar de
+reemplazar: el workflow quedó con 32 nodos. Se detectó antes de publicar (la versión de 32
+nodos `f4369d88` nunca llegó a activarse). Se resolvió borrando los 32 nodos y reimportando
+sobre el lienzo vacío. **Si se hubiera publicado, habrían corrido dos `Schedule Ingesta` y
+la recolección se habría duplicado.** Publicada la versión correcta, las cuatro ejecuciones
+programadas siguientessiguieron con un único trigger.
+
+### Efecto sobre la suficiencia
+
+Ninguno en el cómputo de días: el corte de la ventana sigue siendo la primera ejecución
+automática del 2026-10-01 13:15:12. Lo que cambia es la **viabilidad**: con el trigger de las
+`00:05` la tabla `anomalias` no podía llenarse en esta máquina. La primera evaluación con el
+horario nuevo corresponde al día completo del 2026-10-01 y debe dispararse el 2026-10-02 a
+las 12:05; su ejecución queda registrada como evidencia de que el horario quedó operativo.

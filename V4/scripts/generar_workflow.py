@@ -298,10 +298,26 @@ RECORD_ANOMALIAS_SQL = (
     "-- jsonb_build_array: envuelve el objeto en un array de un elemento.\n"
     "-- El nodo corre la query una vez por item de entrada, asi que aqui llega\n"
     "-- una sola categoria por vez y se inserta una fila por evaluacion.\n"
-    "WITH ins AS (\n"
-    "  INSERT INTO anomalias (ventana_inicio, ventana_fin, categoria, n_observado, base_media, umbral, disparo)\n"
+    "-- OJO 3: la insercion es IDEMPOTENTE sobre (ventana_inicio, ventana_fin,\n"
+    "-- categoria). Sin este WHERE NOT EXISTS, ejecutar el workflow dos veces el\n"
+    "-- mismo dia inserta la misma evaluacion dos veces y el conteo de\n"
+    "-- suficiencia (que cuenta filas por dia) queda inflado. Con el guardia,\n"
+    "-- relanzar el nodo a mano para recuperar un dia perdido no duplica nada,\n"
+    "-- y tampoco se generan alertas repetidas porque el INSERT de alertas sale\n"
+    "-- de 'ins', que queda vacio si la evaluacion ya existia.\n"
+    "WITH reg AS (\n"
     "  SELECT * FROM jsonb_to_recordset(jsonb_build_array($1::jsonb))\n"
     "    AS x(ventana_inicio timestamptz, ventana_fin timestamptz, categoria varchar, n_observado int, base_media real, umbral real, disparo boolean)\n"
+    "),\n"
+    "ins AS (\n"
+    "  INSERT INTO anomalias (ventana_inicio, ventana_fin, categoria, n_observado, base_media, umbral, disparo)\n"
+    "  SELECT * FROM reg\n"
+    "  WHERE NOT EXISTS (\n"
+    "    SELECT 1 FROM anomalias a\n"
+    "    WHERE a.ventana_inicio = reg.ventana_inicio\n"
+    "      AND a.ventana_fin    = reg.ventana_fin\n"
+    "      AND a.categoria      = reg.categoria\n"
+    "  )\n"
     "  RETURNING id, categoria, n_observado, base_media, umbral, disparo, ventana_inicio\n"
     ")\n"
     "INSERT INTO alertas (anomalia_id, canal, destinatario, payload, estado)\n"
@@ -445,7 +461,17 @@ nodes = [
     },
     # --- ANOMALÍAS ---
     {
-        "parameters": {"rule": {"interval": [{"field": "days", "triggerAtHour": 0, "triggerAtMinute": 5}]}},
+        # 2026-10-01: la hora paso de 00:05 a 12:05. La ventana que evalua este
+        # trigger NO depende de la hora de ejecucion: QUERY_COUNTS_SQL calcula
+        # 'ayer' con date_trunc('day', now()...), o sea el dia calendario
+        # [00:00, 00:00) de Buenos Aires. A las 12:05 ese dia ya esta cerrado y
+        # el resultado es identico al que daria a las 00:05.
+        # El motivo del cambio es operativo: la maquina que corre la instancia no
+        # esta encendida de noche, asi que un trigger a las 00:05 se perdia todos
+        # los dias y la tabla anomalias nunca llenaba. Corriendolo al mediodia se
+        # evalua dentro de la franja en que la maquina si esta prendida.
+        # El cambio NO toca la rama de ingesta, que sigue cada 15 minutos.
+        "parameters": {"rule": {"interval": [{"field": "days", "triggerAtHour": 12, "triggerAtMinute": 5}]}},
         "id": nid("Schedule Anomalias"), "name": "Schedule Anomalias",
         "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2,
         "position": [-1900, 560],
