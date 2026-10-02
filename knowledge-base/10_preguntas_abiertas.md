@@ -100,6 +100,46 @@ confirmado por los autores; (b) poner `active_monitoring = false` en `r/derechog
 base no declare activa una comunidad que el pipeline no consulta; (c) decidir el destino de
 `r/argentina` y de las dos filas de derechogenial, conservando la evidencia histórica de B4.
 
+### IN-08 — El 429 de Reddit aborta el ciclo de ingesta y la corrida figura como `success`
+**Detectado**: 2026-10-02, al contrastar los conteos de items que el usuario veía en el editor de
+n8n contra el detalle de las ejecuciones preservadas en la base de la instancia.
+**Síntoma**: algunas corridas muestran `300 items` y `Loop Over Items` con 4 pasos; otras muestran
+`101 items` y 2 pasos. **No es un error de lectura ni una diferencia de comentarios** — la tabla
+`comments` no participa del pipeline y la ingesta no trae comentarios de ninguna fuente.
+**Causa verificada**: `Fetch Posts RSS` recibe **HTTP 429** (*rate limit* de Reddit) al consultar
+el **segundo** subreddit de la lista, que es `r/Malware` (orden en `Prepare Subreddits`:
+`r/netsec`, `r/Malware`, `r/devsarg`). El nodo emite **1 ítem de error**, no un post:
+`{"error": "Request failed with status code 429"}`. `Parse Reddit Posts` lo descarta y devuelve 0
+posts válidos; al no haber ítems, el loop se cierra y **el tercer subreddit no se consulta en ese
+ciclo**.
+**Distinción entre las dos firmas numéricas**:
+
+| Lectura en n8n | Significado |
+|---|---|
+| `300 items`, loop 4 pasos | corrida completa: 3 subreddits × 100 posts, más el paso de cierre |
+| `101 items`, loop 2 pasos | 100 del primer subreddit + 1 ítem de error 429; el tercero se omite |
+
+**Frecuencia observada**: **3 de 8** corridas automáticas del 2026-10-02 (#44, #45, #48), todas
+con el mismo subreddit como segundo. Las 5 restantes leyeron los 3.
+**Por qué no lo detecta n8n ni el estado de la corrida**: `status` es `success` en las tres. El
+fallo viaja *dentro* de un ítem, no como error de ejecución, así que ni el editor ni el log de
+ejecuciones lo standout. Solo se ve al desarmar el detalle de `runData` de cada corrida.
+**Alcance real del daño — "no se perdió nada" no equivale a "no se puede perder nada"**: Reddit
+sirve las últimas ~100 entradas de `new/.rss`. Un post que no se leyó vuelve al tick siguiente
+**si sigue dentro de esa ventana**, y el upsert sobre `post_id` es idempotente, de modo que no se
+duplica. Pero si un subreddit publica **más de 100 posts entre dos ticks** y ese tick recibe un
+429, los que quedaron fuera de la ventana **se pierden sin que nada lo registre**. Para `r/Malware`
+—no pasó: prácticamente no publicó en la ventana (101 posts en total, 100 de ellos el 2026-10-01
+13:16 y 1 el 2026-10-02 12:16), así que no había nada que recuperar—. Para `r/devsarg`, que es el
+subreddit activo, el riesgo es real: 122 posts, 14 insertados en un mismo tick.
+**Por qué no se corrige ahora**: la ventana B5 está en curso y el día 2026-10-01 ya se contabilizó
+con 307 posts. Cambiar el comportamiento del pipeline a mitad de ventana volvería incomparables las
+jornadas anteriores y posteriores.
+**Resolución propuesta**: fuera de la ventana B5, agregar manejo explícito del 429 — reintento con
+backoff exponencial y/o rotación del subreddit para repartir la carga — de modo que un rate limit
+no corte el ciclo. Requiere change propio en el roadmap. Mientras tanto, la incompletitud de
+cualquier tick debe leerse del detalle de `runData` y no del `status` de la corrida.
+
 ## Preguntas abiertas priorizadas
 
 | Prioridad | Pregunta | Bloquea | Decisor |
@@ -113,6 +153,7 @@ base no declare activa una comunidad que el pipeline no consulta; (c) decidir el
 | Media | ¿Cuál es la fórmula exacta y documentada del score? | Sección 4.4 y evaluación | Autores / técnica |
 | Media | ¿Se corrigen los límites de palabra del extractor de entidades fuera de la ventana B5, y se recalcula `entities` sobre el corpus ya ingerido? (IN-06) | Calidad del campo `entities`, evidencia de OE4 | Autores / técnica |
 | **Alta** | ¿Cuál es el conjunto de comunidades del alcance: Plan B (`r/argentina`, `r/devsarg`, `r/derechogenial`) o Plan C (`r/netsec`, `r/Malware`, `r/devsarg`)? (IN-07) | **Todo porcentaje por subreddit** de la ventana, §6 de VENTANA_B5.md | **Autores con sus directores** |
+| Media | ¿Se agrega manejo explícito del 429 (reintento con backoff y/o rotación de subreddit) fuera de la ventana B5? (IN-08) | Integridad de la cobertura de la ventana; hoy 3 de 8 ticks leen 2 de 3 subreddits sin registrarlo | Autores / técnica |
 | Baja | ¿Se puede obtener E15 (copia del antecedente de Rivas y Dengra)? | Marco teórico H-10 | Autores / biblioteca |
 | Baja | ¿Se versionan las evidencias binarias grandes o solo exports reproducibles? | Tamaño y higiene del repositorio | Autor operador |
 
