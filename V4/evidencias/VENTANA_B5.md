@@ -540,10 +540,12 @@ el corte de la ventana B5, que sigue `no fijada` (§3).
 
 | HECHO | VALOR | VERIFICADO POR |
 |---|---|---|
-| Ejecuciones automaticas del dia | **30** (`#39`–`#68`), todas `status = success` | log de n8n |
+| Ejecuciones totales del dia | **30** (`#39`–`#68`), todas `status = success` | log de n8n |
+| Ejecuciones automaticas de ingesta | **28** (`#39` + `#42`–`#68`); `#40` y `#41` son manuales de la rama de anomalias | `execution_entity` + modo de ejecucion |
 | Corridas completas (3/3 subreddits) | **13** | `runData.Fetch Posts RSS` = 3 pasos |
-| Corridas incompletas (2/3 subreddits) | **17** | `runData.Fetch Posts RSS` = 2 pasos |
-| Causa de las 17 | **HTTP 429** de Reddit en el segundo subreddit (`r/Malware`) | ver IN-08 |
+| Corridas incompletas (2/3 subreddits) | **15** | `runData.Fetch Posts RSS` = 2 pasos |
+| Tasa de corridas incompletas | **53,6 %** (15 de 28) | 15 / 28 |
+| Causa de las 15 | **HTTP 429** de Reddit en el segundo subreddit (`r/Malware`) | ver IN-08 |
 | Ultima ejecucion | **#68**, 19:00:29 → 19:01:42 BA | log de n8n |
 | Posts acumulados en B5 al cierre | **339** | `COUNT(*) FROM posts` |
 | Posts nuevos del 2026-10-02 | **32** | bitacora `2026-10-02.md` |
@@ -552,9 +554,9 @@ el corte de la ventana B5, que sigue `no fijada` (§3).
 ### El 429 es mas frecuente de lo que se creia
 
 IN-08 se redacto cuando solo se habian observado **3 de 8** corridas. Con el dia completo, la
-tasa real es **17 de 30 incompletas (57 %)**. La magnitud del problema se corrige a la baja en un
-commit posterior (ver §14): la conclusion tecnica no cambia —el 429 corta el ciclo y la corrida
-figura `success`—, pero la frecuencia es el doble de la estimada.
+tasa real es **15 de 28 incompletas (53,6 %)**. La magnitud del problema se corrige en un commit
+posterior (ver §14): la conclusion tecnica no cambia —el 429 corta el ciclo y la corrida figura
+`success`—, pero la frecuencia casi se duplica.
 
 ### Distribucion de cobertura
 
@@ -564,20 +566,29 @@ figura `success`—, pero la frecuencia es el doble de la estimada.
 | `r/netsec` | 107 | 2026-10-02 14:01 |
 | `r/Malware` | 101 | 2026-10-02 12:16 |
 
-`r/Malware` aparece con `ingested_at` congelado en las 12:16: no es que no haya collected datos, es
-que **no publicó posts nuevos** y que ademas fue el subreddit que recibio el 429 en 17 de las 30
-corridas. El contraste con `r/devsarg` (131 posts, activo toda la tarde) muestra que el pipeline
-sigue funcionando cuando el rate limit no lo corta.
+`r/Malware` aparece con `ingested_at` congelado en las 12:16: no es que no se hayan recolectado
+datos, es que **no publico posts nuevos** y que ademas fue el subreddit que recibio el 429 en 15 de
+las 28 corridas de ingesta. El contraste con `r/devsarg` (131 posts, activo toda la tarde) muestra
+que el pipeline sigue funcionando cuando el rate limit no lo corta.
 
 ## 14. Correccion de la frecuencia del 429
 
-Al cerrar la jornada 2 se corrijo la magnitud registrada en IN-08. Cuando esa inconsistencia se
-detecto (3 de 8 corridas observadas), el dia estaba a mitad de camino. El dato correcto para el
-2026-10-02 es **17 de 30 corridas incompletas**, no 3 de 8.
+Al cerrar la jornada 2 se corrigio la magnitud registrada en IN-08. Cuando esa inconsistencia se
+detecto (3 de 8 corridas observadas), el dia estaba a mitad de camino.
+
+El dato correcto para el 2026-10-02 es **15 de 28 corridas incompletas (53,6 %)**, no 3 de 8.
+
+**El denominador de 28, no de 30.** Una version intermedia de esta seccion reporto "17 de 30
+(57 %)". Eso son dos errores de conteo, y ninguno favorece al proyecto. El rango `#39`–`#68`
+contiene 30 ejecuciones, pero **`#40` y `#41` son ejecuciones manuales** de la rama de anomalias
+disparadas por el operador, no corridas automaticas de ingesta. Contarlas como si fueran de ingesta
+las inflaba en el numerador y en el denominador. Las automaticas son 28: 13 completas + 15
+incompletas. El propio listado de IDs de la version anterior tenia 15 entradas y annexia las dos
+manuales por fuera, lo que hace el error visible al releerlo.
 
 El cambio no altera el diagnostico ni la severidad: sigue siendo cierto que el 429 produce un item
 de error que el parser descarta, que el loop se cierra y que `status` queda en `success`. Lo que se
-corrige es la base sobre la cual estimar el riesgo de perder posts: con 57 % de ticks
+corrige es la base sobre la cual estimar el riesgo de perder posts: con **53,6 %** de ticks
 incompletos, la probabilidad de que un subreddit activo pierda posts que caen fuera de la ventana
 de ~100 entradas de Reddit ya no es marginal. Es el argumento central para priorizar el arreglo
 del 429 al cierre de B5.

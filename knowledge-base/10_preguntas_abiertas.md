@@ -121,10 +121,14 @@ ciclo**.
 
 **Frecuencia observada**: se detectaron inicialmente **3 de 8** corridas automáticas del
 2026-10-02 (#44, #45, #48). **Corrección al cierre de la jornada 2**: con el día completo son
-**17 de 30** corridas incompletas (#44, #45, #48, #49, #51, #53, #54, #57, #58, #60, #61, #63,
-#64, #66, #68 — más las dos ejecuciones manuales #40 y #41, que no son de ingesta), es decir un
-**57 %**, no el 37 % estimado a media jornada. Las 13 restantes leyeron los 3. Ver
-`V4/evidencias/VENTANA_B5.md` §13 y §14.
+**15 de 28** corridas incompletas (#44, #45, #48, #49, #51, #53, #54, #57, #58, #60, #61, #63,
+#64, #66, #68), es decir un **53,6 %**, no el 37 % estimado a media jornada. Las 13 restantes
+leyeron los 3. Ver `V4/evidencias/VENTANA_B5.md` §13 y §14.
+**Corrección del denominador (2026-10-02, mismo día)**: el cierre anterior contaba **17 de 30**.
+Son dos errores de conteo y ninguno de los dos favorece al proyecto. El rango `#39`–`#68` son 30
+ejecuciones, pero **#40 y #41 son ejecuciones manuales** de la rama de anomalías, no de ingesta:
+sumarlas al numerador y al denominador a la vez inflaba la tasa. Las automáticas de ingesta son
+**28** (`#39` + `#42`–`#68`), de las cuales **13** fueron completas y **15** quedaron en 2/3.
 **Por qué no lo detecta n8n ni el estado de la corrida**: `status` es `success` en las tres. El
 fallo viaja *dentro* de un ítem, no como error de ejecución, así que ni el editor ni el log de
 ejecuciones lo standout. Solo se ve al desarmar el detalle de `runData` de cada corrida.
@@ -150,13 +154,40 @@ demora y denegación posible sin apelación. El programa **Reddit for Researcher
 para investigación académica no comercial— exigiría aprobación institucional del profesor, que se
 dio por **no viable**. **En consecuencia, el arreglo del 429 no puede depender de OAuth** y debe
 resolverse íntegramente del lado del workflow.
-**Resolución propuesta**: fuera de la ventana B5, (a) aislar el 429 para que un fallo de un
-subreddit no cierre el loop de los demás; (b) reintento con backoff exponencial respetando la
-cabecera `Retry-After`; (c) rotar o aleatorizar el orden de los subreddits —hoy fijo en
-`r/netsec`, `r/Malware`, `r/devsarg`, lo que hace que siempre caiga el mismo—; (d) leer las
-cabeceras `X-Ratelimit-Used`, `X-Ratelimit-Remaining` y `X-Ratelimit-Reset` para adaptar el
-intervalo. Requiere change propio en el roadmap. Mientras tanto, la incompletitud de cualquier
-tick debe leerse del detalle de `runData` y **nunca** del `status` de la corrida.
+**Resolución aplicada (2026-10-02, commit `4a2f7c1`)**: implementada en
+`V4/scripts/generar_workflow.py` (16 → 17 nodos). No publicada: B5 sigue abierta y publicar el
+cambio a mitad de ventana volvería incomparables las jornadas.
+
+| | Mecanismo | Estado |
+|---|---|---|
+| (a) | **Aislar el 429**: el item de error se convierte en un centinela `_skip` que recorre la cadena para que el loop siempre cierre sus 3 iteraciones; se descarta antes de escribir | **Aplicado** |
+| (b) | **Backoff**: espera 60 s entre subreddits (antes 30 s) y 90 s si el anterior falló con 429 | **Aplicado** |
+| (c) | **Rotación** del orden, determinista por ranura de 15 min | **Aplicado** |
+| (d) | Leer `Retry-After` / `X-Ratelimit-*` | **No aplicable — ver abajo** |
+
+**(a) en detalle.** El bug de raíz era que el cierre del loop venía de `Upsert Posts`. Con un 429 el
+centinela se filtraba antes de escribir, el nodo Postgres quedaba con 0 ítems de entrada, no se
+ejecutaba y devolvía 0 ítems: el loop se quedaba sin nada que procesar y cerraba antes de la tercera
+iteración. El cierre se movió a `Extract Entities`, que siempre entrega al menos el centinela, y se
+agregó `Prepare Upsert` para filtrarlo justo antes de la base. La guarda vive en SQL
+(`WHERE COALESCE($13, FALSE) = FALSE`) y no en un IF previo, porque el nodo corre una query por ítem
+y el IF no alcanza cuando el centinela llega mezclado con posts reales.
+
+**(d) no se puede hacer con este nodo.** El nodo RSS Read no expone las cabeceras de respuesta, y
+para leerlas habría que reemplazarlo por HTTP Request + parseo de Atom, es decir rehacer el camino
+de parsing que hoy funciona. Además el motor topa `waitBetweenTries` en **5000 ms**
+(`update-workflow.tool.js:69` → `.max(5000)`), de modo que ni siquiera el backoff podría delegarse
+al reintento nativo del nodo: la espera larga tiene que vivir en un nodo `Wait`, que es lo que hace
+el punto (b). Queda declarado como limitación, no como pendiente resuelto.
+
+**Efecto esperado, con honestidad sobre lo que no se sabe**: (a) garantiza que los 3 subreddits se
+consulten siempre, así que una corrida pasa de 1/3 a 2/3 subreddits cuando hay un 429. (b) y (c)
+apuntan a reducir la tasa de 429, pero eso **no está verificado**: depende de un umbral de Reddit que
+no está documentado para tráfico anónimo y que la propia Reddit dice que puede cambiar libremente.
+La verificación real es empírica y va en la bitácora de las jornadas siguientes.
+
+Mientras tanto, la incompletitud de cualquier tick debe leerse del detalle de `runData` y **nunca**
+del `status` de la corrida.
 
 ## Preguntas abiertas priorizadas
 
