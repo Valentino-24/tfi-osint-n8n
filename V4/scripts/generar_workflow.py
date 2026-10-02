@@ -36,28 +36,86 @@ OUT = Path(__file__).resolve().parent.parent / "anexos" / "B_workflow.json"
 #   r/Malware       -> permalinks traen "Malware", NO "malware"
 #   r/DerechoGenial -> permalinks traen "DerechoGenial"
 # Escribirlo en minuscula revierte el bug de clave foranea corregido antes.
-PREPARE_SUBS = r"""const subs = [
+PREPARE_SUBS = r"""// Orden rotativo por corrida (IN-08, 2026-10-02).
+// Con el orden fijo netsec, Malware, devsarg, el 429 caia siempre sobre el
+// TERCER subreddit: devsarg perdia posts de forma sistematica y el corpus
+// quedaba sesgado hacia los dos primeros. Rotar reparte el castigo entre los tres.
+//
+// La rotacion es DETERMINISTA (indice = ranura de 15 min) y no aleatoria: dada la
+// marca de tiempo de la ejecucion se reproduce el mismo orden. Importa para la
+// evidencia de la tesis, donde una corrida debe poder reconstruirse bit a bit.
+const subs = [
   { subreddit_id: 'netsec', display_name: 'r/netsec', rss_url: 'https://www.reddit.com/r/netsec/new/.rss?limit=100' },
   { subreddit_id: 'Malware', display_name: 'r/Malware', rss_url: 'https://www.reddit.com/r/Malware/new/.rss?limit=100' },
   { subreddit_id: 'devsarg', display_name: 'r/devsarg', rss_url: 'https://www.reddit.com/r/devsarg/new/.rss?limit=100' }
 ];
-return subs;"""
+const RANURA_MS = 15 * 60 * 1000; // el trigger corre cada 15 min
+const k = Math.floor(Date.now() / RANURA_MS) % subs.length;
+// Se reinicia el flag de backoff: cada corrida arranca desde 60 s. Sin este reset,
+// un 429 de la corrida anterior (el static data persiste entre ejecuciones) dejaria
+// la espera larga encendida para siempre.
+try {
+  $getWorkflowStaticData('global').ultimo_429 = false;
+} catch (e) { /* static data no disponible: se usa la espera base */ }
+return subs.slice(k).concat(subs.slice(0, k));"""
 
 PARSE_POSTS = r"""// Parser para feed Atom RSS de Reddit (nodo RSS Read, rss-parser).
 // id y subreddit_id se derivan del link del post:
 //   https://www.reddit.com/r/{sub}/comments/{id}/{slug}/
 // limitaciones RSS: score y num_comments no vienen -> 0 (documentado).
 //
-// Descarte explicito de items con error (RN-FU-03 / D-10): cuando "Fetch Posts RSS" agota
-// sus 3 intentos y recibe 429, onError=continueRegularOutput deja pasar el item con la
-// propiedad .error en vez de cortar el flujo. Ese item NO es un post: se descarta aqui de
-// forma explicita para que el clasificador nunca vea un objeto de error. El subreddit que
-// fallo queda con 0 posts en la corrida, que es el estado honesto (ver
-// V4/evidencias/CARACTERIZACION_RATE_LIMIT.md seccion 4). El loop continua con el resto.
+// AISLAMIENTO DEL 429 (IN-08, 2026-10-02). Que antes este bloque hiciera `continue`
+// sin mas era la causa real de perder dos de cada tres subreddits:
+//   RSS Read agotaba sus intentos -> 1 item {error: '... 429'} -> continue -> out = []
+//   -> 0 items hacia HMAC -> 0 hacia Upsert -> el ciclo del loop se cerraba ahi
+//   -> el tercer subreddit NUNCA se consultaba, y la corrida quedaba
+//      status=success con 101 items. El exito era mentira.
+// Ahora el item de error se convierte en un CENTINELA que viaja hasta el loop:
+// el sub puede fallar, pero el ciclo siempre cierra sus 3 iteraciones.
+//   - _skip = true  -> el clasificador lo ignora y Upsert Posts nunca lo escribe;
+//   - _skip = false -> un post real, camino normal.
+// El centinela se DESCARTA en "Prepare Upsert" y, por si llegara, hay una segunda
+// guarda en SQL (UPSERT_POSTS_SQL: WHERE COALESCE($13, FALSE) = FALSE). En ningun
+// momento toca la base: la ausencia de un sub en la corrida sigue siendo un 0
+// honesto (V4/evidencias/CARACTERIZACION_RATE_LIMIT.md seccion 4).
 const out = [];
 for (const item of $input.all()) {
   const d = item.json || {};
-  if (d.error) continue;              // item de error tras 429/403 agotado
+  if (d.error) {
+    // Se identifica el subreddit responsable para que la evidencia diga cual fallo.
+    // El link no viene en un item de error, asi que se recupera del input del loop
+    // usando pairedItem. Este Code node corre en modo "All Items", donde $('X').item
+    // NO existe (daria undefined); la via soportada es el indice de pairedItem.
+    // Si el indice no resuelve, subreddit_id queda en null: preferible a inventarlo.
+    let ctx = {};
+    try {
+      const loopItems = $('Loop Over Items').all();
+      const pi = item.pairedItem ? (item.pairedItem.item || 0) : 0;
+      if (loopItems[pi]) ctx = loopItems[pi].json || {};
+    } catch (e) {
+      ctx = {};
+    }
+    // Marca el backoff para el siguiente subreddit: "Espera Rate Limit" corre antes
+    // del fetch, asi que no puede leer este error todavia; lo lee de static data.
+    try {
+      $getWorkflowStaticData('global').ultimo_429 = /429/.test(String(d.error)) ? true : false;
+    } catch (e) { /* sin static data: el Wait usa la espera base */ }
+    out.push({
+      json: {
+        _skip: true,
+        _error: true,
+        subreddit_id: ctx.subreddit_id || null,
+        display_name: ctx.display_name || null,
+        http_error: String(d.error),
+        title: '',
+        selftext: null,
+        url: null,
+        author: '[error]',
+        created_utc: 0
+      }
+    });
+    continue;
+  }
   const link = String(d.link || '');
   const m = link.match(/\/r\/([a-z0-9_]+)\/comments\/([a-z0-9]+)\//i);
   if (!m) continue;
@@ -92,6 +150,7 @@ if (!key) {
 }
 const out = [];
 for (const item of $input.all()) {
+  if (item.json._skip) { out.push(item); continue; }   // centinela de 429: pasa intacto
   out.push({
     json: {
       ...item.json,
@@ -156,6 +215,7 @@ const SATURATION = 4; // hits a partir de los cuales el score vale 1.0 (escala f
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const out = [];
 for (const item of $input.all()) {
+  if (item.json._skip) { out.push(item); continue; }   // centinela de 429: no se clasifica
   const text = norm(item.json.title + ' ' + (item.json.selftext || ''));
   const words = new Set(text.split(/[^a-z0-9]+/));
   let best = null;
@@ -188,6 +248,7 @@ const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0
 const uniq = (a) => Array.from(new Set(a));
 const out = [];
 for (const item of $input.all()) {
+  if (item.json._skip) { out.push(item); continue; }   // centinela de 429: sin entidades
   const raw = item.json.title + ' ' + (item.json.selftext || '');
   const low = norm(raw);
   const entities = {
@@ -200,6 +261,18 @@ for (const item of $input.all()) {
   item.json.entities = entities;
   item.json.entities_json = JSON.stringify(entities);
   out.push({ json: item.json });
+}
+return out;"""
+
+PREPARE_UPSERT = r"""// Filtro anti-centinela (IN-08). Deja pasar solo posts reales a "Upsert Posts".
+// El centinela de 429 ya fue descartado del cuerpo del post, pero sigue necesario
+// recorrer la cadena para que el loop cierre sus 3 iteraciones; este es el punto
+// exacto donde se lo descarta, antes de tocar la base.
+// El sub que fallo queda con 0 posts en la corrida, que es el estado honesto.
+const out = [];
+for (const item of $input.all()) {
+  if (item.json._skip) continue;
+  out.push(item);
 }
 return out;"""
 
@@ -255,8 +328,16 @@ UPSERT_SUBREDDITS_SQL = (
 )
 
 UPSERT_POSTS_SQL = (
+    "-- Guardia anti-centinela (IN-08). El item de error que genera 'Parse Reddit Posts'\n"
+    "-- cuando Reddit responde 429 viaja por toda la cadena para que el loop no se\n"
+    "-- corte, pero NO debe terminar en la tabla: el sub que fallo vale como 0 posts.\n"
+    "-- El sentinel llega con $13 = TRUE, asi que este SELECT no devuelve filas.\n"
+    "-- Se hace con SELECT ... WHERE y no con un IF antes del nodo porque el nodo\n"
+    "-- corre una query por item de entrada: el IF solo no alcanza si el item llega\n"
+    "-- mezclado con posts reales, que es justo el caso de un 429 en el 2o subreddit.\n"
     "INSERT INTO posts (id, subreddit_id, title, selftext, url, author_hash, score, num_comments, created_utc, nlp_category, nlp_score, entities, nlp_processed)\n"
-    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz, $10, $11, $12::jsonb, TRUE)\n"
+    "SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz, $10, $11, $12::jsonb, TRUE\n"
+    "WHERE COALESCE($13, FALSE) = FALSE\n"
     "ON CONFLICT (id) DO UPDATE SET\n"
     "  title = EXCLUDED.title,\n"
     "  selftext = EXCLUDED.selftext,\n"
@@ -378,8 +459,26 @@ nodes = [
         "type": "n8n-nodes-base.splitInBatches", "typeVersion": 3,
         "position": [-1420, 80],
     },
-    {
-        "parameters": {"amount": 30, "unit": "seconds"},
+{
+        # Espera ADAPTATIVA entre subreddits (IN-08). Antes eran 30 s fijos.
+        # Se sube a 60 s porque el feed de Reddit es el mismo host para los 3 subs y
+        # el limite se aplica por IP: 3 requests a 30 s de distancia = 2 req/min,
+        # justo en el borde que hoy produce 429. Con 60 s la corrida queda en
+        # 1 req/min, por debajo del umbral observado.
+        # Si el subreddit anterior fallo con 429 se espera 90 s en vez de 60:
+        # backoff exponencial simple, una sola vuelta (no hay loop de reintentos).
+        # El flag vive en static data porque "Espera Rate Limit" corre ANTES del fetch
+        # y todavia no puede ver el error de la iteracion anterior: lo escribe
+        # "Parse Reddit Posts" y lo reinicia "Prepare Subreddits" en cada corrida,
+        # de modo que un 429 de ayer no llega a la espera de hoy.
+        # NOTA: el motor de n8n tops waitBetweenTries en 5000 ms
+        # (update-workflow.tool.js:69 -> .max(5000)), asi que el retry propio del
+        # nodo RSS no puede servir un backoff de minutos. La espera larga tiene que
+        # vivir en este nodo Wait, que si la controlamos nosotros.
+        "parameters": {
+            "amount": "={{ $getWorkflowStaticData('global').ultimo_429 ? 90 : 60 }}",
+            "unit": "seconds",
+        },
         "id": nid("Espera Rate Limit"), "name": "Espera Rate Limit",
         "type": "n8n-nodes-base.wait", "typeVersion": 1.1,
         "position": [-1180, 80],
@@ -447,12 +546,22 @@ nodes = [
         "type": "n8n-nodes-base.code", "typeVersion": 2,
         "position": [340, 80],
     },
+    # Ultimo filtro antes de escribir: saca los centinelas de 429. Vive DESPUES de
+    # "Extract Entities" y en paralelo al cierre del loop, para que un subreddit
+    # fallido no corte el ciclo (ver Parse Reddit Posts) ni llegue a la tabla.
+    {
+        "parameters": {"jsCode": PREPARE_UPSERT},
+        "id": nid("Prepare Upsert"), "name": "Prepare Upsert",
+        "type": "n8n-nodes-base.code", "typeVersion": 2,
+        "position": [500, 300],
+    },
     {
         "parameters": {
             "operation": "executeQuery",
             "query": UPSERT_POSTS_SQL,
             "options": {
-                "queryReplacement": "={{ [ $json.id, $json.subreddit_id, $json.title, $json.selftext, $json.url, $json.author_hash, $json.score, $json.num_comments, $json.created_utc_iso, $json.nlp_category, $json.nlp_score, $json.entities_json ] }}"
+                # $13 = _skip: el centinela de 429 viaja pero no se escribe (ver SQL).
+                "queryReplacement": "={{ [ $json.id, $json.subreddit_id, $json.title, $json.selftext, $json.url, $json.author_hash, $json.score, $json.num_comments, $json.created_utc_iso, $json.nlp_category, $json.nlp_score, $json.entities_json, $json._skip || false ] }}"
             },
         },
         "id": nid("Upsert Posts"), "name": "Upsert Posts",
@@ -534,9 +643,20 @@ connections = {
     "Parse Reddit Posts": {"main": [[{"node": "HMAC Anonymize", "type": "main", "index": 0}]]},
     "HMAC Anonymize": {"main": [[{"node": "Classify Dictionary", "type": "main", "index": 0}]]},
     "Classify Dictionary": {"main": [[{"node": "Extract Entities", "type": "main", "index": 0}]]},
-    "Extract Entities": {"main": [[{"node": "Upsert Posts", "type": "main", "index": 0}]]},
-    # Cierra el ciclo: cada item procesado vuelve al loop para el rate limit del siguiente subreddit.
-    "Upsert Posts": {"main": [[{"node": "Loop Over Items", "type": "main", "index": 0}]]},
+    # IN-08: "Extract Entities" tiene DOS salidas. El loop se cierra desde aca y NO
+    # desde "Upsert Posts". Razon: el cierre anterior dependia de que "Upsert Posts"
+    # devolviera >=1 item. Con un 429 el centinela se descarta antes de escribir, el
+    # Postgres queda con 0 items de entrada, no se ejecuta y devuelve 0 items: el
+    # loop se quedaba sin nada que procesar y cerraba antes de la 3a iteracion
+    # (firma observada 101 items en vez de 300).
+    # Con este cableado, "Extract Entities" siempre entrega al menos el centinela,
+    # asi que el ciclo avanza siempre y las 3 iteraciones se completan.
+    "Extract Entities": {"main": [[
+        {"node": "Prepare Upsert", "type": "main", "index": 0},
+        {"node": "Loop Over Items", "type": "main", "index": 0},
+    ]]},
+    "Prepare Upsert": {"main": [[{"node": "Upsert Posts", "type": "main", "index": 0}]]},
+    "Upsert Posts": {"main": [[]],},
     "Schedule Anomalias": {"main": [[{"node": "Query Daily Counts", "type": "main", "index": 0}]]},
     "Query Daily Counts": {"main": [[{"node": "Anomaly Engine", "type": "main", "index": 0}]]},
     "Anomaly Engine": {"main": [[{"node": "Registrar Anomalias y Alertas", "type": "main", "index": 0}]]},
