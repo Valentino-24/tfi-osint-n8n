@@ -439,3 +439,86 @@ Cuando el equipo vuelva a estar disponible:
 3. Registrar en este documento el intervalo sin recolección y la hora de reanudación.
 4. Regenerar la entrada de bitácora del día con `V4/scripts/bitacora_b5.py`.
 
+## 12. Primera ejecucion real del motor de anomalias (2026-10-02)
+
+**2026-10-02 12:23:39 Buenos Aires.** La tabla `anomalias` paso de 0 a 7 filas. Es la **primera
+vez en toda la historia del proyecto que el motor de anomalias ejecuta e inserta**, desde que se
+corregio el bug `jsonb_to_recordset` del 2026-09-26 (§7.1). Lo anterior fueron pruebas sobre
+`PREPARE` y una transaccion revertida (§10); esto es una ejecucion completa en la instancia viva.
+
+### Por que fue manual y no programada
+
+El workflow se republico el 2026-10-02 con los contenedores recien levantados, despues de las
+**12:05**. El disparador de las `12:05` no ocurrio porque la instancia no estaba en ejecucion:
+la ventana horaria de las 12:05 perdio ese dia por poco mas de un minuto.
+
+| HECHO | VALOR | VERIFICADO POR |
+|---|---|---|
+| Fin del intervalo sin recolección | entre 2026-10-01 19:02:05 y 2026-10-02 12:15 BA | §11 y `min(ingested_at)` del 2026-10-02 |
+| Tick de las `12:05` del 2026-10-02 | **no ocurrio** | sin fila en `anomalias` anterior a las 12:23:39 |
+| Reanudacion de la ingesta | **12:16:02** BA | `min(ingested_at)` del 2026-10-02 |
+| Ultima ingesta verificada | `2026-10-02 12:17:06.849557` | `max(ingested_at)` |
+| Posts ingeridos el 2026-10-02 al verificar | **18** | `COUNT(*)` acotado por fecha local |
+| Instante de la evaluacion | **`2026-10-02 12:23:39.692033`** BA | `anomalias.created_at` |
+
+La ejecucion fue **manual**, launched desde el nodo `Schedule Anomalias` con *Execute step*, para
+no disparar la rama de ingesta. El identificador de ejecucion de n8n y su `mode` **aun no fueron
+transcritos** del log: la lectura de la base SQLite de n8n exige detener el contenedor, y el
+verificador se hizo a las 12:26 con el tick de las 12:30 a cuatro minutos. No se arriesga un hueco
+de recoleccion por un identificador. Queda pendiente para un instante con margen.
+
+### Lo que se registro
+
+Siete evaluaciones, una por categoria con señal, todas sobre la ventana del **2026-10-01**.
+
+| id | Categoria | `n_observado` | `base_media` | `umbral` | `disparo` | Alerta |
+|---|---|---|---|---|---|---|
+| 5 | Malware | 55 | 0,00 | 3,00 | **sí** | sí |
+| 9 | Vulnerabilidades | 41 | 0,00 | 3,00 | **sí** | sí |
+| 6 | Phishing | 6 | 0,00 | 3,00 | **sí** | sí |
+| 7 | Ransomware | 3 | 0,00 | 3,00 | **sí** | sí |
+| 4 | Infraestructura y Ataques | 3 | 0,00 | 3,00 | **sí** | sí |
+| 3 | Filtracion de Datos | 2 | 0,00 | 3,00 | no | no |
+| 8 | Robo de Credenciales | 2 | 0,00 | 3,00 | no | no |
+
+La suma de `n_observado` es **112**, igual al conteo de posts con señal del 2026-10-01
+(`nlp_category <> 'No relevante'`): la ventana evaluada y la ventana recolectada coinciden.
+
+Cinco filas en `alertas`, todas con `canal = 'telegram'`, `destinatario = 'canal_tfi'` y
+**`estado = 'PENDIENTE'`**. El nodo `Send Telegram Alert` está **deshabilitado** y no hay
+`TELEGRAM_BOT_TOKEN` ni `TELEGRAM_CHAT_ID`, de modo que **ninguna alerta fue enviada**. El estado
+`PENDIENTE` es correcto: no se affirmará que OE6 se cumplio con una alerta real (IN-04).
+
+Los `id` arrancan en **3** y no en 1: los identificadores 1 y 2 fueron consumidos por la
+transaccion revertida de la prueba de §10. Es la firma forense de que aquel test existio.
+
+### Advertencia: estas cinco anomalias son un artefacto, NO un hallazgo
+
+**`base_media = 0` en las siete categorias.** La base comparativa no esta en cero por la actividad
+de las comunidades: esta en cero porque el `TRUNCATE` del 2026-10-01 13:05:59 borro los 201 posts
+de B4. Verificado: `COUNT(*) FROM posts WHERE ingested_at < 2026-10-01` devuelve **0**.
+
+Contra una base de cero, el umbral del motor es `max(umbral_poisson(0) + 1, MIN_ABS = 3) = 3`, de
+modo que dispara toda categoria con tres o mas posts. Cinco de siete lo superan.
+
+**Consecuencia metodologica**: `"Malware 55 contra una base de 0"` es trivialmente cierto y no
+sostiene ninguna afirmacion sobre el comportamiento de `r/netsec`, `r/Malware` o `r/devsarg`. Estas
+filas **no pueden presentarse como anomalias detectadas** ni como evidencia de que el sistema
+detecte picos. Su valor es exclusivamente técnico: demonstrates que la cadena
+`Schedule Anomalias` → `Query Daily Counts` → `Anomaly Engine` → `Registrar Anomalias y Alertas`
+funciona de punta a punta en la instancia viva.
+
+Mientras la base comparativa siga incompleta, la ventana se declara **abierta** y el estado se
+reporta como **limitación de la base comparativa** (RN-AN-06). La base dejara de estar vacia a
+partir de la tercera evaluacion, cuando el 2026-10-01 entre en la ventana de 10 dias y aporte
+`112 / 10 = 11,2` como media diaria.
+
+### Que queda pendiente
+
+1. Transcribir del log de n8n el `id` y el `mode` de esta ejecucion manual.
+2. Regenerar la bitacora del 2026-10-01 con `V4/scripts/bitacora_b5.py`: el dia pasa a tener una
+   evaluacion registrada y `dias_completos_evaluados` pasa de 0 a **1 de 10**.
+3. Verificar la primera evaluacion **programada** del 2026-10-03 a las 12:05, que evaluara el
+   2026-10-02 y es la que demuestra que el horario quedo operativo en produccion.
+
+

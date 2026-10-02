@@ -61,6 +61,45 @@ campo `entities` ya recolectado como afectado por la limitación conocida. Requi
 propio en el roadmap y decisión de los autores sobre si se recalcula `entities` sobre el
 corpus ya ingerido o se declara la limitación tal cual.
 
+### IN-07 — El denominador por subreddit de la ventana no coincide con el alcance real
+**Detectado**: 2026-10-02, al regenerar la bitácora del 2026-10-01 con `V4/scripts/bitacora_b5.py`.
+**Documento A dice**: `V4/evidencias/VENTANA_B5.md` §6 fija el denominador de **todo** desglose por
+subreddit de la ventana en tres comunidades: `r/argentina`, `r/devsarg`, `r/derechogenial`. Es el
+alcance del Plan B.
+**Documento B dice**: el workflow en ejecución (`Prepare Subreddits`, fuente de verdad
+`V4/scripts/generar_workflow.py`) monitorea **otro** conjunto: `r/netsec`, `r/Malware`, `r/devsarg`
+(Plan C). Los posts ingeridos lo confirman: `SELECT subreddit_id, COUNT(*) FROM posts GROUP BY 1`
+devuelve solo esas tres claves.
+**Estado verificado de `subreddits`** (6 filas, con duplicados):
+
+| `id` | `display_name` | `active_monitoring` | posts |
+|---|---|---|---|
+| `argentina` | `r/argentina` | false | 0 |
+| `derechogenial` | `r/derechogenial` | **true** | 0 |
+| `DerechoGenial` | `r/DerechoGenial` | false | 0 |
+| `devsarg` | `r/devsarg` | true | 120 |
+| `Malware` | `r/Malware` | true | 101 |
+| `netsec` | `r/netsec` | true | 104 |
+
+**Tres problemas encadenados**:
+1. **§6 de `VENTANA_B5.md` está desactualizada**: nombra un conjunto de tres comunidades que el
+   sistema ya no monitorea. Como §6 gobierna todo porcentaje por subreddit de la ventana,
+   cualquier cifra calculada con ese denominador sería incorrecta.
+2. **`r/derechogenial` figura con `active_monitoring = true` pero el workflow nunca la ingiere.**
+   Es un resto del Plan B: la base declara activa una comunidad que el pipeline no consulta, y por
+   eso el script de bitácora advierte `4 de 3 esperados`.
+3. **Duplicados en `subreddits`**: `derechogenial`/`r/derechogenial` y `DerechoGenial`/`r/DerechoGenial`
+   son la misma comunidad con distinta capitalización, en dos filas. Ninguna tiene posts.
+**Por qué no se corrige unilateralmente**: definir cuál es el conjunto de comunidades del alcance y
+qué hacer con las filas del Plan B es una decisión de los **autores con sus directores**, no una
+corrección técnica. La regla dura del proyecto impide **eliminar** un subreddit; la vía prevista es
+desactivarlo con `active_monitoring`, y en este caso además habría que decidir si las filas
+duplicadas se consolidan o se conservan.
+**Resolución propuesta**: (a) actualizar §6 de `VENTANA_B5.md` con el conjunto del Plan C una vez
+confirmado por los autores; (b) poner `active_monitoring = false` en `r/derechogenial` para que la
+base no declare activa una comunidad que el pipeline no consulta; (c) decidir el destino de
+`r/argentina` y de las dos filas de derechogenial, conservando la evidencia histórica de B4.
+
 ## Preguntas abiertas priorizadas
 
 | Prioridad | Pregunta | Bloquea | Decisor |
@@ -73,6 +112,7 @@ corpus ya ingerido o se declara la limitación tal cual.
 | Media | ¿La tabla `comments` queda como parte del modelo no implementada? | Descripción del artefacto y alcance | Autores |
 | Media | ¿Cuál es la fórmula exacta y documentada del score? | Sección 4.4 y evaluación | Autores / técnica |
 | Media | ¿Se corrigen los límites de palabra del extractor de entidades fuera de la ventana B5, y se recalcula `entities` sobre el corpus ya ingerido? (IN-06) | Calidad del campo `entities`, evidencia de OE4 | Autores / técnica |
+| **Alta** | ¿Cuál es el conjunto de comunidades del alcance: Plan B (`r/argentina`, `r/devsarg`, `r/derechogenial`) o Plan C (`r/netsec`, `r/Malware`, `r/devsarg`)? (IN-07) | **Todo porcentaje por subreddit** de la ventana, §6 de VENTANA_B5.md | **Autores con sus directores** |
 | Baja | ¿Se puede obtener E15 (copia del antecedente de Rivas y Dengra)? | Marco teórico H-10 | Autores / biblioteca |
 | Baja | ¿Se versionan las evidencias binarias grandes o solo exports reproducibles? | Tamaño y higiene del repositorio | Autor operador |
 
