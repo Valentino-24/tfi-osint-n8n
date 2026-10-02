@@ -510,8 +510,14 @@ funciona de punta a punta en la instancia viva.
 
 Mientras la base comparativa siga incompleta, la ventana se declara **abierta** y el estado se
 reporta como **limitación de la base comparativa** (RN-AN-06). La base dejara de estar vacia a
-partir de la tercera evaluacion, cuando el 2026-10-01 entre en la ventana de 10 dias y aporte
+partir de la **segunda** evaluacion, cuando el 2026-10-01 entre en la ventana de 10 dias y aporte
 `112 / 10 = 11,2` como media diaria.
+
+> **Correccion 2026-10-02.** Una version anterior de este parrafo decia "tercera evaluacion". Es
+> incorrecto. La evaluacion que produjo estas siete filas ya es la **primera** (la del
+> 2026-10-02 12:23:39, sobre la ventana del 2026-10-01). En la **segunda** evaluacion —la que
+> evalúe el 2026-10-02— la media de los 10 dias previos ya incluye el 2026-10-01, y por lo tanto
+> `base_media` deja de valer cero.
 
 ### Que queda pendiente
 
@@ -520,5 +526,61 @@ partir de la tercera evaluacion, cuando el 2026-10-01 entre en la ventana de 10 
    evaluacion registrada y `dias_completos_evaluados` pasa de 0 a **1 de 10**.
 3. Verificar la primera evaluacion **programada** del 2026-10-03 a las 12:05, que evaluara el
    2026-10-02 y es la que demuestra que el horario quedo operativo en produccion.
+
+> **Punto 1 resuelto el 2026-10-02 19:05.** Del log preservado: las ejecuciones **#40**
+> (12:23:04) y **#41** (12:23:39) son las dos unicas del dia con `mode = manual`, y #41 es la que
+> inserto las siete filas de `anomalias` (`created_at = 12:23:39.692033`). La #40 quedo en cero
+> segundos y sin `runData` util: fue un intento previo del operador. Queda transcrito como
+> **ejecucion #41, `mode = manual`**.
+
+## 13. Cierre de la jornada 2 (2026-10-02)
+
+**Corte de la jornada: 2026-10-02 ~19:00 BA.** El workflow fue despublicado por el operador. No es
+el corte de la ventana B5, que sigue `no fijada` (§3).
+
+| HECHO | VALOR | VERIFICADO POR |
+|---|---|---|
+| Ejecuciones automaticas del dia | **30** (`#39`–`#68`), todas `status = success` | log de n8n |
+| Corridas completas (3/3 subreddits) | **13** | `runData.Fetch Posts RSS` = 3 pasos |
+| Corridas incompletas (2/3 subreddits) | **17** | `runData.Fetch Posts RSS` = 2 pasos |
+| Causa de las 17 | **HTTP 429** de Reddit en el segundo subreddit (`r/Malware`) | ver IN-08 |
+| Ultima ejecucion | **#68**, 19:00:29 → 19:01:42 BA | log de n8n |
+| Posts acumulados en B5 al cierre | **339** | `COUNT(*) FROM posts` |
+| Posts nuevos del 2026-10-02 | **32** | bitacora `2026-10-02.md` |
+| Dias completos evaluados | **1 de 10** (sin cambio: hoy no corrio el motor) | `anomalias` |
+
+### El 429 es mas frecuente de lo que se creia
+
+IN-08 se redacto cuando solo se habian observado **3 de 8** corridas. Con el dia completo, la
+tasa real es **17 de 30 incompletas (57 %)**. La magnitud del problema se corrige a la baja en un
+commit posterior (ver §14): la conclusion tecnica no cambia —el 429 corta el ciclo y la corrida
+figura `success`—, pero la frecuencia es el doble de la estimada.
+
+### Distribucion de cobertura
+
+| Subreddit | Posts acumulados | Ultimo `ingested_at` |
+|---|---|---|
+| `r/devsarg` | 131 | 2026-10-02 18:47 |
+| `r/netsec` | 107 | 2026-10-02 14:01 |
+| `r/Malware` | 101 | 2026-10-02 12:16 |
+
+`r/Malware` aparece con `ingested_at` congelado en las 12:16: no es que no haya collected datos, es
+que **no publicó posts nuevos** y que ademas fue el subreddit que recibio el 429 en 17 de las 30
+corridas. El contraste con `r/devsarg` (131 posts, activo toda la tarde) muestra que el pipeline
+sigue funcionando cuando el rate limit no lo corta.
+
+## 14. Correccion de la frecuencia del 429
+
+Al cerrar la jornada 2 se corrijo la magnitud registrada en IN-08. Cuando esa inconsistencia se
+detecto (3 de 8 corridas observadas), el dia estaba a mitad de camino. El dato correcto para el
+2026-10-02 es **17 de 30 corridas incompletas**, no 3 de 8.
+
+El cambio no altera el diagnostico ni la severidad: sigue siendo cierto que el 429 produce un item
+de error que el parser descarta, que el loop se cierra y que `status` queda en `success`. Lo que se
+corrige es la base sobre la cual estimar el riesgo de perder posts: con 57 % de ticks
+incompletos, la probabilidad de que un subreddit activo pierda posts que caen fuera de la ventana
+de ~100 entradas de Reddit ya no es marginal. Es el argumento central para priorizar el arreglo
+del 429 al cierre de B5.
+
 
 

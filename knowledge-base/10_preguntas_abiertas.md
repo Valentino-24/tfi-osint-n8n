@@ -119,8 +119,12 @@ ciclo**.
 | `300 items`, loop 4 pasos | corrida completa: 3 subreddits × 100 posts, más el paso de cierre |
 | `101 items`, loop 2 pasos | 100 del primer subreddit + 1 ítem de error 429; el tercero se omite |
 
-**Frecuencia observada**: **3 de 8** corridas automáticas del 2026-10-02 (#44, #45, #48), todas
-con el mismo subreddit como segundo. Las 5 restantes leyeron los 3.
+**Frecuencia observada**: se detectaron inicialmente **3 de 8** corridas automáticas del
+2026-10-02 (#44, #45, #48). **Corrección al cierre de la jornada 2**: con el día completo son
+**17 de 30** corridas incompletas (#44, #45, #48, #49, #51, #53, #54, #57, #58, #60, #61, #63,
+#64, #66, #68 — más las dos ejecuciones manuales #40 y #41, que no son de ingesta), es decir un
+**57 %**, no el 37 % estimado a media jornada. Las 13 restantes leyeron los 3. Ver
+`V4/evidencias/VENTANA_B5.md` §13 y §14.
 **Por qué no lo detecta n8n ni el estado de la corrida**: `status` es `success` en las tres. El
 fallo viaja *dentro* de un ítem, no como error de ejecución, así que ni el editor ni el log de
 ejecuciones lo standout. Solo se ve al desarmar el detalle de `runData` de cada corrida.
@@ -135,10 +139,24 @@ subreddit activo, el riesgo es real: 122 posts, 14 insertados en un mismo tick.
 **Por qué no se corrige ahora**: la ventana B5 está en curso y el día 2026-10-01 ya se contabilizó
 con 307 posts. Cambiar el comportamiento del pipeline a mitad de ventana volvería incomparables las
 jornadas anteriores y posteriores.
-**Resolución propuesta**: fuera de la ventana B5, agregar manejo explícito del 429 — reintento con
-backoff exponencial y/o rotación del subreddit para repartir la carga — de modo que un rate limit
-no corte el ciclo. Requiere change propio en el roadmap. Mientras tanto, la incompletitud de
-cualquier tick debe leerse del detalle de `runData` y no del `status` de la corrida.
+**Causa raíz de fondo (verificada contra la wiki oficial de Reddit, actualizada 2026-05-11)**: el
+acceso anónimo no es "un límite de 10 QPM" sino tráfico no autenticado que Reddit declara que
+debe bloquearse: *"Traffic not using OAuth or login credentials will be blocked, and the default
+rate limit will not apply"* y *"We can and will freely throttle or block unidentified Data API
+users"*. Por eso el 429 es irregular y por eso afecta de forma posicional al que llega segundo.
+Desde noviembre de 2025 (Responsible Builder Policy) el botón `create app` de `prefs/apps` ya no
+crea una app: la ruta real es un *Data Access Request* revisado a mano, con 2 a 4 semanas de
+demora y denegación posible sin apelación. El programa **Reddit for Researchers (RFR)** —gratuito,
+para investigación académica no comercial— exigiría aprobación institucional del profesor, que se
+dio por **no viable**. **En consecuencia, el arreglo del 429 no puede depender de OAuth** y debe
+resolverse íntegramente del lado del workflow.
+**Resolución propuesta**: fuera de la ventana B5, (a) aislar el 429 para que un fallo de un
+subreddit no cierre el loop de los demás; (b) reintento con backoff exponencial respetando la
+cabecera `Retry-After`; (c) rotar o aleatorizar el orden de los subreddits —hoy fijo en
+`r/netsec`, `r/Malware`, `r/devsarg`, lo que hace que siempre caiga el mismo—; (d) leer las
+cabeceras `X-Ratelimit-Used`, `X-Ratelimit-Remaining` y `X-Ratelimit-Reset` para adaptar el
+intervalo. Requiere change propio en el roadmap. Mientras tanto, la incompletitud de cualquier
+tick debe leerse del detalle de `runData` y **nunca** del `status` de la corrida.
 
 ## Preguntas abiertas priorizadas
 
