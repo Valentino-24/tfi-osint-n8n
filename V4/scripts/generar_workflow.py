@@ -465,18 +465,20 @@ nodes = [
         # el limite se aplica por IP: 3 requests a 30 s de distancia = 2 req/min,
         # justo en el borde que hoy produce 429. Con 60 s la corrida queda en
         # 1 req/min, por debajo del umbral observado.
-        # Si el subreddit anterior fallo con 429 se espera 90 s en vez de 60:
-        # backoff exponencial simple, una sola vuelta (no hay loop de reintentos).
-        # El flag vive en static data porque "Espera Rate Limit" corre ANTES del fetch
-        # y todavia no puede ver el error de la iteracion anterior: lo escribe
-        # "Parse Reddit Posts" y lo reinicia "Prepare Subreddits" en cada corrida,
-        # de modo que un 429 de ayer no llega a la espera de hoy.
-        # NOTA: el motor de n8n tops waitBetweenTries en 5000 ms
-        # (update-workflow.tool.js:69 -> .max(5000)), asi que el retry propio del
-        # nodo RSS no puede servir un backoff de minutos. La espera larga tiene que
-        # vivir en este nodo Wait, que si la controlamos nosotros.
+        #
+        # 2026-10-04: aqui hubo una espera ADAPTATIVA de 60/90 s segun si el subreddit
+        # anterior habia dado 429, leida de static data. NO FUNCIONA y quedo revertida.
+        # El nodo Wait declara amount como {type:'number', validateType:'number'}
+        # (Wait.node.js), y n8n NO castea a numero el resultado de una expresion en un
+        # campo de ese tipo: el nodo rechaza el valor con "Invalid wait amount. Please
+        # enter a number that is 0 or greater" y la ingesta entera muere en este nodo.
+        # Se verifico contra el nodo instalado, no es una suposicion.
+        # El flag `ultimo_429` se sigue escribiendo en "Parse Reddit Posts" porque es
+        # evidencia util del runData (dice si la corrida suffered 429), pero ya no
+        # controla la espera. Para una espera adaptativa hay que pasar por un Code node
+        # que emita el numero, no por una expresion en el campo del Wait.
         "parameters": {
-            "amount": "={{ $getWorkflowStaticData('global').ultimo_429 ? 90 : 60 }}",
+            "amount": 60,
             "unit": "seconds",
         },
         "id": nid("Espera Rate Limit"), "name": "Espera Rate Limit",
@@ -678,8 +680,19 @@ for src, conns in connections.items():
 if errors:
     raise SystemExit("Errores de validación:\n" + "\n".join(errors))
 
+WORKFLOW_ID = "KkotjSD5uO4CXI4D"
+
 workflow = {
-    "id": "TFIOsintV4Monitor01",
+    # id real del workflow en la instancia (2026-10-04). Antes decia
+    # "TFIOsintV4Monitor01", que era un id que NUNCA existio en n8n: el workflow
+    # real se creo desde la UI y n8n le asigno KkotjSD5uO4CXI4D. Como
+    # `n8n import:workflow` no sobrescribe un id distinto sino que CREA uno nuevo,
+    # un despliegue con el id equivocado dejaba una copia del workflow en la
+    # instancia cada vez, y devolvia "Successfully imported" igual. La limpieza de
+    # esa copia se hizo a mano sobre el SQLite de n8n.
+    # Que el id coincida con el de la instancia no es cosmetico: es lo que hace
+    # que un despliegue sea una ACTUALIZACION y no una creacion.
+    "id": WORKFLOW_ID,
     "name": "TFI OSINT V4 - Monitor de Amenazas",
     "nodes": nodes,
     "pinData": {},

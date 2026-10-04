@@ -160,8 +160,8 @@ cambio a mitad de ventana volvería incomparables las jornadas.
 
 | | Mecanismo | Estado |
 |---|---|---|
-| (a) | **Aislar el 429**: el item de error se convierte en un centinela `_skip` que recorre la cadena para que el loop siempre cierre sus 3 iteraciones; se descarta antes de escribir | **Aplicado** |
-| (b) | **Backoff**: espera 60 s entre subreddits (antes 30 s) y 90 s si el anterior falló con 429 | **Aplicado** |
+| (a) | **Aislar el 429**: el item de error se convierte en un centinela `_skip` que recorre la cadena para que el loop siempre cierre sus 3 iteraciones; se descarta antes de escribir | **Aplicado y verificado en producción** |
+| (b) | **Backoff**: espera fija de 60 s entre subreddits (antes 30 s) | **Aplicado a medias — ver abajo** |
 | (c) | **Rotación** del orden, determinista por ranura de 15 min | **Aplicado** |
 | (d) | Leer `Retry-After` / `X-Ratelimit-*` | **No aplicable — ver abajo** |
 
@@ -185,6 +185,21 @@ consulten siempre, así que una corrida pasa de 1/3 a 2/3 subreddits cuando hay 
 apuntan a reducir la tasa de 429, pero eso **no está verificado**: depende de un umbral de Reddit que
 no está documentado para tráfico anónimo y que la propia Reddit dice que puede cambiar libremente.
 La verificación real es empírica y va en la bitácora de las jornadas siguientes.
+
+**(b) quedó a medias, y el motivo es técnico.** Se implementó una espera adaptativa de 60 s / 90 s
+según si el subreddit anterior había dado 429, leída de static data. **No funciona**: el nodo Wait
+declara `amount` como `{type:'number', validateType:'number'}` y n8n **no castea a número** el
+resultado de una expresión en un campo de ese tipo, así que el nodo aborta con *"Invalid wait amount.
+Please enter a number that is 0 or greater"* y la ingesta entera muere ahí. Verificado contra el nodo
+instalado (`Wait.node.js`), no es una suposición. Se revirtió a una espera **fija de 60 s**, que ya
+es el doble de los 30 s originales y deja la corrida en 1 req/min. El flag `ultimo_429` se sigue
+escribiendo en `Parse Reddit Posts` porque sirve de evidencia en `runData`, pero ya no controla la
+espera. Una espera adaptativa real tendría que pasar por un Code node que emita el número, no por una
+expresión en el campo del Wait.
+
+**Verificación en producción (2026-10-04)**: primera corrida con la versión nueva, 32 posts y **3 de 3
+subreddits** en la ventana del día (antes 2 de 3 cuando había 429), run de 14:54:08 a 14:56:13.
+Confirma (a). No confirma (b) ni (c): eso recién se ve en las jornadas siguientes.
 
 Mientras tanto, la incompletitud de cualquier tick debe leerse del detalle de `runData` y **nunca**
 del `status` de la corrida.

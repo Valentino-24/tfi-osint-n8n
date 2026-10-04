@@ -1,5 +1,5 @@
 {
-  "id": "TFIOsintV4Monitor01",
+  "id": "KkotjSD5uO4CXI4D",
   "name": "TFI OSINT V4 - Monitor de Amenazas",
   "nodes": [
     {
@@ -68,7 +68,7 @@
     },
     {
       "parameters": {
-        "amount": "={{ $getWorkflowStaticData('global').ultimo_429 ? 90 : 60 }}",
+        "amount": 60,
         "unit": "seconds"
       },
       "id": "fcdc7549-85d8-57a6-88de-a8c7ef574ea3",
