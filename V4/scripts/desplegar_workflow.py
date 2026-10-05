@@ -26,6 +26,7 @@ Solo lectura sobre la base de datos: no escribe filas, no toca el esquema.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -120,6 +121,81 @@ def verificar(wf: dict) -> None:
     log("verificacion OK: los 4 nodos Postgres tienen credencial y el fix del 429 esta presente")
 
 
+# Valores que n8n omite al guardar porque ya son el default del nodo. Si el
+# artefacto los declara de forma explicita y la instancia no, NO es una
+# diferencia semantica: comparar sin normalizar aborta todos los despliegues.
+DEFAULTS_OMITIBLES = {
+    ("unit", "seconds"),
+    ("batchSize", 1),
+    ("authentication", "none"),
+}
+
+# Campos cuyo cambio SI significa que el despliegue no aplico.
+PARAMETROS_CRITICOS = ("jsCode", "query", "url", "jsonBody", "amount", "rule", "sql")
+
+
+def normalizar(params: dict) -> dict:
+    """Quita los defaults que n8n omite, para comparar contenido y no formato."""
+    out = {}
+    for k, v in (params or {}).items():
+        # Los valores pueden ser dict o listas, que no son hashables: el chequeo
+        # contra el set de defaults solo aplica a escalares.
+        if isinstance(v, (str, int, float, bool)) and (k, v) in DEFAULTS_OMITIBLES:
+            continue
+        if k == "rule" and isinstance(v, dict):
+            rule = {}
+            for rk, rv in v.items():
+                if rk == "interval" and isinstance(rv, list):
+                    iv = []
+                    for it in rv:
+                        if not isinstance(it, dict):
+                            iv.append(it)
+                            continue
+                        it = dict(it)
+                        # n8n no guarda 'field' cuando ya hay triggerAtHour/minute
+                        if "triggerAtHour" in it and it.get("field") == "days":
+                            it.pop("field")
+                        iv.append(it)
+                    rule[rk] = iv
+                else:
+                    rule[rk] = rv
+            out[k] = rule
+        else:
+            out[k] = v
+    return out
+
+
+def huella_nodos(nodes: list) -> dict:
+    """nombre -> parametros normalizados. Ignora credenciales a proposito.
+
+    Sirve para probar que la instancia tiene el MISMO codigo que el artefacto.
+    Comparar solo la cantidad de nodos no alcanza: dos versiones distintas
+    pueden tener la misma cantidad y el despliegue pasa por verde igual. Eso
+    paso el 2026-10-05 con el fix del Poisson.
+    """
+    return {n.get("name", "?"): normalizar(n.get("parameters", {}) or {})
+            for n in nodes}
+
+
+def diferencias_entre(esperado: dict, obtenido: dict) -> tuple:
+    """(criticas, cosmetics). Criticas = cambia el comportamiento del nodo."""
+    criticas, cosmetics = [], []
+    for nombre in sorted(set(esperado) | set(obtenido)):
+        e, o = esperado.get(nombre), obtenido.get(nombre)
+        if e == o:
+            continue
+        if e is None or o is None:
+            criticas.append((nombre, "(nodo ausente)", "(nodo ausente)" if o is None else "presente"))
+            continue
+        for k in sorted(set(e) | set(o)):
+            if e.get(k) == o.get(k):
+                continue
+            etiqueta = "CRITICA" if k in PARAMETROS_CRITICOS else "cosmetica"
+            (criticas if etiqueta == "CRITICA" else cosmetics).append(
+                (nombre, k, "artefacto=%r instancia=%r" % (e.get(k), o.get(k))))
+    return criticas, cosmetics
+
+
 def escribir_al_contenedor(container: str, wf: dict) -> str:
     remoto = "/tmp/B_workflow_deploy.json"
     local = Path(tempfile.gettempdir()) / "B_workflow_deploy.json"
@@ -204,6 +280,30 @@ def main() -> None:
         sys.exit(f"ERROR: el workflow importado tiene {len(vivo['nodes'])} nodos y el "
                  f"artefacto {len(wf['nodes'])}: la importacion NO aplico. No se publica.")
     log("  conteo de nodos coincide con el artefacto")
+
+    # El conteo SOLO no alcanza. El 2026-10-05 se desplego un fix del motor de
+    # anomalias (Poisson) y la verificacion dio verde: el workflow viejo tambien
+    # tiene 17 nodos, asi que 17 == 17 paso igual, pero 'import:workflow' NO
+    # sobreescribe el codigo de un workflow existente y la correccion nunca
+    # llego a ejecutarse. Por eso se compara el CONTENIDO de cada nodo, no la
+    # cantidad: una huella de los parametros, sin credenciales.
+    esperado = huella_nodos(wf["nodes"])
+    obtenido = huella_nodos(vivo["nodes"])
+    criticas, cosmetics = diferencias_entre(esperado, obtenido)
+    if criticas:
+        print()
+        print("ERROR: la instancia NO tiene el codigo del artefacto (importacion "
+              "incompleta). Detalle de las diferencias criticas:")
+        for nombre, campo, detalle in criticas:
+            print(f"    - {nombre}.{campo}: {detalle}")
+        sys.exit("No se publica. Reexportar el workflow o aplicar el cambio "
+                 "sobre la base, como se hizo el 2026-10-05.")
+    if cosmetics:
+        log("  diferencias cosmeticas (n8n omite defaults), no bloquean:")
+        for nombre, campo, detalle in cosmetics:
+            log(f"    - {nombre}.{campo}: {detalle[:110]}")
+    log(f"  contenido de los {len(esperado)} nodos coincide con el artefacto "
+        f"({len(cosmeticas)} diferencias cosmeticas toleradas)")
 
     sin_cred = [n2["name"] for n2 in vivo["nodes"]
                 if n2.get("type") == "n8n-nodes-base.postgres"

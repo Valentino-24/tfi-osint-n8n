@@ -1,57 +1,115 @@
-"""Sincroniza las conexiones del borrador (workflow_entity) con el artefacto.
+"""Sincroniza borrador, version borrador y version activa con el artefacto.
 
-Contexto: en n8n 2.x `import:workflow` NO sobreescribe `connections` de un
-workflow existente (lo verifica: dice 'Successfully imported' y deja la
-columna igual). El borrador quedo corrupto cuando se publico desde la UI
-con el cable del puerto loop movido al puerto done. Como la version
-publicada (activeVersionId) si estaba bien, la ingesta siguio funcionando,
-pero cualquier Publish desde la UI promoveria el borrador roto.
+Los tres tienen que coincidir. n8n dispara el trigger de planificacion sobre el
+borrador (versionId), no sobre activeVersionId: con el borrador roto la corrida
+sale en 0 s sin iterar, aunque la version publicada este perfecta. Por eso el
+2026-10-05 se perdio la corrida #90 de las 13:00.
 
-Este script deja borrador y publicado alineados con el artefacto, que es la
-fuente de verdad. Se ejecuta con n8n detenido.
+Causa de que el borrador vuelva a romperse: la pestana del editor de n8n abierta
+en el navegador tiene el borrador viejo en memoria y lo autoguarda. Mientras
+esté abierta, cada despliegue lo revierte.
+
+Requiere n8n detenido.
 """
 import json
 import os
 import shutil
 import sqlite3
+import subprocess
 import sys
 
-ART = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'B_workflow.json')
-DB = os.path.join(os.environ['TEMP'], 'opencode', 'fix.sqlite')
-WF_ID = 'KkotjSD5uO4CXI4D'
+ART = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'anexos', 'B_workflow.json')
+WF = 'KkotjSD5uO4CXI4D'
+WORK = os.path.join(os.environ['TEMP'], 'opencode', 'sync_wal')
+CT = 'tfi-n8n'
 
 art = json.load(open(ART, encoding='utf-8'))
 conns = art['connections']
+nodes = art['nodes']
+target = conns['Loop Over Items']
+tl = target['main']
+print('artefacto: loop -> %s | done -> %s' % (
+    ', '.join(x['node'] for x in tl[0]) if tl[0] else '(vacio)',
+    ', '.join(x['node'] for x in tl[1]) if len(tl) > 1 and tl[1] else '(vacio)'))
 
-print('artefacto -> Loop Over Items:')
-lob = conns['Loop Over Items']['main']
-print('   loop ->', ', '.join(x['node'] for x in lob[0]) if lob[0] else '(vacio)')
-print('   done ->', ', '.join(x['node'] for x in lob[1]) if len(lob) > 1 and lob[1] else '(vacio)')
+subprocess.run(['docker', 'stop', CT], capture_output=True)
+shutil.rmtree(WORK, ignore_errors=True)
+os.makedirs(WORK, exist_ok=True)
+for ext in ('', '-wal', '-shm'):
+    subprocess.run(['docker', 'cp', f'{CT}:/home/node/.n8n/database.sqlite{ext}',
+                    os.path.join(WORK, f'database.sqlite{ext}')], capture_output=True)
+shutil.copy(os.path.join(WORK, 'database.sqlite'),
+            os.path.join(WORK, 'backup_pre_sync.sqlite'))
 
-con = sqlite3.connect(DB)
+db = os.path.join(WORK, 'database.sqlite')
+con = sqlite3.connect(db)
 cur = con.cursor()
+active_vid, draft_vid = cur.execute(
+    'SELECT activeVersionId, versionId FROM workflow_entity WHERE id=?', (WF,)).fetchone()
 
-before = cur.execute('SELECT connections FROM workflow_entity WHERE id=?', (WF_ID,)).fetchone()
-if before is None:
-    print('ERROR: no existe el workflow', WF_ID)
-    sys.exit(1)
 
-old = json.loads(before[0]).get('Loop Over Items', {}).get('main', [])
-print()
-print('borrador ANTES: loop ->', ', '.join(x['node'] for x in old[0]) if old[0] else '(vacio)')
+def report(tag, blob):
+    l = json.loads(blob).get('Loop Over Items', {}).get('main', [])
+    lp = ', '.join(x['node'] for x in l[0]) if len(l) > 0 and l[0] else '(vacio)'
+    dn = ', '.join(x['node'] for x in l[1]) if len(l) > 1 and l[1] else '(vacio)'
+    print('  %-32s loop -> %-22s done -> %s' % (tag, lp, dn))
 
-merged = json.loads(before[0])
-merged['Loop Over Items'] = conns['Loop Over Items']
+
+# connections: las tres copias
+row = cur.execute('SELECT connections FROM workflow_entity WHERE id=?', (WF,)).fetchone()
+m = json.loads(row[0])
+m['Loop Over Items'] = target
 cur.execute('UPDATE workflow_entity SET connections=? WHERE id=?',
-            (json.dumps(merged, ensure_ascii=False), WF_ID))
-con.commit()
+            (json.dumps(m, ensure_ascii=False), WF))
+report('borrador (workflow_entity)', json.dumps(m))
 
-after = json.loads(cur.execute(
-    'SELECT connections FROM workflow_entity WHERE id=?', (WF_ID,)).fetchone()[0])
-new = after.get('Loop Over Items', {}).get('main', [])
-print('borrador DESPUES: loop ->', ', '.join(x['node'] for x in new[0]) if new[0] else '(vacio)')
-print('                  done ->',
-      ', '.join(x['node'] for x in new[1]) if len(new) > 1 and new[1] else '(vacio)')
-print()
+for tag, vid in (('activa', active_vid), ('borrador', draft_vid)):
+    r = cur.execute('SELECT connections FROM workflow_history WHERE versionId=?', (vid,)).fetchone()
+    if r:
+        hm = json.loads(r[0])
+        hm['Loop Over Items'] = target
+        cur.execute('UPDATE workflow_history SET connections=? WHERE versionId=?',
+                    (json.dumps(hm, ensure_ascii=False), vid))
+        report('%s (history %s)' % (tag, vid[:8]), json.dumps(hm))
+
+# jsCode del motor de anomalias en las dos versiones, sin tocar credenciales
+def patch_engine(blob, tag):
+    ns = json.loads(blob)
+    for n in ns:
+        if n['name'] == 'Anomaly Engine':
+            antes = n['parameters'].get('jsCode', '')
+            n['parameters']['jsCode'] = [x for x in nodes
+                                         if x['name'] == 'Anomaly Engine'][0]['parameters']['jsCode']
+            # Detectar por la recurrence y no por la linea rota: el comentario que
+            # documenta el bug cita esa linea, asi que buscarla da falso positivo.
+            estado = 'ok' if 'term = term * l / i' in antes else 'ROTO'
+            print('  %-32s Poisson antes=%s despues=nuevo' % (tag, estado))
+    return json.dumps(ns, ensure_ascii=False)
+
+
+row = cur.execute('SELECT nodes FROM workflow_entity WHERE id=?', (WF,)).fetchone()
+cur.execute('UPDATE workflow_entity SET nodes=? WHERE id=?',
+            (patch_engine(row[0], 'borrador (workflow_entity)'), WF))
+
+for tag, vid in (('activa', active_vid), ('borrador', draft_vid)):
+    r = cur.execute('SELECT nodes FROM workflow_history WHERE versionId=?', (vid,)).fetchone()
+    if r:
+        cur.execute('UPDATE workflow_history SET nodes=? WHERE versionId=?',
+                    (patch_engine(r[0], '%s (history %s)' % (tag, vid[:8])), vid))
+
+con.commit()
 print('integridad_check:', cur.execute('PRAGMA integrity_check').fetchone()[0])
-print('borrador sincronizado con el artefacto.')
+ns = json.loads(cur.execute('SELECT nodes FROM workflow_entity WHERE id=?', (WF,)).fetchone()[0])
+pg = [n for n in ns if n['type'] == 'n8n-nodes-base.postgres']
+sin = [n['name'] for n in pg if not (n.get('credentials') or {}).get('postgres', {}).get('id')]
+print('nodos Postgres:', len(pg), '| sin credencial:', sin if sin else 'ninguno (OK)')
+
+con.close()
+subprocess.run(['docker', 'cp', db, f'{CT}:/home/node/.n8n/database.sqlite'], capture_output=True)
+subprocess.run(['docker', 'run', '--rm', '--user', '0:0', '--entrypoint', '/bin/sh',
+                '-v', 'tfi_n8n:/data', 'n8nio/n8n:2.40.6', '-c',
+                'rm -f /data/database.sqlite-wal /data/database.sqlite-shm; '
+                'chown 1000:1000 /data/database.sqlite; chmod 600 /data/database.sqlite'],
+               capture_output=True)
+subprocess.run(['docker', 'start', CT], capture_output=True)
+print('n8n detenido, sincronizado y reiniciado.')
