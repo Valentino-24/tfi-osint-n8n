@@ -67,6 +67,8 @@ Antes de cualquier `/opsx:propose`, leer `CHANGES.md`, respetar las dependencias
 
 - **NUNCA** hardcodear credenciales, tokens o la clave HMAC en el workflow, el código o las evidencias → usar credenciales de n8n y variables de entorno.
 - **NUNCA** editar `V4/anexos/B_workflow.json` manualmente → regenerarlo desde `V4/scripts/generar_workflow.py`.
+- **NUNCA** publicar ni activar el workflow en n8n desde el agente (`n8n publish:workflow`, `--publicar`) → **la publicación la hace el usuario manualmente desde la UI**, sin pedido explícito en contrario. El agente puede generar el artefacto, sincronizar borrador y versiones en el SQLite, y reiniciar el contenedor.
+- **NUNCA** editar el workflow desde la UI de n8n más allá de publicar → el workflow diverge del artefacto y el motor ejecuta el *borrador*, con lo cual una corrección manual sin Publish posterior rompe la recolección silenciosamente (corridas de 0 s).
 - **NUNCA** asumir que una importación conserva credenciales → reasignar la credencial Postgres después de importar.
 - **NUNCA** modificar la base ni ejecutar pruebas destructivas sin una corrida controlada → validar el workflow y verificar que el upsert siga siendo idempotente.
 - **NUNCA** derivar métricas de resultados de V2/V3 o de tasas supuestas → reconstruirlas con consultas SQL sobre datos reales.
