@@ -1,16 +1,16 @@
-"""Sincroniza borrador, version borrador y version activa con el artefacto.
+"""Sincronizacion final con ASSERTIONS.
 
-Los tres tienen que coincidir. n8n dispara el trigger de planificacion sobre el
-borrador (versionId), no sobre activeVersionId: con el borrador roto la corrida
-sale en 0 s sin iterar, aunque la version publicada este perfecta. Por eso el
-2026-10-05 se perdio la corrida #90 de las 13:00.
+Por que esta reescrita: la version anterior fallacy en silencio. docker cp
+deja el archivo como root:root y el helper que hacia chown + rm del WAL
+fallaba sin que nadie lo viera, porque capture_output=True descarta el
+stderr. El -wal viejo (4152 bytes) se replayeaba encima del main recien
+copiado y resucitaba el estado anterior: por eso el borrador volvia a
+romperse solo y por eso las corridas salian de 0 s.
 
-Causa de que el borrador vuelva a romperse: la pestana del editor de n8n abierta
-en el navegador tiene el borrador viejo en memoria y lo autoguarda. Mientras
-esté abierta, cada despliegue lo revierte.
-
-Requiere n8n detenido.
+Ningun paso puede fallar sin abortar. Y el workflow queda INACTIVO: la
+publicacion la hace el usuario desde la UI.
 """
+import hashlib
 import json
 import os
 import shutil
@@ -20,96 +20,117 @@ import sys
 
 ART = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'anexos', 'B_workflow.json')
 WF = 'KkotjSD5uO4CXI4D'
-WORK = os.path.join(os.environ['TEMP'], 'opencode', 'sync_wal')
+WORK = os.path.join(os.environ['TEMP'], 'opencode', 'sync_final')
 CT = 'tfi-n8n'
 
+
+def run(args, **kw):
+    r = subprocess.run(args, capture_output=True, text=True, **kw)
+    if r.returncode != 0:
+        sys.exit('FALLO %s\n  stdout: %s\n  stderr: %s' % (args, r.stdout.strip(), r.stderr.strip()))
+    return r
+
+
+def sha(p):
+    h = hashlib.sha256()
+    with open(p, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sha_volumen():
+    r = run(['docker', 'run', '--rm', '--user', '0:0', '--entrypoint', 'sha256sum',
+             '-v', 'tfi_n8n:/data', 'n8nio/n8n:2.40.6', '/data/database.sqlite'])
+    return r.stdout.split()[0]
+
+
 art = json.load(open(ART, encoding='utf-8'))
-conns = art['connections']
-nodes = art['nodes']
+conns, nodes = art['connections'], art['nodes']
 target = conns['Loop Over Items']
-tl = target['main']
-print('artefacto: loop -> %s | done -> %s' % (
-    ', '.join(x['node'] for x in tl[0]) if tl[0] else '(vacio)',
-    ', '.join(x['node'] for x in tl[1]) if len(tl) > 1 and tl[1] else '(vacio)'))
+engine = [n for n in nodes if n['name'] == 'Anomaly Engine'][0]['parameters']['jsCode']
 
-subprocess.run(['docker', 'stop', CT], capture_output=True)
+print('[1/7] detiendo n8n')
+run(['docker', 'stop', CT])
+
+print('[2/7] copiando sqlite + wal + shm')
 shutil.rmtree(WORK, ignore_errors=True)
-os.makedirs(WORK, exist_ok=True)
+os.makedirs(WORK)
 for ext in ('', '-wal', '-shm'):
-    subprocess.run(['docker', 'cp', f'{CT}:/home/node/.n8n/database.sqlite{ext}',
-                    os.path.join(WORK, f'database.sqlite{ext}')], capture_output=True)
-shutil.copy(os.path.join(WORK, 'database.sqlite'),
-            os.path.join(WORK, 'backup_pre_sync.sqlite'))
-
+    run(['docker', 'cp', f'{CT}:/home/node/.n8n/database.sqlite{ext}',
+         os.path.join(WORK, f'database.sqlite{ext}')])
 db = os.path.join(WORK, 'database.sqlite')
+shutil.copy(db, os.path.join(WORK, 'backup_pre_sync.sqlite'))
+
+print('[3/7] alineando las tres copias en la base')
 con = sqlite3.connect(db)
 cur = con.cursor()
 active_vid, draft_vid = cur.execute(
     'SELECT activeVersionId, versionId FROM workflow_entity WHERE id=?', (WF,)).fetchone()
 
-
-def report(tag, blob):
-    l = json.loads(blob).get('Loop Over Items', {}).get('main', [])
-    lp = ', '.join(x['node'] for x in l[0]) if len(l) > 0 and l[0] else '(vacio)'
-    dn = ', '.join(x['node'] for x in l[1]) if len(l) > 1 and l[1] else '(vacio)'
-    print('  %-32s loop -> %-22s done -> %s' % (tag, lp, dn))
-
-
-# connections: las tres copias
-row = cur.execute('SELECT connections FROM workflow_entity WHERE id=?', (WF,)).fetchone()
-m = json.loads(row[0])
+m = json.loads(cur.execute('SELECT connections FROM workflow_entity WHERE id=?', (WF,)).fetchone()[0])
 m['Loop Over Items'] = target
 cur.execute('UPDATE workflow_entity SET connections=? WHERE id=?',
             (json.dumps(m, ensure_ascii=False), WF))
-report('borrador (workflow_entity)', json.dumps(m))
 
-for tag, vid in (('activa', active_vid), ('borrador', draft_vid)):
-    r = cur.execute('SELECT connections FROM workflow_history WHERE versionId=?', (vid,)).fetchone()
-    if r:
-        hm = json.loads(r[0])
-        hm['Loop Over Items'] = target
-        cur.execute('UPDATE workflow_history SET connections=? WHERE versionId=?',
-                    (json.dumps(hm, ensure_ascii=False), vid))
-        report('%s (history %s)' % (tag, vid[:8]), json.dumps(hm))
-
-# jsCode del motor de anomalias en las dos versiones, sin tocar credenciales
-def patch_engine(blob, tag):
-    ns = json.loads(blob)
-    for n in ns:
-        if n['name'] == 'Anomaly Engine':
-            antes = n['parameters'].get('jsCode', '')
-            n['parameters']['jsCode'] = [x for x in nodes
-                                         if x['name'] == 'Anomaly Engine'][0]['parameters']['jsCode']
-            # Detectar por la recurrence y no por la linea rota: el comentario que
-            # documenta el bug cita esa linea, asi que buscarla da falso positivo.
-            estado = 'ok' if 'term = term * l / i' in antes else 'ROTO'
-            print('  %-32s Poisson antes=%s despues=nuevo' % (tag, estado))
-    return json.dumps(ns, ensure_ascii=False)
-
-
-row = cur.execute('SELECT nodes FROM workflow_entity WHERE id=?', (WF,)).fetchone()
+ns = json.loads(cur.execute('SELECT nodes FROM workflow_entity WHERE id=?', (WF,)).fetchone()[0])
+for n in ns:
+    if n['name'] == 'Anomaly Engine':
+        n['parameters']['jsCode'] = engine
 cur.execute('UPDATE workflow_entity SET nodes=? WHERE id=?',
-            (patch_engine(row[0], 'borrador (workflow_entity)'), WF))
+            (json.dumps(ns, ensure_ascii=False), WF))
 
-for tag, vid in (('activa', active_vid), ('borrador', draft_vid)):
-    r = cur.execute('SELECT nodes FROM workflow_history WHERE versionId=?', (vid,)).fetchone()
-    if r:
-        cur.execute('UPDATE workflow_history SET nodes=? WHERE versionId=?',
-                    (patch_engine(r[0], '%s (history %s)' % (tag, vid[:8])), vid))
+for vid in {v for v in (active_vid, draft_vid) if v}:
+    r = cur.execute('SELECT connections, nodes FROM workflow_history WHERE versionId=?', (vid,)).fetchone()
+    if not r:
+        print('     (version %s no esta en history, se omite)' % vid[:8])
+        continue
+    hm = json.loads(r[0])
+    hm['Loop Over Items'] = target
+    cur.execute('UPDATE workflow_history SET connections=? WHERE versionId=?',
+                (json.dumps(hm, ensure_ascii=False), vid))
+    hns = json.loads(r[1])
+    for n in hns:
+        if n['name'] == 'Anomaly Engine':
+            n['parameters']['jsCode'] = engine
+    cur.execute('UPDATE workflow_history SET nodes=? WHERE versionId=?',
+                (json.dumps(hns, ensure_ascii=False), vid))
 
+# la publicacion la hace el usuario: queda inactivo y sin version activa
+cur.execute("UPDATE workflow_entity SET active='0', activeVersionId=NULL WHERE id=?", (WF,))
 con.commit()
-print('integridad_check:', cur.execute('PRAGMA integrity_check').fetchone()[0])
+
+print('[4/7] verificando integridad y credenciales')
+assert cur.execute('PRAGMA integrity_check').fetchone()[0] == 'ok', 'integridad fallida'
 ns = json.loads(cur.execute('SELECT nodes FROM workflow_entity WHERE id=?', (WF,)).fetchone()[0])
 pg = [n for n in ns if n['type'] == 'n8n-nodes-base.postgres']
 sin = [n['name'] for n in pg if not (n.get('credentials') or {}).get('postgres', {}).get('id')]
-print('nodos Postgres:', len(pg), '| sin credencial:', sin if sin else 'ninguno (OK)')
-
+assert not sin, 'nodos Postgres sin credencial: %s' % sin
+loop = json.loads(cur.execute('SELECT connections FROM workflow_entity WHERE id=?',
+                              (WF,)).fetchone()[0])['Loop Over Items']['main']
+assert [x['node'] for x in loop[0]] == ['Espera Rate Limit'], 'cableado incorrecto: %s' % loop
 con.close()
-subprocess.run(['docker', 'cp', db, f'{CT}:/home/node/.n8n/database.sqlite'], capture_output=True)
-subprocess.run(['docker', 'run', '--rm', '--user', '0:0', '--entrypoint', '/bin/sh',
-                '-v', 'tfi_n8n:/data', 'n8nio/n8n:2.40.6', '-c',
-                'rm -f /data/database.sqlite-wal /data/database.sqlite-shm; '
-                'chown 1000:1000 /data/database.sqlite; chmod 600 /data/database.sqlite'],
-               capture_output=True)
-subprocess.run(['docker', 'start', CT], capture_output=True)
-print('n8n detenido, sincronizado y reiniciado.')
+print('     integridad ok | %d nodos Postgres con credencial | loop -> Espera Rate Limit' % len(pg))
+
+print('[5/7] copiando de vuelta y verificando por hash')
+esperado = sha(db)
+run(['docker', 'cp', db, f'{CT}:/home/node/.n8n/database.sqlite'])
+real = sha_volumen()
+assert real == esperado, 'el hash del volumen no coincide: %s != %s' % (real, esperado)
+print('     hash confirmado', real[:16])
+
+print('[6/7] borrando el WAL y arreglando permisos (verificado)')
+run(['docker', 'run', '--rm', '--user', '0:0', '--entrypoint', '/bin/sh',
+     '-v', 'tfi_n8n:/data', 'n8nio/n8n:2.40.6', '-c',
+     'rm -f /data/database.sqlite-wal /data/database.sqlite-shm && '
+     'chown 1000:1000 /data/database.sqlite && chmod 600 /data/database.sqlite && '
+     'ls -l /data/database.sqlite*'])
+izq = run(['docker', 'run', '--rm', '--user', '0:0', '--entrypoint', '/bin/sh',
+           '-v', 'tfi_n8n:/data', 'n8nio/n8n:2.40.6', '-c',
+           'ls /data/database.sqlite-wal /data/database.sqlite-shm 2>/dev/null | wc -l']).stdout.strip()
+assert izq == '0', 'el WAL sigue presente (%s ficheros); se aborta para no perder datos' % izq
+print('     WAL y shm eliminados, owner node:node, modo 600')
+
+print('[7/7] arrancando n8n')
+run(['docker', 'start', CT])
+print('\nOK. Borrador alineado, workflow INACTIVO. Publica vos desde la UI.')
