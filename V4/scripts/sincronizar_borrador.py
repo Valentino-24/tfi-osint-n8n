@@ -96,8 +96,13 @@ for vid in {v for v in (active_vid, draft_vid) if v}:
     cur.execute('UPDATE workflow_history SET nodes=? WHERE versionId=?',
                 (json.dumps(hns, ensure_ascii=False), vid))
 
-# la publicacion la hace el usuario: queda inactivo y sin version activa
-cur.execute("UPDATE workflow_entity SET active='0', activeVersionId=NULL WHERE id=?", (WF,))
+# La publicacion la hace el usuario desde la UI: este script NO toca
+# active ni activeVersionId. Antes los dejaba en '0'/NULL, lo que
+# despublicaba un workflow recien publicado por el usuario. Ahora se
+# preservan tal cual: si esta activo, sigue activo; si no, sigue inactivo.
+estado = cur.execute('SELECT active, activeVersionId FROM workflow_entity WHERE id=?',
+                      (WF,)).fetchone()
+print('     estado de publicacion preservado: active=%s activeVersionId=%s' % estado)
 con.commit()
 
 print('[4/7] verificando integridad y credenciales')
@@ -133,4 +138,5 @@ print('     WAL y shm eliminados, owner node:node, modo 600')
 
 print('[7/7] arrancando n8n')
 run(['docker', 'start', CT])
-print('\nOK. Borrador alineado, workflow INACTIVO. Publica vos desde la UI.')
+print('\nOK. Borrador y version activa alineados. Estado de publicacion: '
+      'active=%s (lo decides vos desde la UI).' % estado[0])
