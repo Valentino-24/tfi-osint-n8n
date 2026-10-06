@@ -406,9 +406,19 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
           f"observable desde `tesi_osint`**: hay que contrastar con el log de ejecuciones de n8n "
           f"(tarea 3.2). Queda registrado como observación, no como falla atribuida.\n")
     else:
-        A(f"- El día `{fecha.isoformat()}` acumula `n = {total_dia}` posts al instante de esta "
-          f"generación. El día no estaba cerrado cuando se generó la entrada (§1), así que el "
-          f"número es un **corte parcial** y no el total del día.\n")
+        # La condicion sobre `dia_cerrado` no estaba: el bullet salia siempre
+        # con el texto de "corte a mitad de dia", incluso cuando la cabecera
+        # declaraba `dia cerrado`. La entrada del 2026-10-04 quedo
+        # autocontradictoria por eso (cabecera dice dia cerrado, y el 6
+        # decia "no estaba cerrado"). Toda cifra de la seccion 1 tiene que
+        # declarar su misma naturaleza.
+        A(f"- El día `{fecha.isoformat()}` acumula `n = {total_dia}` posts ingeridos "
+          + (f"al instante de esta generación. El día **no estaba cerrado** cuando se "
+             f"generó la entrada (§1), así que el número es un **corte parcial** y no el "
+             f"total del día.\n"
+             if not dia_cerrado else
+             f"en el día. El día ya estaba **cerrado** al generarse esta entrada, así que "
+             f"`{total_dia}` es el total del día y no un corte parcial.\n"))
     if observado:
         A(f"- **Estado de ejecución de n8n: {estado_txt}.** No se registró ninguna falla "
           f"atribuida desde `tesi_osint`; la única observación disponible es la declaración del "
