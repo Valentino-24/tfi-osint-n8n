@@ -215,13 +215,24 @@ def sql_acumulado_ventana(inicio_ventana: datetime, corte_efectivo: datetime) ->
 
 
 def sql_dias_evaluados(inicio_ventana: datetime, corte_efectivo: datetime) -> str:
+    # El grupo se etiqueta por ventana_inicio y no por ventana_fin: la
+    # convencion del sistema es que el workflow de anomalias se corre al dia
+    # siguiente a mediodia y evalua el dia anterior, asi que la fila cuya
+    # ventana arranca el 06 la creo la corrida del 07 y evalua el 06.
+    # Etiquetar por ventana_fin ponia esa fila como "2026-10-07" dentro de la
+    # entrada del 06, que es un dia todavia no colectado. Es una biyeccion
+    # (ventana_fin = ventana_inicio + 1 dia), por eso el conteo de dias
+    # distintos es identico de las dos formas: solo cambia la etiqueta.
+    # El WHERE sigue en ventana_fin porque ese es el corte temporal con que se
+    # genero la entrada; moverlo a ventana_inicio meteria evaluaciones que se
+    # corrieron despues del corte y cambiaria los numeros ya archivados.
     return (
-        "SELECT (ventana_fin AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS dia,\n"
+        "SELECT (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS dia,\n"
         "       COUNT(*) AS n_evaluaciones\n"
         "FROM anomalias\n"
         f"WHERE ventana_fin >= TIMESTAMPTZ '{ts_literal(inicio_ventana)}'\n"
         f"  AND ventana_fin <  TIMESTAMPTZ '{ts_literal(corte_efectivo)}'\n"
-        "GROUP BY (ventana_fin AT TIME ZONE 'America/Argentina/Buenos_Aires')::date\n"
+        "GROUP BY (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date\n"
         "ORDER BY dia;"
     )
 
@@ -338,7 +349,11 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     A(f"Criterio: la ventana se declara suficiente con **{DIAS_SUFICIENTES} días completos de "
       f"evaluaciones** en `anomalias` (base comparativa de RN-AN-02: media diaria de los diez "
       f"días previos). El estado es consultable, no estimado: sale de las filas reales de "
-      f"`anomalias` agrupadas por `ventana_fin`.\n")
+      f"`anomalias` agrupadas por `ventana_inicio`, es decir etiquetadas con el **día cuyos "
+      f"datos evaluó**. La convención del sistema es que el workflow de anomalías se corre al "
+      f"día siguiente a mediodía y evalúa el día anterior: la corrida del 07 crea la fila del "
+      f"06. Etiquetar por `ventana_fin` habría puesto esa fila como el 07 dentro de la entrada "
+      f"del 06, que es un día todavía no colectado.\n")
     A(bloque_sql(q_dias, r_dias))
     A("| Métrica de suficiencia | Valor |")
     A("|---|---|")
