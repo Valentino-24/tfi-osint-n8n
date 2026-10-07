@@ -62,6 +62,8 @@ propio en el roadmap y decisión de los autores sobre si se recalcula `entities`
 corpus ya ingerido o se declara la limitación tal cual.
 
 ### IN-07 — El denominador por subreddit de la ventana no coincide con el alcance real
+> **RESUELTO** el 2026-10-07 por decisión de los autores. Ver "Resolución adoptada" al final.
+
 **Detectado**: 2026-10-02, al regenerar la bitácora del 2026-10-01 con `V4/scripts/bitacora_b5.py`.
 **Documento A dice**: `V4/evidencias/VENTANA_B5.md` §6 fija el denominador de **todo** desglose por
 subreddit de la ventana en tres comunidades: `r/argentina`, `r/devsarg`, `r/derechogenial`. Es el
@@ -75,21 +77,22 @@ devuelve solo esas tres claves.
 | `id` | `display_name` | `active_monitoring` | posts |
 |---|---|---|---|
 | `argentina` | `r/argentina` | false | 0 |
-| `derechogenial` | `r/derechogenial` | **true** | 0 |
+| `derechogenial` | `r/derechogenial` | false | 0 |
 | `DerechoGenial` | `r/DerechoGenial` | false | 0 |
-| `devsarg` | `r/devsarg` | true | 120 |
-| `Malware` | `r/Malware` | true | 101 |
-| `netsec` | `r/netsec` | true | 104 |
+| `devsarg` | `r/devsarg` | true | 217 |
+| `Malware` | `r/Malware` | true | 115 |
+| `netsec` | `r/netsec` | true | 120 |
 
 **Tres problemas encadenados**:
-1. **§6 de `VENTANA_B5.md` está desactualizada**: nombra un conjunto de tres comunidades que el
+1. **§6 de `VENTANA_B5.md` estaba desactualizada**: nombraba un conjunto de tres comunidades que el
    sistema ya no monitorea. Como §6 gobierna todo porcentaje por subreddit de la ventana,
-   cualquier cifra calculada con ese denominador sería incorrecta.
-2. **`r/derechogenial` figura con `active_monitoring = true` pero el workflow nunca la ingiere.**
-   Es un resto del Plan B: la base declara activa una comunidad que el pipeline no consulta, y por
-   eso el script de bitácora advierte `4 de 3 esperados`.
+   cualquier cifra calculada con ese denominador era incorrecta.
+2. **`r/derechogenial` figuraba con `active_monitoring = true` pero el workflow nunca la ingiere.**
+   Era un resto del Plan B: la base declaraba activa una comunidad que el pipeline no consulta, y por
+   eso el script de bitácora advertía `4 de 3 esperados`.
 3. **Duplicados en `subreddits`**: `derechogenial`/`r/derechogenial` y `DerechoGenial`/`r/DerechoGenial`
    son la misma comunidad con distinta capitalización, en dos filas. Ninguna tiene posts.
+
 **Por qué no se corrige unilateralmente**: definir cuál es el conjunto de comunidades del alcance y
 qué hacer con las filas del Plan B es una decisión de los **autores con sus directores**, no una
 corrección técnica. La regla dura del proyecto impide **eliminar** un subreddit; la vía prevista es
@@ -99,6 +102,24 @@ duplicadas se consolidan o se conservan.
 confirmado por los autores; (b) poner `active_monitoring = false` en `r/derechogenial` para que la
 base no declare activa una comunidad que el pipeline no consulta; (c) decidir el destino de
 `r/argentina` y de las dos filas de derechogenial, conservando la evidencia histórica de B4.
+
+**Resolución adoptada (2026-10-07, autores)**:
+- **(a) Alcance = Plan C** (`r/netsec`, `r/Malware`, `r/devsarg`). §6 de `VENTANA_B5.md`
+  actualizada y `SUBSIDIOS_MONITORIZADOS` en `V4/scripts/bitacora_b5.py` corregido, con la
+  historia del cambio Plan B → Plan C (el Plan B original no tenía contenido de ciberseguridad;
+  `r/argentina` y `r/derechogenial` quedaron fuera por **decisión temática**, no por cobertura).
+  La entrada `2026-09-25.md` queda como registro del último día con alcance Plan B.
+- **(b) `r/derechogenial` → `active_monitoring = false`** (commit `6f89715` previo es la regla:
+  se desactiva, no se elimina). Con eso la base declara exactamente los 3 subreddits que consulta
+  `Prepare Subreddits`.
+- **(c) Conservación**: ninguna fila se elimina. `r/argentina` permanece inactiva como evidencia
+  histórica; las dos filas de derechogenial (duplicado por capitalización) se conservan, sin
+  consolidarse, y se dejan como ítem de higiene menor no bloqueante.
+- **Control negativo**: la demostración de selectividad del clasificador no usa subreddits fuera de
+  alcance; usa la clase real `No relevante` sobre los posts ingeridos (452): `r/devsarg` 99,1 %,
+  `r/netsec` 55,8 %, `r/Malware` 31,3 % (detalle en `VENTANA_B5.md` §6.1).
+- **Pendiente de revisión**: la ratificación con los directores queda anotada para la revisión del
+  Capítulo 5 (selección de fuentes), sin efecto sobre la operación en curso.
 
 ### IN-08 — El 429 de Reddit aborta el ciclo de ingesta y la corrida figura como `success`
 **Detectado**: 2026-10-02, al contrastar los conteos de items que el usuario veía en el editor de

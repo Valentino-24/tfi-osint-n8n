@@ -126,12 +126,23 @@ como caso verificado de rate limiting (ver
 
 ## 6. Reglas de desglose por subreddit (D-5, RN-GL-02)
 
+> **Actualizado 2026-10-07 (IN-07 resuelto).** El alcance de la ventana es el **Plan C**:
+> `r/netsec`, `r/Malware`, `r/devsarg`. Hasta el 2026-09-25 inclusive el alcance fue el **Plan B**
+> original (`r/argentina`, `r/devsarg`, `r/derechogenial`), elegido al inicio del proyecto. Los
+> autores lo rediseñaron a comunidades de ciberseguridad tras validar el contenido real de cada
+> canal (documentado en `knowledge-base/10_preguntas_abiertas.md`, IN-07): se sumaron `r/netsec` y
+> `r/Malware`, se conservó `r/devsarg` (comunidad de desarrollo donde el contenido relevante emerge
+> de posts aislados) y quedaron fuera por **decisión temática** `r/argentina` (desactivada en la
+> transición) y `r/derechogenial` (desactivada el 2026-10-07). Ninguna fila se elimina: las que
+> quedan fuera del alcance permanecen en `subreddits` con `active_monitoring = false` como
+> evidencia. La entrada `2026-09-25.md` registra el último día con el alcance Plan B.
+
 Estas reglas gobiernan **todo** desglose por subreddit producido dentro de la ventana:
 
 1. **Denominador completo.** Todo desglose o porcentaje por subreddit usa como denominador los
-   **tres subreddit monitorizados** del alcance — `r/argentina`, `r/devsarg`, `r/derechogenial` —
+   **tres subreddit del alcance** — `r/netsec`, `r/Malware`, `r/devsarg` —
    **incluidos los que aportan 0**. Nunca se calcula sobre el subconjunto que sí aportó posts.
-2. **El cero entra en la tabla.** Los tres subreddits aparecen siempre con su recuento real,
+2. **El cero entra en la tabla.** Los subreddits del alcance aparecen siempre con su recuento real,
    incluido el `0`, y con la causa declarada cuando el cero proviene del rate limiting.
 3. **Cada desglose declara su `n`.** Toda cifra va acompañada de su `n` de observaciones, de la
    consulta que la produjo, de la fecha de ejecución y de la ventana (RN-GL-01).
@@ -141,8 +152,26 @@ Estas reglas gobiernan **todo** desglose por subreddit producido dentro de la ve
    limiting** de Reddit. El sesgo se declara como **limitación** en el Capítulo 5 y en
    [`CARACTERIZACION_RATE_LIMIT.md`](CARACTERIZACION_RATE_LIMIT.md); no se compensa con
    reasignaciones, con fuentes externas ni desactivando subreddits.
-6. **Ningún subreddit se desactiva para maquillar la cobertura.** Un subreddit habilitado que no
-   aporta datos permanece con `active_monitoring = true` y su ausencia se reporta con su causa.
+6. **Desactivación solo por alcance temático (IN-07).** Un subreddit se desactiva
+   (`active_monitoring = false`) únicamente por decisión declarada de alcance de los autores, con
+   su motivo registrado; **nunca para maquillar la cobertura**. Un subreddit del alcance que no
+   aporta datos permanece activo y su ausencia se reporta con su causa.
+
+### 6.1 Control negativo y selectividad del clasificador
+
+La demostración de que el sistema **no sobre-dispara** no usa subreddits fuera de alcance: se mide
+sobre los posts reales que el diccionario clasifica como `No relevante`, que **sí entran** al corpus
+(`posts`) y se excluyen del análisis de anomalías (`Query Daily Counts` filtra
+`nlp_category <> 'No relevante'`). Sobre la ventana (452 posts al 2026-10-07):
+
+| subreddit | posts | `No relevante` | % rechazado por el diccionario |
+|---|---|---|---|
+| `r/devsarg` | 217 | 215 | 99,1 % |
+| `r/netsec` | 120 | 67 | 55,8 % |
+| `r/Malware` | 115 | 36 | 31,3 % |
+
+Cuanto más especializado el subreddit, mayor la proporción de posts aceptados: es la firma de un
+clasificador que distingue, no de uno que etiqueta todo.
 
 ## 7. Estado de la acumulación al redactar este documento
 

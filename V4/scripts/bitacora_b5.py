@@ -86,7 +86,10 @@ VENTANA_CORTE_ESTADO = "no fijada"     # D-7: decisión abierta de los autores
 VENTANA_CORTE_TAREA = "6.1"            # tarea del change que la cierra
 
 SUBSIDIOS_ESPERADOS = 3                # RN-GL-02: denominador completo
-SUBSIDIOS_MONITORIZADOS = ["r/argentina", "r/derechogenial", "r/devsarg"]
+# Alcance declarado por los autores (IN-07, resuelto): Plan C. Debe coincidir
+# con los subreddit que emite `Prepare Subreddits` en V4/scripts/generar_workflow.py
+# y con las filas de `subreddits` que quedaron con active_monitoring = true.
+SUBSIDIOS_MONITORIZADOS = ["r/netsec", "r/Malware", "r/devsarg"]
 
 DIAS_SUFICIENTES = 10                  # D-6: base comparativa de RN-AN-02
 
@@ -190,7 +193,11 @@ def sql_total_dia(inicio: datetime, fin: datetime) -> str:
 
 
 def sql_distribucion(inicio: datetime, fin: datetime) -> str:
-    # LEFT JOIN desde subreddits: el cero del subreddit sin posts NO se pierde.
+    # LEFT JOIN desde subreddits: el cero del subreddit monitoreado sin posts NO
+    # se pierde. El WHERE descarta los subreddit fuera de alcance (IN-07): la
+    # tabla es el alcance declarado, no el listado completo de la tabla
+    # `subreddits`. Es sobre s (la tabla izquierda), asi que no rompe la
+    # retencion de ceros del LEFT JOIN.
     return (
         "SELECT s.display_name,\n"
         "       s.active_monitoring,\n"
@@ -200,6 +207,7 @@ def sql_distribucion(inicio: datetime, fin: datetime) -> str:
         "       ON p.subreddit_id = s.id\n"
         f"      AND p.ingested_at >= TIMESTAMPTZ '{ts_literal(inicio)}'\n"
         f"      AND p.ingested_at <  TIMESTAMPTZ '{ts_literal(fin)}'\n"
+        "WHERE s.active_monitoring\n"
         "GROUP BY s.display_name, s.active_monitoring\n"
         "ORDER BY s.display_name;"
     )
@@ -262,7 +270,7 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     dias_completos = len(r_dias)
 
     monitorizados = [f[1] for f in r_subs if f[2] is True]
-    subs_faltantes = sorted(set(SUBSIDIOS_MONITORIZADOS) - {f[1] for f in r_subs})
+    subs_faltantes = sorted(set(SUBSIDIOS_MONITORIZADOS) - set(monitorizados))
 
     # El día solo está "cerrado" si la generación ocurre en/después de su fin local.
     # Mientras no lo esté, el `n` del día es un corte parcial: se dice explícito.
@@ -314,12 +322,13 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     A(bloque_sql(q_total, r_total))
 
     A("## 2. Desglose por subreddit (denominador completo)\n")
-    A(f"Los {len(filas_dist)} subreddit(s) monitorizado(s) de `subreddits` se listan todos, "
-      f"incluido el que aporta 0. El denominador de todo porcentaje de esta ventana son los "
-      f"**{len(filas_dist)} subreddit(s) monitorizado(s)**, no solo los que aportaron posts "
-      f"(RN-GL-02); el `n` observado del día es **{total_dia}** y la suma de los `n` de la tabla "
-      f"coincide con él. Un subreddit sin fila propia se reportaría con `n = 0` y su causa "
-      f"declarada.\n")
+    A(f"La tabla es el alcance: {len(filas_dist)} subreddit(s) con `active_monitoring = true`, "
+      f"listados todos aunque aporten 0 (RN-GL-02). Dos denominadores distintos y separados: "
+      f"la columna `% sobre el día` divide sobre el `n` observado del día, **{total_dia}**, y la "
+      f"suma de los `n` de la tabla coincide con él; el **denominador de cobertura** — cuántos "
+      f"subreddit componen el alcance declarado — es **{len(filas_dist)}**. Un subreddit "
+      f"monitoreado sin posts se reporta con `n = 0` y su causa declarada; uno fuera del alcance "
+      f"(IN-07) no aparece en la tabla.\n")
     A("| subreddit | n (día) | % sobre el día | `active_monitoring` | causa cuando n = 0 |")
     A("|---|---|---|---|---|")
     for nombre, activo, n in filas_dist:
@@ -330,13 +339,14 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     A("")
     A(f"Subreddits con `active_monitoring = true` en la base: "
       f"{', '.join(monitorizados) if monitorizados else '(ninguno)'} "
-      f"({len(monitorizados)} de {SUBSIDIOS_ESPERADOS} esperados). Ninguno se desactiva para "
-      f"ajustar la cobertura.\n")
+      f"({len(monitorizados)} de {SUBSIDIOS_ESPERADOS} esperados del alcance). Las desactivaciones "
+      f"que existen son decisiones de alcance temático de los autores (IN-07), nunca un ajuste de "
+      f"cobertura.\n")
     if subs_faltantes:
-        A(f"> **Alerta de cobertura**: no se encontraron filas en `subreddits` para "
-          f"{', '.join(subs_faltantes)}. El denominador declarado ({len(filas_dist)}) no coincide "
-          f"con los {SUBSIDIOS_ESPERADOS} subreddits monitorizados del alcance; se reporta, no se "
-          f"rellena.\n")
+        A(f"> **Alerta de cobertura**: el alcance declara {', '.join(subs_faltantes)} pero no "
+          f"aparecen con `active_monitoring = true` en `subreddits`. La tabla cubre "
+          f"{len(filas_dist)} subreddit y el alcance espera {SUBSIDIOS_ESPERADOS}; se reporta, no "
+          f"se rellena.\n")
     A(f"Consulta de control de los monitorizados:\n")
     A(bloque_sql(q_subs, r_subs))
 
