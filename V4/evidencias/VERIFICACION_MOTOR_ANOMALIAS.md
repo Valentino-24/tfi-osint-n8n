@@ -101,6 +101,14 @@ La conversión de la query es correcta y el corte diario cae a medianoche local.
 - **Que el umbral detecte una anomalía real.** Con `base_media = 0` el umbral es
   siempre 3 y nunca hay nada que comparar. La sensibilidad del detector queda sin
   verificar hasta tener días de histórico.
+- **La exactitud de `poissonCdf`.** Esta corrida **no podía ni siquiera haber detectado**
+  el bug de la fórmula corregido después (`VENTANA_B5.md` §15). Con `base_media = 0` el
+  umbral da 3 por el piso `MIN_ABS` en cualquiera de las dos versiones, así que el
+  defecto —que sólo se manifiesta con `λ > 1,05`, donde la CDF rota satura antes de
+  llegar a 0,95— quedaba invisible. Un pase de verificación con base cero **acredita el
+  piso, no la fórmula**: para contrastar el umbral hace falta `base_media > 0` y
+  compararlo contra el p95 calculado a mano. Las cinco comprobaciones de §4 son
+  coherentes, no exhaustivas.
 - **El nodo de Telegram no tiene credenciales.** `TELEGRAM_BOT_TOKEN` y
   `TELEGRAM_CHAT_ID` no están definidas ni en el archivo de entorno de n8n ni en el
   contenedor. Con el estado actual el nodo resolvería la URL contra un token

@@ -207,7 +207,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Scope**:
   - `V4/scripts/generar_workflow.py` como generador (fuente de verdad); `V4/anexos/B_workflow.json` como artefacto importable
   - Trigger 1 `Schedule Ingesta` cada 15 min: `Prepare Subreddits` → upsert `subreddits` → `RSS Read` (`new/.rss`) → parse (id y subreddit desde el link) → `HMAC-SHA-256` → clasificador por diccionario (**5 categorías** + `No relevante`, score `[0,1]`; **vigente solo hasta `C-24`**, que lo rediseñó a nueve categorías sobre un único eje de tipo de amenaza) → extracción de entidades (CVE, emails, IPs, dominios, productos) → `Upsert Posts` con `ON CONFLICT (id) DO UPDATE`
-  - Trigger 2 `Schedule Anomalias` diario 00:05: counts por categoría de ayer + media diaria de los 10 días previos → umbral `max(cuantil 95 de Poisson, 3)` → registro en `anomalias` → `alertas` con estado inicial si hubo disparo → `Send Telegram Alert` **deshabilitado por defecto**
+  - Trigger 2 `Schedule Anomalias` diario 00:05: counts por categoría de ayer + media diaria de los 10 días previos → umbral `max(cuantil 95 de Poisson, 3)` → registro en `anomalias` → `alertas` con estado inicial si hubo disparo → `Send Telegram Alert` **deshabilitado por defecto** (**trasladado a las 12:05 el 2026-10-01**: la máquina no queda encendida de noche y el tick de las 00:05 se perdía todos los días — ver `V4/evidencias/VENTANA_B5.md` §10; no altera el período evaluado)
   - `continueOnFail` + retry x3 con espera de 30 s ante 429/403 de Reddit (RN-FU-03)
   - Fuente RSS / Atom público (Plan C, DD-01): la API `.json` da 403 "blocked by network security" y la creación de apps está bloqueada por la Responsible Builder Policy
   - Import verificado con `n8n import:workflow`; credencial Postgres reasignada en la interfaz tras cada importación
@@ -258,6 +258,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - Dejar acumular días hasta que la media de los 10 días previos del motor de anomalías sea interpretable (RN-AN-02)
   - **Decisión de los autores, con los directores**: fecha de cierre de la ventana y si se conserva la actual o se reinicia la recolección con métricas corregidas
   - No declarar ninguna métrica de resultados hasta cerrar la ventana (RN-GL-01)
+  - **Correcciones ya aplicadas dentro de la ventana**, sin efecto sobre conteos ni sobre el criterio de suficiencia: `poissonCdf` del motor y endurecimiento del despliegue (`9612715`, 2026-10-05 — dos categorías quedaban con umbral 501 e inhibidas); rótulo de la §4 de la bitácora por el día evaluado (`d21232f`) y cierre de la contradicción cabecera/§6 en tres entradas (`3e45d59`), ambas 2026-10-07. Detalle en `V4/evidencias/VENTANA_B5.md` §15-§16
   - **Bloqueado por**: pregunta abierta de prioridad alta (fecha de inicio/cierre) — decisión de los autores con sus directores
 - **Dependencias**: C-04
 - **Governance**: MEDIO

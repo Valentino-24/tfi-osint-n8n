@@ -75,19 +75,33 @@ menor daría evaluaciones con base incompleta; uno mayor retrasaría el cierre s
 
 **Estado consultable, no estimado** (tarea 2.4): el script `V4/scripts/bitacora_b5.py` cuenta
 los días completos evaluados con una consulta `SELECT` sobre `anomalias`, agrupada por
-`ventana_fin`, y lo escribe en la sección 4 de cada entrada de bitácora:
+`ventana_inicio`, y lo escribe en la sección 4 de cada entrada de bitácora:
 
 ```sql
-SELECT (ventana_fin AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS dia,
+SELECT (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS dia,
        COUNT(*) AS n_evaluaciones
 FROM anomalias
 WHERE ventana_fin >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
   AND ventana_fin <  TIMESTAMPTZ '<instante de ejecución>'
-GROUP BY (ventana_fin AT TIME ZONE 'America/Argentina/Buenos_Aires')::date
+GROUP BY (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date
 ORDER BY dia;
 ```
 
-**Nota operativa**: el motor de anomalías corre a las 00:05 y evalúa la ventana de ayer, así que
+**Por qué se etiqueta por `ventana_inicio` y no por `ventana_fin`.** La convención del sistema
+es que la evaluación corre **al día siguiente, a mediodía**, y evalúa **el día anterior**: la
+corrida del 07 crea la fila cuya ventana es el 06. Agrupar por `ventana_fin` habría puesto esa
+fila como `2026-10-07` dentro de la entrada del 2026-10-06, es decir un día que todavía no se
+había colectado cuando se generó el archivo. Al ser una biyección (`ventana_fin =
+ventana_inicio + 1` día), el conteo de días distintos es idéntico de las dos formas: **solo
+cambia la etiqueta**, nunca el total. Corregido el 2026-10-07 en el script y en las 8 entradas
+archivadas (commit `d21232f`).
+
+El `WHERE` se mantiene sobre `ventana_fin` porque ese es el corte temporal con que se generó
+cada entrada: moverlo a `ventana_inicio` incluiría evaluaciones corridas después del corte y
+reescribiría números ya archivados.
+
+**Nota operativa**: el motor de anomalías corre a las **`12:05`** (traslado desde las `00:05`
+porque la máquina no queda encendida de noche; ver §10) y evalúa la ventana de ayer, así que
 las primeras evaluaciones con base completa aparecen hacia el **día 12** de la ventana.
 
 **Antes del umbral, la ventana se declara abierta** y el estado se reporta como **limitación de
@@ -201,7 +215,7 @@ Estado de la base al cierre del 2026-09-26 00:40:
 | Distribución **dentro** de la ventana | `r/argentina` **33**, `r/devsarg` **0**, `r/derechogenial` **0** (denominador: los 3 monitorizados) | [Q-C2] del mismo archivo |
 | Distribución **acumulada** en la base | `r/argentina` **134**, `r/devsarg` **100**, `r/derechogenial` **0** | [Q-C2b] del mismo archivo. **No** es la distribución de la ventana |
 | Primer ciclo **programado** | **Pendiente**: ocurre dentro de los 15 minutos de publicado el workflow. Al cierre de esta pasada el log de n8n registra **0** ejecuciones con `mode` distinto de `manual` | [§3] de [`n8n_2026-09-25_estado_y_ejecuciones.txt`](n8n_2026-09-25_estado_y_ejecuciones.txt) |
-| Días completos evaluados | **0 de 10** | `SELECT` sobre `anomalias` agrupado por `ventana_fin` — §4 de la entrada de bitácora |
+| Días completos evaluados | **0 de 10** | `SELECT` sobre `anomalias` agrupado por `ventana_inicio` (día evaluado) — §4 de la entrada de bitácora |
 | Primera evaluación diaria esperada | `2026-09-26` a las 00:05 | el motor de anomalías evalúa la ventana de ayer |
 | Estado de la ventana | **ABIERTA** | no alcanza el criterio de suficiencia de §4 |
 
@@ -592,6 +606,104 @@ corrige es la base sobre la cual estimar el riesgo de perder posts: con **53,6 %
 incompletos, la probabilidad de que un subreddit activo pierda posts que caen fuera de la ventana
 de ~100 entradas de Reddit ya no es marginal. Es el argumento central para priorizar el arreglo
 del 429 al cierre de B5.
+
+## 15. Corrección del Poisson del motor de anomalías (2026-10-05)
+
+**2026-10-05 13:31 — commit `9612715`.** Tres defectos del mismo tipo: una verificación que daba
+verde porque comparaba la forma y no el contenido.
+
+### El bug
+
+`poissonCdf` aritmataba las masas con `for (let j = 2; j <= i; j++)`, lo que produce
+`λ^(i-1)/i! · e^-λ` en vez de `λ^i/i! · e^-λ`: **le falta un factor `λ`** a todas las masas
+menos la de `i = 0`. Comprobado con `λ = 5,5`: `P(1)` exacta `0,022477` contra `0,004087` que
+computaba el nodo, factor `0,18`.
+
+Como la CDF rota satura en `1/λ`, para `λ > 1,05` **nunca alcanza 0,95**: el `while` de búsqueda
+corría hasta el tope de 500 y devolvía `umbral = 501`.
+
+### Efecto en producción
+
+| Categoría | `base_media` | `umbral` con el bug | Consecuencia |
+|---|---|---|---|
+| Malware | 5,5 | **501** | no podía disparar nunca |
+| Vulnerabilidades | 4,3 | **501** | no podía disparar nunca |
+| Phishing | 0,7 | 3 | sobrevivía por accidente (`λ < 1,05`) |
+
+Dos de las categorías centrales de la tesis quedaban **inhibidas**: con un techo de 501 posts en
+un día, el disparador era inalcanzable. Ninguna alerta por Malware ni por Vulnerabilidades pudo
+generarse mientras el bug estuvo vigente. La única advertencia es que el bug **no afectaba el
+`n` observado ni los conteos** — sólo el umbral contra el que se comparaban.
+
+### La corrección
+
+Se reimplementó por recurrencia `P(i) = P(i-1) · λ / i`, arrancando en `P(0) = e^-λ`, y se
+verificó **ejecutando el Code node real**, no una copia del algoritmo: era justamente eso lo que
+había fallado.
+
+### Verificación en vivo
+
+Evaluación del día `2026-10-06`, corrida el `2026-10-07 12:05:35` BA sobre `anomalias`:
+
+| Categoría | `n_observado` | `base_media` | `umbral` | `disparo` |
+|---|---|---|---|---|
+| Malware | 2 | 6,2 | **12** | no |
+| Vulnerabilidades | 1 | 4,5 | **9** | no |
+| Ransomware | 1 | 0,3 | 3 | no |
+| Robo de Credenciales | 1 | 0,3 | 3 | no |
+| Phishing | 0 | 0,8 | 3 | no |
+| Hacktivismo | 0 | 0,1 | 3 | no |
+| Infraestructura y Ataques | 0 | 0,3 | 3 | no |
+| Filtración de Datos | 0 | 0,2 | 3 | no |
+
+Los umbrales de 12 y 9 son el p95 de Poisson más 1 (`λ = 6,2 → p95 = 11 → 12`; `λ = 4,5 → p95 = 8
+→ 9`), con piso `MIN_ABS = 3` en las categorías de base baja. **Ocho de ocho con `disparo =
+false`.** Con el bug, Malware y Vulnerabilidades habrían mostrado 501.
+
+### Endurecimiento del despliegue
+
+`V4/scripts/desplegar_workflow.py` comparaba **cantidad de nodos**, que es forma y no contenido:
+un nodo modificado pasaba la verificación. Ahora compara el contenido de los nodos críticos y
+separa los cambios cosméticos de los que alteran la lógica.
+
+## 16. Corrección de las bitácoras: rótulo de la §4 y contradicción de la §6 (2026-10-07)
+
+**2026-10-07 — commits `d21232f` y `3e45d59`.** Dos defectos de redacción dentro de las entradas
+de bitácora. **Ninguno altera un conteo**: en ambos casos la corrección es de etiqueta y de
+consistencia interna.
+
+### 16.1 La §4 rotulaba por el fin de ventana y no por el día evaluado
+
+La convención del sistema es que la evaluación corre **al día siguiente, a mediodía, sobre el día
+anterior**: la corrida del 07 crea la fila cuya ventana es el 06. La §4 agrupaba por
+`ventana_fin`, así que esa fila salía rotulada `2026-10-07` dentro de la entrada del `2026-10-06`
+— un día que todavía no se había colectado al generar el archivo.
+
+Se agrupa ahora por `ventana_inicio`, que es el día cuyos datos evaluó la fila. Al ser una
+biyección (`ventana_fin = ventana_inicio + 1` día), el conteo de días distintos **es idéntico de
+las dos formas**; sólo cambia la etiqueta. Corregido en `V4/scripts/bitacora_b5.py` y en las 8
+entradas archivadas con `V4/scripts/migrar_seccion4.py`: 32 líneas modificadas, cero agregadas ni
+borradas. El `WHERE` queda sobre `ventana_fin` porque ese es el corte con que se generó cada
+entrada.
+
+Con el rótulo correcto, los días evaluados de la ventana son **el 01, 04, 05 y 06**; el 02 y el
+03 nunca se evaluaron (el 03 no tuvo colección).
+
+### 16.2 La §6 contradecía su propia cabecera en tres entradas
+
+El bullet de la §6 se emitía sin consultar la bandera `dia_cerrado`, así que declaraba *"el día
+no estaba cerrado → corte parcial"* también cuando la cabecera de la misma entrada decía
+**`día cerrado`**. Era una contradicción interna dentro de un documento de evidencia.
+
+Afectaba a `2026-09-25` (n=36), `2026-10-01` (n=307) y `2026-10-04` (n=37). Se dejaron intactas
+`2026-09-30` y `2026-10-02`: su cabecera declara `corte a mitad de día`, donde el texto viejo era
+correcto. Corregido el generador en `c953616` y backfilleado con
+`V4/scripts/corrigir_seccion6.py`; la verificación cruzada cabecera vs §6 da **0
+contradicciones en las 8 entradas**. `n`, el total de la §1, el acumulado de la §3 y la marca de
+generación no cambian.
+
+Se eliminó además la referencia a un pie que esos tres archivos no definían en ningún otro lugar
+(cita huérfana).
 
 
 
