@@ -225,7 +225,13 @@ Confirma (a). No confirma (b) ni (c): eso recién se ve en las jornadas siguient
 Mientras tanto, la incompletitud de cualquier tick debe leerse del detalle de `runData` y **nunca**
 del `status` de la corrida.
 
-### IN-09 — La base no contiene posts anteriores al 2026-10-01 (bitácoras del 25 y 30/09 sin respaldo)
+### ~~IN-09 — La base no contiene posts anteriores al 2026-10-01 (bitácoras del 25 y 30/09 sin respaldo)~~ — RESUELTA 2026-10-09
+
+> **RESUELTO** el 2026-10-09 por confirmación del autor operador: la recolección **oficial** arrancó
+> el **2026-10-01**; las fechas anteriores (25 y 30/09) fueron corridas de **prueba del prototipo**,
+> no recolección oficial. No hubo pérdida ni recreación de la base: lo que existe hoy son los datos
+> oficiales. Las bitácoras del 25 y 30/09 quedan como registro histórico de días de prueba.
+
 **Detectado**: 2026-10-09, al probar el endpoint nuevo `/api/comunidades-estado` de la landing v2 del
 prototipo (`prototipo-landing-page/`).
 **Documento A dice**: la ventana B5 inicia el **2026-09-25** (`VENTANA_B5.md` §1) y las bitácoras
@@ -247,11 +253,18 @@ declarar el inicio efectivo del corpus como **2026-10-01**, anotar la limitació
 §1 y decidir si la ventana se redefine a partir del 01-10 o conserva el 25-09 nominal con la
 limitación declarada.
 
+**Resolución adoptada (2026-10-09, autor operador)**: el autor confirmó que **la recolección
+oficial arrancó el 2026-10-01**; las fechas anteriores (25 y 30/09) corresponden a corridas de
+**prueba del prototipo**, no a recolección oficial. No hubo pérdida ni recreación de la base. Las
+bitácoras del 25 y 30/09 quedan como registro histórico de días de prueba. La discusión sobre el
+inicio nominal de la ventana (25-09 vs 01-10) sigue viva en la pregunta Alta de la tabla de abajo,
+con esta constancia como insumo para la decisión con los directores.
+
 ## Preguntas abiertas priorizadas
 
 | Prioridad | Pregunta | Bloquea | Decisor |
 |---|---|---|---|
-| Alta | ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? | B5, métricas del Cap. 5 | Autores con sus directores |
+| Alta | ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? **Constancia 2026-10-09**: el autor declaró que la recolección oficial arrancó el **01-10**; el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta) | B5, métricas del Cap. 5 | Autores con sus directores |
 | Alta | ¿Se puede conseguir una submuestra de 100 posts para el evaluador externo? | E14, Kappa y matriz de confusión | Autores / facultad |
 | Alta | ¿Se habilita Telegram para obtener E12 o se retira/reclasifica OE6? | E12, alcance de alertas | Autores |
 | Media | ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? | Comparabilidad de resultados | Autores con tribunal |
@@ -260,7 +273,6 @@ limitación declarada.
 | Media | ¿Cuál es la fórmula exacta y documentada del score? | Sección 4.4 y evaluación | Autores / técnica |
 | Media | ¿Se corrigen los límites de palabra del extractor de entidades fuera de la ventana B5, y se recalcula `entities` sobre el corpus ya ingerido? (IN-06) | Calidad del campo `entities`, evidencia de OE4 | Autores / técnica |
 | **Alta** | ¿Cuál es el conjunto de comunidades del alcance: Plan B (`r/argentina`, `r/devsarg`, `r/derechogenial`) o Plan C (`r/netsec`, `r/Malware`, `r/devsarg`)? (IN-07) | **Todo porcentaje por subreddit** de la ventana, §6 de VENTANA_B5.md | **Autores con sus directores** |
-| **Alta** | ¿Se restableció la base en algún momento y el inicio efectivo del corpus es el 2026-10-01? (IN-09) | Inicio de la ventana B5, bitácoras del 25 y 30/09 no reproducibles | Autores / operador |
 | Media | ¿Se agrega manejo explícito del 429 (reintento con backoff y/o rotación de subreddit) fuera de la ventana B5? (IN-08) | Integridad de la cobertura de la ventana; hoy 3 de 8 ticks leen 2 de 3 subreddits sin registrarlo | Autores / técnica |
 | Baja | ¿Se puede obtener E15 (copia del antecedente de Rivas y Dengra)? | Marco teórico H-10 | Autores / biblioteca |
 | Baja | ¿Se versionan las evidencias binarias grandes o solo exports reproducibles? | Tamaño y higiene del repositorio | Autor operador |
@@ -272,7 +284,7 @@ la tabla cambia de identidad ni se cierra: se registra su estado de avance.
 
 | Pregunta | Estado | Constancia |
 |---|---|---|
-| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **Parcialmente resuelta — sigue abierta.** Inicio **fijado el 2026-09-25** (inmutable); **fecha de corte `no fijada`**, pendiente de la decisión de los autores con sus directores (tarea **6.1** del change C-05) | `V4/evidencias/VENTANA_B5.md` §1 y §3 |
+| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **Parcialmente resuelta — sigue abierta.** Inicio **fijado el 2026-09-25** (inmutable, decisión vigente); **fecha de corte `no fijada`**, pendiente de la decisión de los autores con sus directores (tarea **6.1** del change C-05). **Constancia 2026-10-09**: el autor declaró que la recolección **oficial** arrancó el **01-10** y que el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta) — insumo para revisar el inicio con los directores | `V4/evidencias/VENTANA_B5.md` §1 y §3 |
 | ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? (prioridad **Media**) | **Abierta.** Sin decisión de los autores (tarea 6.2). Su acumulación es de 0/10 días completos evaluados al 2026-09-25, así que tampoco hay base para decidir | `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §7 |
 
 **Limitación conocida de la evidencia de falla:** el log de ejecuciones de la instancia n8n no
