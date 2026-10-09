@@ -225,6 +225,28 @@ Confirma (a). No confirma (b) ni (c): eso recién se ve en las jornadas siguient
 Mientras tanto, la incompletitud de cualquier tick debe leerse del detalle de `runData` y **nunca**
 del `status` de la corrida.
 
+### IN-09 — La base no contiene posts anteriores al 2026-10-01 (bitácoras del 25 y 30/09 sin respaldo)
+**Detectado**: 2026-10-09, al probar el endpoint nuevo `/api/comunidades-estado` de la landing v2 del
+prototipo (`prototipo-landing-page/`).
+**Documento A dice**: la ventana B5 inicia el **2026-09-25** (`VENTANA_B5.md` §1) y las bitácoras
+`2026-09-25.md` y `2026-09-30.md` reportaron conteos de esos días (el 25/09 con alcance Plan B,
+incluyendo posts de `r/argentina`).
+**Documento B dice**: la base hoy tiene rango real **2026-10-01 → 2026-10-08**, 491 posts, **todos**
+de `r/devsarg` (250), `r/netsec` (124) y `r/Malware` (117). `r/argentina` y `r/derechogenial` tienen
+**0 posts**.
+**Verificación** (consulta de lectura): `SELECT MIN(ingested_at), MAX(ingested_at) FROM posts` y
+desglose por `subreddit_id`. El KPI "desde" del panel pasó a `2026-10-01`.
+**Impacto**: el corpus real de la ventana arranca el **01-10**, no el 25-09; las bitácoras del 25 y
+30/09 **no son reproducibles** desde la base actual. Afecta el inicio declarado de la ventana B5 (§1)
+y cualquier acumulado que se reporte desde el 25-09.
+**Causa probable sin confirmar**: restablecimiento/recreación de la base (contenedor o database) en
+algún momento posterior al 30/09. El operador no recuerda haberla ejecutado manualmente; sin
+confirmación no se asume.
+**Resolución propuesta**: confirmar con los autores si hubo recreación de la base; si la hubo,
+declarar el inicio efectivo del corpus como **2026-10-01**, anotar la limitación en `VENTANA_B5.md`
+§1 y decidir si la ventana se redefine a partir del 01-10 o conserva el 25-09 nominal con la
+limitación declarada.
+
 ## Preguntas abiertas priorizadas
 
 | Prioridad | Pregunta | Bloquea | Decisor |
@@ -238,6 +260,7 @@ del `status` de la corrida.
 | Media | ¿Cuál es la fórmula exacta y documentada del score? | Sección 4.4 y evaluación | Autores / técnica |
 | Media | ¿Se corrigen los límites de palabra del extractor de entidades fuera de la ventana B5, y se recalcula `entities` sobre el corpus ya ingerido? (IN-06) | Calidad del campo `entities`, evidencia de OE4 | Autores / técnica |
 | **Alta** | ¿Cuál es el conjunto de comunidades del alcance: Plan B (`r/argentina`, `r/devsarg`, `r/derechogenial`) o Plan C (`r/netsec`, `r/Malware`, `r/devsarg`)? (IN-07) | **Todo porcentaje por subreddit** de la ventana, §6 de VENTANA_B5.md | **Autores con sus directores** |
+| **Alta** | ¿Se restableció la base en algún momento y el inicio efectivo del corpus es el 2026-10-01? (IN-09) | Inicio de la ventana B5, bitácoras del 25 y 30/09 no reproducibles | Autores / operador |
 | Media | ¿Se agrega manejo explícito del 429 (reintento con backoff y/o rotación de subreddit) fuera de la ventana B5? (IN-08) | Integridad de la cobertura de la ventana; hoy 3 de 8 ticks leen 2 de 3 subreddits sin registrarlo | Autores / técnica |
 | Baja | ¿Se puede obtener E15 (copia del antecedente de Rivas y Dengra)? | Marco teórico H-10 | Autores / biblioteca |
 | Baja | ¿Se versionan las evidencias binarias grandes o solo exports reproducibles? | Tamaño y higiene del repositorio | Autor operador |
