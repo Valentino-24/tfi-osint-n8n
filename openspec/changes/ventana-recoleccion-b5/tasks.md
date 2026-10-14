@@ -8,7 +8,7 @@
 
 - [x] 1.1 Crear `V4/evidencias/VENTANA_B5.md` con la definición de la ventana real: inicio **2026-09-25**, criterio del corpus sobre `posts.ingested_at`, y nota de que la corrida B4 del 2026-09-24 (201 posts verificados) queda fuera del corpus salvo decisión de los autores
 - [x] 1.2 En la misma definición, registrar la fecha de corte con el estado explícito **"no fijada"**, el motivo (decisión de los autores con sus directores) y el nombre de la tarea 6.1 que la cierra; no escribir ninguna fecha tentativa
-- [x] 1.3 Declarar en el mismo documento el criterio de suficiencia: **10 días completos de evaluaciones** en `anomalias`, justificado por la base comparativa de RN-AN-02
+- [x] 1.3 Declarar en el mismo documento el criterio de suficiencia: **10 días completos de evaluaciones** en `anomalias`, justificado por la base comparativa de RN-AN-02 — **Actualizado 2026-10-09**: el criterio queda como **mínimo 10 / objetivo 15** (dos ciclos semanales, corte estimado `~2026-10-17`); el mínimo de RN-AN-02 no cambia
 - [x] 1.4 Sustituir en `V4/GUIA_EJECUCION.md` toda mención a la ventana ficticia de seis meses por la ventana real; añadir B5 a su tabla de estado sin tocar lo que pertenece a C-06 (IN-01, IN-02)
 - [x] 1.5 Actualizar `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 dejando constancia de que la ventana real está fechada desde 2026-09-25 y de que su corte sigue abierto
 - [x] 1.6 Actualizar `knowledge-base/02_descripcion_general.md` §Estado de implementación con el estado real de la ventana
