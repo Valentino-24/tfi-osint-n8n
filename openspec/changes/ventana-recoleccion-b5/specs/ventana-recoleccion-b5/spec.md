@@ -51,19 +51,24 @@ El valor en la documentación MUST ser un estado explícito de "no fijada" acomp
 
 ### Requirement: Criterio de suficiencia de la ventana
 
-La ventana MUST declarar un criterio de suficiencia verificable, basado en que el motor de anomalías tenga **10 días completos de evaluaciones** registradas en `anomalias`, porque RN-AN-02 usa la media diaria de los diez días previos y sin esa historia la base comparativa no existe.
+La ventana MUST declarar un criterio de suficiencia verificable cuyo **mínimo** sean **10 días completos de evaluaciones** registradas en `anomalias`, porque RN-AN-02 usa la media diaria de los diez días previos y sin esa historia la base comparativa no existe. Los autores pueden declarar además un **objetivo** de días completos evaluados (decisión del 2026-10-09: **15 días**, dos ciclos semanales), que MUST registrarse con su fecha y MUST NOT confundirse con el mínimo: el mínimo es el piso técnico de RN-AN-02, no la meta de acumulación.
 
 El estado de acumulación MUST registrarse de forma consultable día a día, y MUST NOT estimarse.
 
-#### Scenario: El umbral de suficiencia está declarado y justificado
+#### Scenario: El criterio de suficiencia está declarado y justificado
 
 - **WHEN** se lee el criterio de suficiencia de la ventana
-- **THEN** declara las 10 evaluaciones completas requeridas y explica que ese número proviene de la base comparativa de RN-AN-02, no de una elección arbitraria
+- **THEN** declara el mínimo de 10 evaluaciones completas y explica que ese número proviene de la base comparativa de RN-AN-02, no de una elección arbitraria; y, si hay un objetivo declarado, lo distingue del mínimo y registra su fecha
 
-#### Scenario: Antes del umbral la ventana se declara abierta
+#### Scenario: Antes del mínimo la ventana se declara abierta
 
 - **WHEN** la ventana acumula menos de 10 días completos de evaluaciones
 - **THEN** se declara abierta y el estado se reporta como limitación de la base comparativa, nunca como ausencia de anomalías (RN-AN-06)
+
+#### Scenario: Alcanzado el mínimo, el objetivo pendiente queda visible
+
+- **WHEN** la ventana acumula al menos el mínimo (10) pero todavía no el objetivo declarado
+- **THEN** el estado se reporta como mínimo alcanzado con el objetivo pendiente, sin declarar la ventana completa ni cerrarla
 
 #### Scenario: El estado de acumulación es verificable
 
