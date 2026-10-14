@@ -67,9 +67,12 @@
 **Estado (2026-09-25)**: la ventana real es la **B5**, con inicio **2026-09-25** y corte
 **`no fijada`** — decisión abierta de los autores con sus directores. El corpus se define sobre
 `posts.ingested_at`; la fecha de corte no tiene fecha tentativa y la cierra la tarea 6.1 del
-change `ventana-recoleccion-b5` (C-05). Criterio de suficiencia: 10 días completos de
+change `ventana-recoleccion-b5` (C-05). Criterio de suficiencia: **mínimo 10 días completos** de
 evaluaciones en `anomalias` (base comparativa de RN-AN-02). Definición completa y bitácora
 diaria en `V4/evidencias/VENTANA_B5.md` y `V4/evidencias/bitacora_b5/`.
+**Actualización (2026-10-09)**: el autor fijó como **objetivo 15 días completos evaluados** (dos
+ciclos semanales), con corte estimado `~2026-10-17`; el mínimo de 10 se conserva como piso técnico
+de RN-AN-02. El corte formal sigue sin ratificarse con los directores.
 
 ### SU-03 — La base seguirá siendo local durante la recolección
 **Supuesto**: PostgreSQL en `localhost:5433` y n8n local son suficientes para la entrega.

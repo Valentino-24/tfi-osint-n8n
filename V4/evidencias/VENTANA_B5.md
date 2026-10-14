@@ -12,12 +12,12 @@
 | Fecha de inicio (primer intento, **abortado**) | 2026-09-25 — ver §7.1. La recolección se interrumpió y los datos se descartaron |
 | Fecha de reinicio del corpus | **2026-10-01 13:05:59** (`America/Argentina/Buenos_Aires`) — `TRUNCATE` de `posts`, `comments`, `anomalias`, `alertas` |
 | **Fecha de inicio operativa** | **2026-10-01 13:15:12** (`America/Argentina/Buenos_Aires`) — instante de la **ejecución automática #15**, la primera que corrió con el workflow publicado tras el reinicio. Es la fecha que define la ventana |
-| Fecha de corte | **`no fijada`** — decisión abierta de los autores con sus directores (ver §3) |
-| Duración | 10 días desde el inicio operativo, y 11 en total si se cuenta el día evaluado del motor de anomalías (§4) |
+| Fecha de corte | **`no fijada`** — decisión abierta de los autores con sus directores (ver §3). **Corte estimado `~2026-10-17`**: objetivo declarado por el autor el 2026-10-09, **no** ratificado con los directores |
+| Duración | **Objetivo: 15 días completos evaluados** desde el inicio operativo, con **mínimo de 10** (base comparativa de RN-AN-02); ver §4 |
 | Zona horaria de los límites | `America/Argentina/Buenos_Aires` (zona de ejecución del sistema) |
 | Bitácora diaria | [`V4/evidencias/bitacora_b5/`](bitacora_b5/) — una entrada `YYYY-MM-DD.md` por día |
-| Criterio de suficiencia | 10 días completos de evaluaciones en `anomalias` (ver §4) |
-| Estado al redactar este documento | **ABIERTA** — 0 de 10 días completos evaluados |
+| Criterio de suficiencia | **Mínimo 10** días completos de evaluaciones en `anomalias` (RN-AN-02) y **objetivo 15** (declarado el 2026-10-09, ver §4) |
+| Estado al redactar este documento | **ABIERTA** — 0 días completos evaluados (mínimo 10, objetivo 15; ver §4) |
 
 > **Por qué el inicio es 13:15:12 y no 13:05:59.** El `TRUNCATE` vació las tablas a
 > las 13:05:59, pero el workflow seguía sin publicar en ese momento: la recolección
@@ -63,15 +63,31 @@ la decisión, el motivo y los changes que habilita (RN-GL-03).
 Un campo de fecha en blanco podría leerse más adelante como un olvido; por eso el valor es el
 estado explícito `no fijada` con su motivo, y no un espacio vacío.
 
-## 4. Criterio de suficiencia (10 días completos evaluados)
+## 4. Criterio de suficiencia (mínimo 10 días, objetivo 15)
 
-La ventana se declara **suficiente** cuando el motor de anomalías tiene **10 días completos de
-evaluaciones** registrados en `anomalias`.
+La ventana se declara **suficiente** —en su piso— cuando el motor de anomalías tiene **10 días
+completos de evaluaciones** registrados en `anomalias`. El **objetivo declarado por el autor**
+(2026-10-09) es llevar la ventana a **15 días completos evaluados** —dos ciclos semanales
+completos— con un corte estimado `~2026-10-17`.
 
-**Justificación**: no es un número elegido para la ocasión. RN-AN-02 define la base comparativa
-como la media diaria de los **diez días previos**; sin esa historia la base comparativa no
-existe, y toda evaluación previa al umbral se haría contra una base incompleta. Un umbral
-menor daría evaluaciones con base incompleta; uno mayor retrasaría el cierre sin ganancia.
+**Justificación del mínimo**: no es un número elegido para la ocasión. RN-AN-02 define la base
+comparativa como la media diaria de los **diez días previos**; sin esa historia la base
+comparativa no existe, y toda evaluación previa al umbral se haría contra una base incompleta.
+Un umbral menor daría evaluaciones con base incompleta, así que **10 es el piso técnico**, no un
+número negociable.
+
+**Justificación del objetivo (decisión del 2026-10-09)**: el autor decidió extender la ventana a
+**dos ciclos semanales completos** para reducir la varianza del día de la semana en la base
+comparativa. El mínimo de RN-AN-02 (10) se conserva como piso; el objetivo (15) es la meta de
+acumulación. **El corte formal sigue `no fijada`** (§3): lo que se registra acá es el objetivo de
+acumulación, no la ratificación del cierre con los directores (esa decisión queda para los
+autores y sus directores, tarea 6.1 de C-05).
+
+> **Nota de transición (2026-10-14).** Las entradas de bitácora generadas **antes** de esta fecha
+> declaran el umbral como "10" con la etiqueta `SUFICIENTE` al alcanzarlo. A partir del 2026-10-14
+> el generador `V4/scripts/bitacora_b5.py` declara **mínimo 10 y objetivo 15**. El **conteo de días
+> evaluados no cambia** —solo se agrega el objetivo y se ajustan las etiquetas de estado—, de modo
+> que las entradas ya archivadas se conservan como están y **no se reescriben**.
 
 **Estado consultable, no estimado** (tarea 2.4): el script `V4/scripts/bitacora_b5.py` cuenta
 los días completos evaluados con una consulta `SELECT` sobre `anomalias`, agrupada por
@@ -104,8 +120,10 @@ reescribiría números ya archivados.
 porque la máquina no queda encendida de noche; ver §10) y evalúa la ventana de ayer, así que
 las primeras evaluaciones con base completa aparecen hacia el **día 12** de la ventana.
 
-**Antes del umbral, la ventana se declara abierta** y el estado se reporta como **limitación de
-la base comparativa**, nunca como ausencia de anomalías (RN-AN-06).
+**Antes de alcanzar el mínimo (10), la ventana se declara abierta** y el estado se reporta como
+**limitación de la base comparativa**, nunca como ausencia de anomalías (RN-AN-06). Alcanzado el
+mínimo pero todavía no el objetivo, el estado es **mínimo alcanzado — objetivo pendiente**; con los
+**15 días completos**, **objetivo alcanzado**.
 
 ## 5. Los 201 posts de B4 (2026-09-24) quedan fuera del corpus
 

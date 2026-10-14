@@ -314,6 +314,7 @@ el roadmap.
 | Prioridad | Pregunta | Bloquea | Decisor |
 |---|---|---|---|
 | Alta | ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? **Constancia 2026-10-09**: el autor declaró que la recolección oficial arrancó el **01-10**; el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta) | B5, métricas del Cap. 5 | Autores con sus directores |
+| Alta | ¿Cuál es el criterio de suficiencia de la ventana B5? **Constancia 2026-10-09**: el autor declaró **mínimo 10 días completos evaluados** (piso técnico de RN-AN-02) y **objetivo 15** (dos ciclos semanales), con corte estimado `~2026-10-17`; el corte formal sigue `no fijada` | §4 de `VENTANA_B5.md`, cierre de C-05 | Autores |
 | Alta | ¿Se puede conseguir una submuestra de 100 posts para el evaluador externo? | E14, Kappa y matriz de confusión | Autores / facultad |
 | Alta | ¿Se habilita Telegram para obtener E12 o se retira/reclasifica OE6? | E12, alcance de alertas | Autores |
 | Media | ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? | Comparabilidad de resultados | Autores con tribunal |
@@ -334,7 +335,7 @@ la tabla cambia de identidad ni se cierra: se registra su estado de avance.
 
 | Pregunta | Estado | Constancia |
 |---|---|---|
-| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **Parcialmente resuelta — sigue abierta.** Inicio **fijado el 2026-09-25** (inmutable, decisión vigente); **fecha de corte `no fijada`**, pendiente de la decisión de los autores con sus directores (tarea **6.1** del change C-05). **Constancia 2026-10-09**: el autor declaró que la recolección **oficial** arrancó el **01-10** y que el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta) — insumo para revisar el inicio con los directores | `V4/evidencias/VENTANA_B5.md` §1 y §3 |
+| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **Parcialmente resuelta — sigue abierta.** Inicio **fijado el 2026-09-25** (inmutable, decisión vigente); **fecha de corte `no fijada`**, pendiente de la decisión de los autores con sus directores (tarea **6.1** del change C-05). **Constancia 2026-10-09**: el autor declaró que la recolección **oficial** arrancó el **01-10** y que el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta) — insumo para revisar el inicio con los directores. **Constancia 2026-10-14**: el autor fijó el objetivo de **15 días completos evaluados** (mínimo 10, RN-AN-02) con corte estimado `~2026-10-17`; el corte formal sigue `no fijada` | `V4/evidencias/VENTANA_B5.md` §1 y §3 |
 | ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? (prioridad **Media**) | **Abierta.** Sin decisión de los autores (tarea 6.2). Su acumulación es de 0/10 días completos evaluados al 2026-09-25, así que tampoco hay base para decidir | `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §7 |
 
 **Limitación conocida de la evidencia de falla:** el log de ejecuciones de la instancia n8n no

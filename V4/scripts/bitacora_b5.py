@@ -91,7 +91,9 @@ SUBSIDIOS_ESPERADOS = 3                # RN-GL-02: denominador completo
 # y con las filas de `subreddits` que quedaron con active_monitoring = true.
 SUBSIDIOS_MONITORIZADOS = ["r/netsec", "r/Malware", "r/devsarg"]
 
-DIAS_SUFICIENTES = 10                  # D-6: base comparativa de RN-AN-02
+DIAS_MINIMO = 10                       # D-6: piso tecnico de RN-AN-02 (base comparativa de 10 dias previos)
+DIAS_OBJETIVO = 15                     # decision del 2026-10-09: dos ciclos semanales completos
+DIAS_OBJETIVO_FECHA = "2026-10-09"     # fecha en que el autor declaro el objetivo
 
 # Zona horaria de la ejecución del sistema. Los límites del día se calculan en
 # esta zona y se escriben ya resueltos en el SQL, para que la consulta que figura
@@ -355,10 +357,33 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
       f"(corte `{VENTANA_CORTE_ESTADO}`, por eso el límite superior es el instante de ejecución).\n")
     A(bloque_sql(q_acum, r_acum))
 
+    if dias_completos < DIAS_MINIMO:
+        estado_ventana = "ABIERTA"
+        nota_suficiencia = (
+            f"Con {dias_completos} de {DIAS_MINIMO} días completos evaluados, la base "
+            f"comparativa de RN-AN-02 está incompleta: el estado se reporta como limitación "
+            f"(RN-AN-06) y **no** como ausencia de anomalías."
+        )
+    elif dias_completos < DIAS_OBJETIVO:
+        estado_ventana = "MÍNIMO ALCANZADO — objetivo pendiente"
+        nota_suficiencia = (
+            f"El piso técnico de RN-AN-02 está completo ({dias_completos} >= {DIAS_MINIMO}). "
+            f"Restan {DIAS_OBJETIVO - dias_completos} día(s) para el objetivo declarado de "
+            f"{DIAS_OBJETIVO} ({DIAS_OBJETIVO_FECHA})."
+        )
+    else:
+        estado_ventana = "OBJETIVO ALCANZADO"
+        nota_suficiencia = (
+            f"Se alcanzó el objetivo declarado de {DIAS_OBJETIVO} días completos evaluados "
+            f"(decisión del {DIAS_OBJETIVO_FECHA})."
+        )
+
     A("## 4. Días completos evaluados (criterio de suficiencia)\n")
-    A(f"Criterio: la ventana se declara suficiente con **{DIAS_SUFICIENTES} días completos de "
-      f"evaluaciones** en `anomalias` (base comparativa de RN-AN-02: media diaria de los diez "
-      f"días previos). El estado es consultable, no estimado: sale de las filas reales de "
+    A(f"Criterio: la ventana se declara suficiente, en su piso, con un **mínimo de {DIAS_MINIMO} "
+      f"días completos de evaluaciones** en `anomalias` (base comparativa de RN-AN-02: media "
+      f"diaria de los diez días previos). El **objetivo declarado por el autor el "
+      f"{DIAS_OBJETIVO_FECHA}** es de **{DIAS_OBJETIVO} días completos** (dos ciclos semanales). "
+      f"El estado es consultable, no estimado: sale de las filas reales de "
       f"`anomalias` agrupadas por `ventana_inicio`, es decir etiquetadas con el **día cuyos "
       f"datos evaluó**. La convención del sistema es que el workflow de anomalías se corre al "
       f"día siguiente a mediodía y evalúa el día anterior: la corrida del 07 crea la fila del "
@@ -368,12 +393,11 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     A("| Métrica de suficiencia | Valor |")
     A("|---|---|")
     A(f"| Días completos evaluados (distintos) | **{dias_completos}** |")
-    A(f"| Umbral de suficiencia | {DIAS_SUFICIENTES} |")
-    A(f"| Estado de la ventana | **{'ABIERTA' if dias_completos < DIAS_SUFICIENTES else 'SUFICIENTE'}** |")
+    A(f"| Mínimo (base comparativa RN-AN-02) | {DIAS_MINIMO} |")
+    A(f"| Objetivo declarado ({DIAS_OBJETIVO_FECHA}) | {DIAS_OBJETIVO} |")
+    A(f"| Estado de la ventana | **{estado_ventana}** |")
     A("")
-    A(f"> Con {dias_completos} de {DIAS_SUFICIENTES} días completos evaluados, la base "
-      f"comparativa de RN-AN-02 está incompleta: el estado se reporta como limitación "
-      f"(RN-AN-06) y **no** como ausencia de anomalías.\n")
+    A(f"> {nota_suficiencia}\n")
 
     A("## 5. Ejecuciones fallidas y su causa\n")
     if not observado:
@@ -588,7 +612,7 @@ def main(argv=None) -> int:
     total_dia = int(r_total[0][0]) or 0
     print(f"OK -> {destino}")
     print(f"   ventana={VENTANA_ID} fecha={fecha.isoformat()} n={total_dia} "
-          f"dias_completos_evaluados={len(r_dias)}/{DIAS_SUFICIENTES}")
+          f"dias_completos_evaluados={len(r_dias)} (minimo {DIAS_MINIMO}, objetivo {DIAS_OBJETIVO})")
     print(f"   n8n_estado={args.n8n_estado} ({ESTADOS_N8N[args.n8n_estado]})")
     return 0
 
