@@ -734,5 +734,67 @@ generación no cambian.
 Se eliminó además la referencia a un pie que esos tres archivos no definían en ningún otro lugar
 (cita huérfana).
 
+## 17. El motor evalúa solo las categorías con posts en la ventana móvil (2026-10-14)
+
+**2026-10-14.** Detectado al revisar por qué la tabla `anomalias` pasó de **8 filas a 7** en las
+evaluaciones de los días 12 y 13. **No es un fallo de detección**: es cómo está construida la
+consulta de conteos del motor.
+
+### El mecanismo
+
+El nodo `Query Daily Counts` (`QUERY_COUNTS_SQL` en `V4/scripts/generar_workflow.py`) **no parte de
+un conjunto fijo de categorías**: deriva la lista de los posts presentes en la **ventana móvil de
+11 días**.
+
+```sql
+FROM posts p
+WHERE p.nlp_category IS NOT NULL AND p.nlp_category <> 'No relevante'
+  AND p.ingested_at >= date_trunc('day', now()) - interval '11 day'
+GROUP BY p.nlp_category
+```
+
+Una categoría **solo se evalúa si tiene al menos un post con señal en `[hoy−11, hoy)`**. Una
+categoría sin actividad reciente no genera fila. El diccionario `DICT` tiene **9** categorías; el
+motor evalúa entre 7 y 8 según cuáles tengan señal en la ventana.
+
+### Por qué faltó "Infraestructura y Ataques"
+
+La categoría tiene **3 posts en total, todos del 2026-10-01** (`primero = último = 01-10`).
+
+| Evaluación | Filtro de la consulta | ¿El post del 01-10 entra? | Filas |
+|---|---|---|---|
+| Día 11 (corrida 12-10) | `ingested_at >= 01-10` | sí | 8 |
+| Día 12 (corrida 13-10) | `ingested_at >= 02-10` | no | 7 |
+| Día 13 (corrida 14-10) | `ingested_at >= 03-10` | no | 7 |
+
+La consulta del motor ejecutada en vivo el 2026-10-14 devuelve exactamente las 7 categorías
+insertadas. El mismo mecanismo explica dos ausencias más: `Ingenieria Social` **nunca** aparece
+(cero posts desde el inicio de la ventana) y `Hacktivismo` faltó en la evaluación del día 01 (su
+primer post es del 05-10, fuera de esa ventana).
+
+### No hay falso negativo
+
+Una categoría que pica el día evaluado tiene, por definición, posts de ese día, y por lo tanto
+**siempre** entra a la ventana: se evalúa y dispara si supera el umbral. La desaparición solo afecta
+a categorías **sin actividad reciente**, que no tenían nada que detectar. La referencia viva es el
+día 12: `Vulnerabilidades` (`n = 4`, umbral 3) **sí** se evaluó y **sí** disparó — la categoría que
+efectivamente picó no se perdió.
+
+### Impacto: evidencia, no detección
+
+El **conteo de filas por día varía (7 u 8)** según la actividad de las categorías de cola. Queda
+documentado para que no se lea como una inconsistencia entre §12, §15 y las bitácoras, y para **no
+afirmar** que el motor "evalúa las 9 categorías" por día: evalúa las categorías **con señal en la
+ventana**, 7 u 8 de las 9. Registrado como **IN-10** en `knowledge-base/10_preguntas_abiertas.md`.
+
+### Corrección diferida
+
+La corrección natural es que `Query Daily Counts` emita **siempre una fila por cada una de las 9
+categorías del diccionario** (una lista fija cruzada con los conteos), con `n = 0` cuando no hay
+posts, de modo que el conjunto evaluado sea estable. **No se aplica ahora**: el workflow está
+congelado durante la ventana B5 y cambiar la consulta a mitad vuelve incomparable el conjunto de
+categorías de los días anteriores y posteriores (mismo criterio que IN-06 e IN-08). Queda para el
+cierre, como cambio de versión del artefacto.
+
 
 

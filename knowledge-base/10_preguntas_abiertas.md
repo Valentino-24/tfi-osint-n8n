@@ -260,6 +260,55 @@ bitácoras del 25 y 30/09 quedan como registro histórico de días de prueba. La
 inicio nominal de la ventana (25-09 vs 01-10) sigue viva en la pregunta Alta de la tabla de abajo,
 con esta constancia como insumo para la decisión con los directores.
 
+### IN-10 — El motor de anomalías evalúa solo las categorías con posts en la ventana móvil, no las 9 del diccionario
+**Detectado**: 2026-10-14, al revisar por qué `anomalias` registró **7 filas** en las evaluaciones de
+los días 2026-10-12 y 2026-10-13, cuando el día 11 había registrado 8.
+**Documento A dice**: el motor de anomalías evalúa las categorías del diccionario NLP y registra una
+fila por categoría con su `n_observado`, `base_media` y `umbral`. Las secciones §12 y §15 de
+`VENTANA_B5.md` muestran tablas de 7 y 8 categorías, y las bitácoras §4 de los días 12 y 13 reportan
+7 filas.
+**Documento B dice**: `QUERY_COUNTS_SQL` (`V4/scripts/generar_workflow.py`, nodo `Query Daily
+Counts`) **deriva la lista de categorías de los posts presentes en la ventana móvil de 11 días**, no
+de las 9 del diccionario:
+
+```sql
+FROM posts p
+WHERE p.nlp_category IS NOT NULL
+  AND p.nlp_category <> 'No relevante'
+  AND p.ingested_at >= date_trunc('day', now()) - interval '11 day'
+GROUP BY p.nlp_category
+```
+
+Una categoría **solo se evalúa si tiene al menos un post con señal en `[hoy−11, hoy)`**. Las que no
+tienen posts recientes **no generan fila**. El diccionario `DICT` tiene **9** categorías (Phishing,
+Robo de Credenciales, Malware, Ransomware, Vulnerabilidades, Filtración de Datos, Infraestructura y
+Ataques, Hacktivismo, Ingenieria Social).
+**Caso verificado**: `Infraestructura y Ataques` tiene **3 posts en total, todos del 2026-10-01**. Al
+avanzar la ventana móvil dejó de entrar: el día 11 (corrida del 12-10, filtro `>= 01-10`) todavía se
+evaluó (8 filas); los días 12 (corrida del 13-10, filtro `>= 02-10`) y 13 (corrida del 14-10, filtro
+`>= 03-10`) quedaron fuera (7 filas). La consulta del motor ejecutada en vivo el 2026-10-14 devuelve
+exactamente las **7** categorías insertadas (Filtración de Datos, Hacktivismo, Malware, Phishing,
+Ransomware, Robo de Credenciales, Vulnerabilidades). El mismo mecanismo explica que `Ingenieria
+Social` **nunca** aparezca (cero posts desde el inicio) y que `Hacktivismo` falte en la evaluación
+del día 01 (su primer post es del 05-10, fuera de esa ventana).
+**Impacto — no es un problema de detección, es de evidencia**:
+- **Sin falsos negativos**: una categoría que pica el día evaluado (`n_observado > 0`) siempre entra
+  a la ventana por tener posts de ese mismo día, así que se evalúa y dispara si supera el umbral.
+  Ningún pico se pierde.
+- **El conteo de filas por día varía (7 u 8) y no estaba documentado**: puede leerse como una
+  inconsistencia entre las secciones de `VENTANA_B5.md` y las bitácoras.
+- **Contradice una afirmación de "9 categorías evaluadas por día"**: en la práctica el motor evalúa
+  "las categorías con señal en la ventana", que son 7 u 8 de las 9.
+**Por qué no se corrige ahora**: el workflow está **congelado** durante la ventana B5 (regla dura).
+Cambiar la consulta a mitad de ventana volvería incomparable el conjunto de categorías evaluadas de
+los días anteriores y posteriores, igual que IN-06 e IN-08.
+**Resolución propuesta**: cambiar `QUERY_COUNTS_SQL` para que **emita siempre una fila por cada una
+de las 9 categorías del diccionario** (una lista fija de las 9 cruzada con `LEFT JOIN` a los
+conteos), con `n_observado = 0` cuando no hay posts. Así el conjunto evaluado es estable (9
+filas/día), coincide con el diccionario y el conteo deja de depender de la ventana móvil. Aplicar
+**fuera de la ventana** y declararlo como cambio de versión del artefacto. Requiere change propio en
+el roadmap.
+
 ## Preguntas abiertas priorizadas
 
 | Prioridad | Pregunta | Bloquea | Decisor |
@@ -274,6 +323,7 @@ con esta constancia como insumo para la decisión con los directores.
 | Media | ¿Se corrigen los límites de palabra del extractor de entidades fuera de la ventana B5, y se recalcula `entities` sobre el corpus ya ingerido? (IN-06) | Calidad del campo `entities`, evidencia de OE4 | Autores / técnica |
 | **Alta** | ¿Cuál es el conjunto de comunidades del alcance: Plan B (`r/argentina`, `r/devsarg`, `r/derechogenial`) o Plan C (`r/netsec`, `r/Malware`, `r/devsarg`)? (IN-07) | **Todo porcentaje por subreddit** de la ventana, §6 de VENTANA_B5.md | **Autores con sus directores** |
 | Media | ¿Se agrega manejo explícito del 429 (reintento con backoff y/o rotación de subreddit) fuera de la ventana B5? (IN-08) | Integridad de la cobertura de la ventana; hoy 3 de 8 ticks leen 2 de 3 subreddits sin registrarlo | Autores / técnica |
+| Media | ¿Se fija el conjunto de categorías del motor de anomalías en las 9 del diccionario, emitiendo una fila con `n = 0` cuando no hay posts, fuera de la ventana B5? (IN-10) | Estabilidad y trazabilidad del conteo de categorías evaluadas por día (§12–§17 de `VENTANA_B5.md`) | Autores / técnica |
 | Baja | ¿Se puede obtener E15 (copia del antecedente de Rivas y Dengra)? | Marco teórico H-10 | Autores / biblioteca |
 | Baja | ¿Se versionan las evidencias binarias grandes o solo exports reproducibles? | Tamaño y higiene del repositorio | Autor operador |
 
