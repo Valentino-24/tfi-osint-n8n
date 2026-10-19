@@ -51,6 +51,13 @@
 **Justificación**: la base de datos conserva el registro auditable aunque el canal externo no esté configurado.
 **Trade-offs aceptados**: E12 no puede presentarse como alerta enviada hasta obtener una captura real.
 
+### DD-08 — La ventana B5 se cierra con corte `2026-10-17` y la recolección posterior pasa a track secundario
+**Decisión**: fijar la fecha de corte de la ventana B5 en **`2026-10-17`** (último día con recolección oficial) y cerrarla con **15 días completos evaluados** y **724 posts**; cualquier recolección posterior al corte queda separada como **track secundario** de respaldo, con su propio registro en `openspec/changes/recoleccion-secundaria/`.
+**Contexto**: decisión del **autor** (operador del sistema) tomada el **2026-10-19**, al alcanzarse el objetivo declarado el 2026-10-09 de 15 días completos (dos ciclos semanales) sobre el piso de 10 de RN-AN-02. Ejecuta la tarea 6.1 de C-05 y habilita C-08 → C-09 → C-20 → C-21 → C-23. El `2026-10-18` quedó sin recolección (workflow inactivo, 0 ejecuciones de trigger, `n = 0`), documentado como constancia del hueco.
+**Alternativas consideradas**: (a) extender el corte para cubrir el 18/10 — descartada, ese día no tiene recolección y solo sumaría ceros al acumulado; (b) mantener el corte `no fijada` con límite móvil sobre el instante de ejecución — descartada, deja el corpus sin límite fijo y bloquea el cierre; (c) reiniciar la ventana con métricas corregidas — descartada en la tarea 6.2, la ventana se conserva con sus datos.
+**Justificación**: el corte fijo hace el acumulado (724) y los días evaluados (15) **reproducibles y congelados**; el 18/10 es ausencia de operación, no evidencia; el track secundario preserva respaldo sin contaminar el corpus de B5.
+**Trade-offs aceptados**: la ventana cierra con un día sin recolección documentado; **la ratificación con los directores no consta en el registro** (queda asentada como decisión del autor, `VENTANA_B5.md` §3.3); las correcciones de pipeline pendientes (IN-06, IN-08, IN-10) quedan para cambios posteriores a la ventana.
+
 ## Supuestos inferidos
 
 ### SU-01 — La KB describe el sistema real y la tesis completa
@@ -73,6 +80,14 @@ diaria en `V4/evidencias/VENTANA_B5.md` y `V4/evidencias/bitacora_b5/`.
 **Actualización (2026-10-09)**: el autor fijó como **objetivo 15 días completos evaluados** (dos
 ciclos semanales), con corte estimado `~2026-10-17`; el mínimo de 10 se conserva como piso técnico
 de RN-AN-02. El corte formal sigue sin ratificarse con los directores.
+**Actualización (2026-10-19)**: el corte quedó **fijado en `2026-10-17`** por decisión del autor
+(tarea 6.1 ejecutada; ver **DD-08**). La ventana está **CERRADA** con **15 días completos evaluados**
+(objetivo alcanzado) y **724 posts** en el corpus, con límite superior fijo
+`2026-10-18 00:00:00 -03:00` sobre `posts.ingested_at`. La recolección posterior al corte se separa
+como track **secundario** (`openspec/changes/recoleccion-secundaria/`); el `2026-10-18` es un día
+**sin recolección** (workflow inactivo, 0 ejecuciones de trigger, `n = 0`) documentado como
+constancia del hueco en `V4/evidencias/VENTANA_B5.md` §18. **La ratificación con los directores
+sigue sin constar en el registro.**
 
 ### SU-03 — La base seguirá siendo local durante la recolección
 **Supuesto**: PostgreSQL en `localhost:5433` y n8n local son suficientes para la entrega.

@@ -2,6 +2,13 @@
 
 ## Inconsistencias detectadas
 
+> **Constancia 2026-10-19 — la ventana B5 se cerró con corte `2026-10-17`.** IN-06, IN-08 e IN-10
+> declaraban «por qué no se corrige ahora: la ventana B5 está en curso»: esa condición dejó de
+> cumplirse al cerrarse la ventana, así que esas correcciones ya **pueden** salir como cambios de
+> versión **fuera** de la ventana. Siguen **pendientes** de su propio change y esta nota **no** las
+> cierra. Registro: `knowledge-base/09_decisiones_y_supuestos.md` DD-08 y
+> `V4/evidencias/VENTANA_B5.md` §3 y §18.
+
 ### ~~IN-01 — La guía declara 15 nodos y la verificación final 14~~ — RESUELTA 2026-09-30
 
 **Estado**: resuelta. El workflow tiene **16 nodos** (`B_workflow.json`, 16 nodos;
@@ -176,8 +183,12 @@ para investigación académica no comercial— exigiría aprobación institucion
 dio por **no viable**. **En consecuencia, el arreglo del 429 no puede depender de OAuth** y debe
 resolverse íntegramente del lado del workflow.
 **Resolución aplicada (2026-10-02, commit `4a2f7c1`)**: implementada en
-`V4/scripts/generar_workflow.py` (16 → 17 nodos). No publicada: B5 sigue abierta y publicar el
-cambio a mitad de ventana volvería incomparables las jornadas.
+`V4/scripts/generar_workflow.py` (16 → 17 nodos). No publicada en su momento: B5 estaba abierta y
+publicar el cambio a mitad de ventana habría vuelto incomparables las jornadas.
+**Constancia 2026-10-19**: la ventana B5 se cerró con corte `2026-10-17`, así que ese bloqueo **ya no
+aplica**: el cambio de versión puede publicarse **fuera** de la ventana, declarándolo como cambio de
+versión del artefacto. La publicación la hace **el operador manualmente desde la UI** (regla dura del
+proyecto); el agente no publica workflows.
 
 | | Mecanismo | Estado |
 |---|---|---|
@@ -313,11 +324,11 @@ el roadmap.
 
 | Prioridad | Pregunta | Bloquea | Decisor |
 |---|---|---|---|
-| Alta | ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? **Constancia 2026-10-09**: el autor declaró que la recolección oficial arrancó el **01-10**; el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta) | B5, métricas del Cap. 5 | Autores con sus directores |
-| Alta | ¿Cuál es el criterio de suficiencia de la ventana B5? **Constancia 2026-10-09**: el autor declaró **mínimo 10 días completos evaluados** (piso técnico de RN-AN-02) y **objetivo 15** (dos ciclos semanales), con corte estimado `~2026-10-17`; el corte formal sigue `no fijada` | §4 de `VENTANA_B5.md`, cierre de C-05 | Autores |
+| Alta | ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? **Constancia 2026-10-09**: el autor declaró que la recolección oficial arrancó el **01-10**; el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta). **Constancia 2026-10-19**: **cierre resuelto** — corte fijado en **`2026-10-17`** por decisión del autor (tarea 6.1 de C-05, **DD-08**); la ventana quedó **CERRADA** con **15 días completos evaluados** y **724 posts**. **La ratificación con los directores sigue sin constar en el registro** | B5, métricas del Cap. 5 | Autores con sus directores |
+| Alta | ¿Cuál es el criterio de suficiencia de la ventana B5? **Constancia 2026-10-09**: el autor declaró **mínimo 10 días completos evaluados** (piso técnico de RN-AN-02) y **objetivo 15** (dos ciclos semanales), con corte estimado `~2026-10-17`. **Constancia 2026-10-19**: **objetivo alcanzado** — **15 días completos evaluados**, corte fijado en `2026-10-17`; la ventana cerró | §4 de `VENTANA_B5.md`, cierre de C-05 | Autores |
 | Alta | ¿Se puede conseguir una submuestra de 100 posts para el evaluador externo? | E14, Kappa y matriz de confusión | Autores / facultad |
 | Alta | ¿Se habilita Telegram para obtener E12 o se retira/reclasifica OE6? | E12, alcance de alertas | Autores |
-| Media | ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? | Comparabilidad de resultados | Autores con tribunal |
+| Media | ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? **Constancia 2026-10-19**: **resuelta — se CONSERVA** (tarea 6.2); la ventana se cerró sobre sus 724 posts y 15 días, sin reinicio | Comparabilidad de resultados | Autores con tribunal |
 | Media | ¿Se obtiene una developer account de Reddit para recuperar score/comentarios? | Alcance de la fuente y OE2 | Autores |
 | Media | ¿La tabla `comments` queda como parte del modelo no implementada? | Descripción del artefacto y alcance | Autores |
 | Media | ¿Cuál es la fórmula exacta y documentada del score? | Sección 4.4 y evaluación | Autores / técnica |
@@ -330,13 +341,15 @@ el roadmap.
 
 ## Estado de seguimiento de las preguntas priorizadas
 
-Actualizado el **2026-09-25** por el change `ventana-recoleccion-b5` (C-05). Ninguna pregunta de
-la tabla cambia de identidad ni se cierra: se registra su estado de avance.
+Actualizado el **2026-10-19** por el change `ventana-recoleccion-b5` (C-05). Ninguna pregunta de
+la tabla cambia de identidad: se registra su estado de avance. **Constancia 2026-10-19**: la
+ventana B5 se **cerró** con corte `2026-10-17` (tareas **6.1** y **6.2** ejecutadas, **DD-08**);
+habilita C-08 → C-09 → C-20 → C-21 → C-23.
 
 | Pregunta | Estado | Constancia |
 |---|---|---|
-| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **Parcialmente resuelta — sigue abierta.** Inicio **fijado el 2026-09-25** (inmutable, decisión vigente); **fecha de corte `no fijada`**, pendiente de la decisión de los autores con sus directores (tarea **6.1** del change C-05). **Constancia 2026-10-09**: el autor declaró que la recolección **oficial** arrancó el **01-10** y que el 25 y 30/09 fueron pruebas del prototipo (IN-09, resuelta) — insumo para revisar el inicio con los directores. **Constancia 2026-10-14**: el autor fijó el objetivo de **15 días completos evaluados** (mínimo 10, RN-AN-02) con corte estimado `~2026-10-17`; el corte formal sigue `no fijada` | `V4/evidencias/VENTANA_B5.md` §1 y §3 |
-| ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? (prioridad **Media**) | **Abierta.** Sin decisión de los autores (tarea 6.2). Su acumulación es de 0/10 días completos evaluados al 2026-09-25, así que tampoco hay base para decidir | `V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §7 |
+| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **RESUELTA el 2026-10-19 (parcialmente — el corte está decidido, la ratificación con los directores no consta).** Inicio nominal **2026-09-25** / inicio operativo **2026-10-01** (IN-09, resuelta); **corte fijado en `2026-10-17`** por decisión del **autor** el **2026-10-19** (tarea **6.1** de C-05, **DD-08**), con su registro de RN-GL-03 en `VENTANA_B5.md` §3. Ventana **CERRADA**: **15 días completos evaluados**, **724 posts**, límite superior fijo `2026-10-18 00:00:00 -03:00`. **Constancia 2026-10-14**: el autor fijó el objetivo de 15 días (mínimo 10, RN-AN-02) con corte estimado `~2026-10-17`, cumplido. **Ratificación con los directores: no consta** (§3.3) | `V4/evidencias/VENTANA_B5.md` §1, §3 y §18 |
+| ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? (prioridad **Media**) | **RESUELTA el 2026-10-19 — se CONSERVA.** Tarea **6.2** ejecutada: la ventana se cerró sobre sus datos existentes (724 posts, 15 días, inicio operativo `2026-10-01 13:15:12`) y **no se reinicia**. Las correcciones de pipeline pendientes (IN-06, IN-08, IN-10) salen como cambios de versión **fuera** de la ventana | `V4/evidencias/VENTANA_B5.md` §3, §18; tasks 6.1/6.2 de C-05 |
 
 **Limitación conocida de la evidencia de falla:** el log de ejecuciones de la instancia n8n no
 está disponible ni preservado, por lo que el éxito de la ingesta **día por día no puede probarse
@@ -346,7 +359,7 @@ cuando el log exista (tarea 3.5 del change C-05, decisión D-3). Ver
 
 ## Decisiones pendientes para el próximo change
 
-1. Definir la ventana de B5 y sus parámetros de corte.
+1. ~~Definir la ventana de B5 y sus parámetros de corte.~~ — **RESUELTA 2026-10-19**: corte fijado en `2026-10-17`, ventana cerrada (tarea 6.1, DD-08).
 2. Congelar el export del workflow y corregir la diferencia de conteo de nodos.
 3. Ejecutar las consultas E4 y E6 sobre la base real.
 4. Decidir si se completa o se retira la submuestra externa.

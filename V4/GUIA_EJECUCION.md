@@ -10,7 +10,7 @@
 | B2 DDL | ✅ **Verificado**: las 5 tablas existen (`subreddits`, `posts`, `comments`, `anomalias`, `alertas`) — todas vacías |
 | B3 Workflow | ✅ **Generado y validado** `V4\anexos\B_workflow.json` (16 nodos, import exitoso desde la UI de n8n) |
 | B4 Correr | ⏳ Este documento |
-| B5 Ventana | ⏳ **Ventana real abierta, con una interrupción declarada**: inicio **2026-09-25**, corte **`no fijada`** (decisión de los autores con sus directores). El día `2026-09-25` cerró **parcial** con `n = 36` (cubre 14:55–16:00): la recolección se detuvo a las 16:00:05 y el motor de anomalías tenía el SQL roto. Total en base **237**. Evidencia y bitácora diaria en `V4\evidencias\VENTANA_B5.md` (§7.1) y `V4\evidencias\bitacora_b5\`. Cierre pendiente (C-05, tarea 6.1) |
+| B5 Ventana | ✅ **CERRADA el 2026-10-19 con corte `2026-10-17`**: inicio nominal **2026-09-25** (recolección oficial de datos desde **2026-10-01**), **724 posts** en el corpus, **15 días completos evaluados** (objetivo 15 alcanzado, piso 10 de RN-AN-02). El `2026-10-18` quedó sin recolección (workflow inactivo, `n = 0`) y la recolección posterior corre como **track secundario** sin efecto sobre B5. Evidencia y bitácora diaria en `V4\evidencias\VENTANA_B5.md` (§1, §3 y §18) y `V4\evidencias\bitacora_b5\`. Tarea 6.1 de C-05 ejecutada (**DD-08**); la 6.3 (posts previos) sigue abierta |
 
 ---
 
@@ -149,13 +149,25 @@ La ventana de recolección **no dura seis meses**: la ventana ficticia de V2/V3 
 |---|---|
 | Identificador | **B5** |
 | Inicio | **2026-09-25** (fijo) |
-| Corte | **`no fijada`** — decisión abierta de los autores con sus directores (tarea 6.1 del change C-05) |
+| Corte | **`2026-10-17`** — fijado el **2026-10-19** por decisión del autor (tarea 6.1 del change C-05, **DD-08**); límite superior fijo `2026-10-18 00:00:00 -03:00`. La ratificación con los directores no consta en el registro |
 | Criterio del corpus | `posts.ingested_at` dentro del rango de la ventana (no `created_utc`: `ingested_at` es la evidencia de lo que el sistema recolectó) |
 | Zona horaria de los límites | `America/Argentina/Buenos_Aires` |
-| Criterio de suficiencia | 10 días completos de evaluaciones en `anomalias` (base comparativa de RN-AN-02) |
-| Estado | **ABIERTA** — recolección activa, cierre pendiente |
+| Criterio de suficiencia | **mínimo 10** días completos de evaluaciones en `anomalias` (base comparativa de RN-AN-02) / **objetivo 15** — **ALCANZADO: 15** |
+| Estado | **CERRADA** (2026-10-19) — 724 posts y 15 días; la recolección posterior al corte es **track secundario** |
 
-### Estado de la recolección (actualizado 2026-09-25)
+### Estado de la recolección (actualizado 2026-10-19)
+
+| Campo | Valor |
+|---|---|
+| Estado de la ventana | **CERRADA** con corte `2026-10-17` (tarea 6.1 de C-05, **DD-08**) |
+| Acumulado del corpus | **724 posts** — límite fijo, no depende del instante de ejecución |
+| Días completos evaluados | **15** (`ventana_fin <= 2026-10-18 00:00:00 -03:00`) |
+| `max(ingested_at)` de la base | `2026-10-17 13:16:14 -03` |
+| Estado del workflow | **inactivo** (`active = 0`); última ejecución `#463` (18/10 23:08:25, rama de anomalías) |
+| Recolección posterior al corte | **Track vacío e inactivo** (0 posts, 0 filas de `anomalias`); se documenta en `openspec/changes/recoleccion-secundaria/` |
+| Republicación | **La hace el operador manualmente desde la UI** (regla dura: el agente no publica) |
+
+### Estado histórico de la recolección (actualizado 2026-09-25)
 
 | Campo | Valor |
 |---|---|
