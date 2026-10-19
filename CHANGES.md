@@ -17,6 +17,8 @@
 
 > **`C-24` `rediseno-diccionario-evaluacion` es `[~] parcial`.** Está implementado (55 de 65 tareas) pero **no archivado**: su `tasks.md` conserva tareas abiertas, así que no puede marcarse `[x]`. Se registra acá porque **el clasificador vigente del proyecto es el de nueve categorías**, no el de cinco, y porque es la precondición de `C-10` y `C-13`, que se construyen contra ese diccionario.
 
+> **`C-26` `reconstruccion-informe-v4` es `[~] parcial` y absorbe la rama documento.** Ejecutado el 2026-10-19: produce el informe completo (`V4/devoluciones/tesis_v4.md`) y con ello cubre `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22` y `C-23` en un solo change, porque los ocho compartían el mismo entregable y la misma sesión de trabajo. No se archiva todavía: su `tasks.md` deja abierta sólo la tarea 5.8, que era el registro de este roadmap y ya está cumplida con esta entrada; el cierre se hace con `/opsx:archive`. Como efecto colateral, las evidencias consolidadas que `C-08`, `C-09`, `C-10` y `C-13` iban a producir existen **dentro del propio informe y su carpeta de evidencias** (`V4/evidencias/informe_v4_2026-10-19/`), no como changes separados: quien retome esos changes debe revisar primero qué falta de verdad, porque pueden quedar sin objeto.
+
 ---
 
 ## Cómo usar este documento
@@ -63,6 +65,8 @@ C-17 antecedente-e15-rivas-dengra   ──┴──► C-18
 
 C-22 figuras-2-3-4-e-indices   ◄── C-12, C-08
 ```
+
+> **`C-26` `reconstruccion-informe-v4` (2026-10-19) cubre toda la rama documento**: `C-16` (base textual de V2), `C-17` (antecedente Rivas–Dengra), `C-18`, `C-19`, `C-20`, `C-21`, `C-22` (figuras e índices) y `C-23` (auto-auditoría). Los ocho se ejecutaron dentro de un único change porque comparten entregable. Las dependencias que figuraban para esos cambios (`C-08`, `C-09`, `C-10`, `C-13`) se satisficieron con los archivos de `V4/evidencias/informe_v4_2026-10-19/` y con el propio Capítulo 5, sin ejecutarlos como changes separados.
 
 > `◄── C-24` marca un **desbloqueo**: `C-24` se ejecutó y dejó disponible lo que ese change necesita. No significa que `C-10` ni `C-13` estén cumplidos — sus entregables consolidados (la evidencia E5 y el Anexo C escrito) todavía no existen.
 
@@ -665,6 +669,30 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 
 ---
 
+## FASE 6 — Reconstrucción del informe (ejecutada en un solo change)
+
+### [C-26] `reconstruccion-informe-v4`
+- **Estado**: `[~]` parcial — ejecutado el **2026-10-19**, no archivado (tarea 5.8 abierta por diseño: se cierra con la entrada de este roadmap, y el archivo se hace con `/opsx:archive`)
+- **Absorbe**: `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22`, `C-23` (misma rama documento, mismo entregable)
+- **Entregable**: `V4/devoluciones/tesis_v4.md` — informe único en Markdown (UTF-8 sin BOM): portada, declaración de autoría y uso de herramientas, índices de contenido/tablas/figuras, siglas, Resumen, Abstract, Capítulos 1–8, Referencias (15 entradas APA 7) y Anexos A–D. **22 tablas** numeradas y citadas, **4 figuras** embebidas, sin marcadores pendientes.
+- **Trazabilidad**: `V4/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` recorre los **45 hallazgos** de las dos instancias (`H-01…H-17`, `M-01…M-12`, `N-01…N-06`, `m-13…m-20`) con la sección que resuelve cada uno y su estado.
+- **Evidencia de datos**: `V4/evidencias/informe_v4_2026-10-19/consultas_corpus_b5.txt` (consultas Q1–Q15 con fecha y `n`), `DICCIONARIO_REAL.md|.json`, `V4/scripts/generar_figuras_v4.py`, y los archivos de la muestra de control del 2026-09-30. Todas las consultas a `tesi_osint` fueron `SELECT`.
+- **Decisiones que el informe declara en lugar de maquillar**:
+  - **Latencia y throughput NO CUMPLIDOS** (P95 operativo 1.376,2 min frente al umbral de 5 min; 1,8 posts/h frente a 1.000), con la causa estructural analizada en §5.3 y §5.7 y sin mover los umbrales. **Ratificado por los tres autores el 2026-10-19** para quedar publicado así.
+  - **Cobertura retirada** por falta de diseño de captura–recaptura (hallazgo H-05, salida que el tribunal admite).
+  - **OE6 parcial**: 6 alertas registradas, todas `PENDIENTE`, envío por Telegram deshabilitado.
+  - **Un solo anotador, sin Kappa calculable**; muestra de 50 del 2026-09-30 (TP 27 / FP 2 / FN 2 / TN 19 ⇒ P = R = F1 = 0,931; FP 6,9 % con IC exacto [0,8 %; 22,8 %]).
+  - **«Ingeniería Social» sin coincidencias** en la ventana: se informa el vacío (IN-10).
+- **Desviaciones declaradas** (detalle en `CHECKLIST_CORRECCIONES.md` §5 y en `design.md` D-2): matriz de confusión por categoría no publicada (n = 50 no la sostiene; se informan matriz binaria + exactitud de categoría 42/50 = 84,0 %); 15 referencias en lugar de 17; prosa ≈ 20.364 palabras de cuerpo (≈ 51 páginas equivalentes), ≈ 7 % sobre el techo autoimpuesto de 48 — se prefirió el exceso declarado a recortar evidencia, porque el tribunal reprobó la V3 justamente por resolver correcciones borrando contenido (34 → 24 páginas).
+- **Sin escrituras en el sistema**: no se modificaron `A_DDL.sql`, `B_workflow.json`, `generar_workflow.py`, nodos, credenciales ni la base; el workflow no se publicó ni se activó desde el agente.
+- **Governance**: ALTO (por el destino del entregable), sin escrituras en el sistema.
+- **Leer antes**:
+  - `PLAN_V4.md` §1, §2 y §4 (estrategia de reconstrucción y lista de hallazgos)
+  - `knowledge-base/05_reglas_de_negocio.md` §Excepciones globales
+  - `knowledge-base/10_preguntas_abiertas.md` §Inconsistencias detectadas
+
+---
+
 ## Resumen de changes
 
 | ID | Change | Fase | Estado | Dep. | Governance |
@@ -673,7 +701,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 | C-02 | `modelo-ddl-tesi-osint` | 0 | `[x]` verificado | C-01 | CRITICO |
 | C-03 | `workflow-n8n-generado-e-importado` | 0 | `[x]` verificado | C-02 | ALTO |
 | C-04 | `corrida-b4-ingesta-rss` | 0 | `[x]` verificado | C-03 | ALTO |
-| C-05 | `ventana-recoleccion-b5` | 1 | `[ ]` pendiente | C-04 | MEDIO |
+| C-05 | `ventana-recoleccion-b5` | 1 | `[~]` parcial | C-04 | MEDIO |
 | C-06 | `sincronizacion-documental-v4` | 1 | `[ ]` pendiente | C-04 | BAJO |
 | C-07 | `semantica-ingested-at` | 1 | `[ ]` pendiente | C-04 | ALTO |
 | C-08 | `evidencias-e4-tabla3-y-e6-latencia` | 2 | `[ ]` pendiente | C-05, C-07 | MEDIO |
@@ -684,16 +712,17 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 | C-13 | `anexo-c-diccionario-taxonomico-e11` | 3 | `[ ]` pendiente | C-06, C-24 | MEDIO |
 | C-14 | `entorno-y-canales-e9-e12-e13` | 3 | `[ ]` pendiente | C-06 | MEDIO |
 | C-15 | `evaluador-externo-e14` | 3 | `[ ]` pendiente | C-10 | ALTO |
-| C-16 | `normalizacion-base-textual-v2` | 4 | `[ ]` pendiente | — | BAJO |
-| C-17 | `antecedente-e15-rivas-dengra` | 4 | `[ ]` pendiente | — | BAJO |
-| C-18 | `capitulo-1-2` | 4 | `[ ]` pendiente | C-16, C-17, C-06 | MEDIO |
-| C-19 | `capitulo-3-4` | 4 | `[ ]` pendiente | C-18, C-13, C-07, C-12 | ALTO |
-| C-20 | `capitulo-5-6` | 4 | `[ ]` pendiente | C-19, C-08, C-09, C-10, C-11 | ALTO |
-| C-21 | `capitulo-7-8-resumen-titulo` | 4 | `[ ]` pendiente | C-20 | MEDIO |
-| C-22 | `figuras-2-3-4-e-indices` | 5 | `[ ]` pendiente | C-12, C-08 | BAJO |
-| C-23 | `auto-auditoria-final` | 5 | `[ ]` pendiente | C-21, C-22 | ALTO |
+| C-16 | `normalizacion-base-textual-v2` | 4 | `[~]` absorbido por C-26 | — | BAJO |
+| C-17 | `antecedente-e15-rivas-dengra` | 4 | `[~]` absorbido por C-26 | — | BAJO |
+| C-18 | `capitulo-1-2` | 4 | `[~]` absorbido por C-26 | C-16, C-17, C-06 | MEDIO |
+| C-19 | `capitulo-3-4` | 4 | `[~]` absorbido por C-26 | C-18, C-13, C-07, C-12 | ALTO |
+| C-20 | `capitulo-5-6` | 4 | `[~]` absorbido por C-26 | C-19, C-08, C-09, C-10, C-11 | ALTO |
+| C-21 | `capitulo-7-8-resumen-titulo` | 4 | `[~]` absorbido por C-26 | C-20 | MEDIO |
+| C-22 | `figuras-2-3-4-e-indices` | 5 | `[~]` absorbido por C-26 | C-12, C-08 | BAJO |
+| C-23 | `auto-auditoria-final` | 5 | `[~]` absorbido por C-26 | C-21, C-22 | ALTO |
 | C-24 | `rediseno-diccionario-evaluacion` | 1 | `[~]` parcial | C-04, C-05 | ALTO |
 | C-25 | `recoleccion-secundaria` | — | `[~]` parcial | C-05 | MEDIO |
+| C-26 | `reconstruccion-informe-v4` | 6 | `[~]` parcial | C-16…C-23 (absorbe) | ALTO |
 
 **Cobertura de evidencias E1–E15:** E1, E2, E3, E10 → C-12 · E4, E6 → C-08 · E5 → C-10 · E7 → C-09 · E8 → C-11 · E9, E12, E13 → C-14 · E11 → C-13 · E14 → C-15 · E15 → C-17.
 
@@ -706,3 +735,5 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ```text
 /opsx:propose C-05-ventana-recoleccion-b5
 ```
+
+> **Estado real al 2026-10-19 (posterior a `C-26`).** `C-05` pasó a `[~] parcial`: la ventana B5 se cerró con **corte 2026-10-17** (15 días completos evaluados, 724 publicaciones, decisión DD-08) y no se archiva hasta resolver la pregunta 6.3 sobre los posts previos; la recolección posterior al corte corre como track paralelo en `C-25` (31 publicaciones iniciales). `C-26` ejecutó y absorbió la rama documento completa (`C-16`…`C-23`), de modo que los pendientes reales son: `C-07` (prerrequisito de latencia, IN-03), `C-08` a `C-15` (revisar antes de ejecutar: parte de sus evidencias ya existe dentro de `V4/evidencias/informe_v4_2026-10-19/`), y el cierre de `C-05` y `C-24`. El informe de la reentrega está en `V4/devoluciones/tesis_v4.md`.
