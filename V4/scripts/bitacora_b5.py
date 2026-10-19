@@ -17,6 +17,17 @@ Garantías del script (D-3, spec `bitacora-evidencia-diaria`)
   arranca con la palabra `SELECT` o si trae más de una sentencia.
 * Es idempotente: no modifica datos ni esquema. Reejecutarlo regenera la misma
   entrada a partir del mismo estado de la base.
+* Con el corte oficial fijado (`VENTANA_CORTE_FECHA`), el límite superior de la
+  ventana es un instante fijo y no el instante de ejecución: §3 (acumulado) y §4
+  (días completos evaluados) quedan CONGELADOS y no cambian entre corridas.
+* Con el corte fijado, una entrada de un día de la ventana (`fecha <= corte`) está
+  archivada y **no se reescribe**: el script aborta con código 5 salvo que se pase
+  `--permitir-reescritura` de forma explícita. Reescribirla cambiaría su cabecera
+  —el corte `no fijada` del momento en que se generó pasó a ser una fecha fija—,
+  o sea alteraría evidencia ya publicada.
+* Un día posterior al corte (`fecha > corte`) se genera como **constancia del
+  hueco**: la entrada declara que el día queda fuera de la ventana oficial y su
+  `n` no integra §3 ni §4.
 * Si falla la conexión (o cualquier consulta) termina con error explícito y
   NO escribe una entrada parcial: el archivo se arma en memoria y solo se
   escribe al final, de forma atómica.
@@ -55,12 +66,29 @@ estado se toma de un parámetro explícito:
 Ambos valores se escriben en la entrada **como declaración del operador**, con
 ese origen explícito, para que nadie los lea como un dato que el script midió.
 
+Corte oficial de la ventana: lo fija el autor, el script lo aplica
+-----------------------------------------------------------------
+`VENTANA_CORTE_FECHA` es el corte **oficial** de la ventana (tarea 6.1 del change
+C-05). El script no lo decide: lo aplica. Con el corte fijado:
+
+* el límite superior de la ventana es el inicio local del día siguiente al corte
+  (`2026-10-18 00:00:00 -03` para el corte `2026-10-17`), **fijo**;
+* el conteo de días evaluados (§4) compara `ventana_fin <= corte`, **inclusivo**:
+  la ventana de cada fila termina exactamente en el inicio del día siguiente, y
+  con el corte fijado la fila del propio día del corte cae justo sobre el borde.
+  Con `<` se perdería y el conteo daría 14 días en vez de 15;
+* las entradas de los días de la ventana ya publicadas **no se reescriben**
+  (código de salida 5 salvo `--permitir-reescritura`);
+* los días posteriores al corte se registran como constancia del hueco, fuera de
+  la ventana, sin sumar al acumulado.
+
 Códigos de salida
 -----------------
     0  entrada escrita
     2  error de conexión a la base (no se escribe entrada)
     3  error al ejecutar una consulta (no se escribe entrada)
     4  argumentos inválidos
+    5  entrada de la ventana ya archivada: no se reescribe (no se escribe entrada)
 """
 
 from __future__ import annotations
@@ -82,8 +110,21 @@ DIR_BITACORA = os.path.join(DIR_EVIDENCIAS, "bitacora_b5")
 
 VENTANA_ID = "B5"
 VENTANA_INICIO = "2026-09-25"          # D-1: inicio inmutable de la ventana
-VENTANA_CORTE_ESTADO = "no fijada"     # D-7: decisión abierta de los autores
 VENTANA_CORTE_TAREA = "6.1"            # tarea del change que la cierra
+
+# D-7 / tarea 6.1: corte OFICIAL de la ventana, fijado por el autor el 2026-10-19 al
+# alcanzarse el objetivo declarado de 15 días completos evaluados. El último día con
+# recolección oficial fue el 2026-10-17, así que el límite superior de la ventana es el
+# inicio local del 2026-10-18 (exclusivo). Con el corte FIJO, el acumulado (§3) y el
+# conteo de días evaluados (§4) quedan congelados: ya no dependen del instante en que se
+# corre el script. Ponerlo en None solo si la ventana volviera a declararse `no fijada`.
+VENTANA_CORTE_FECHA = "2026-10-17"
+VENTANA_CORTE_FECHA_DECISION = "2026-10-19"   # fecha en que el autor fijó el corte
+
+# Con el corte fijado, los días de la ventana (fecha <= corte) quedan ARCHIVADOS: este
+# script no los reescribe salvo autorización explícita (ver `--permitir-reescritura`).
+# Reejecutarlos cambiaría su cabecera —el corte `no fijada` del momento en que se
+# generaron pasó a ser una fecha fija—, o sea alteraría evidencia ya publicada.
 
 SUBSIDIOS_ESPERADOS = 3                # RN-GL-02: denominador completo
 # Alcance declarado por los autores (IN-07, resuelto): Plan C. Debe coincidir
@@ -132,6 +173,48 @@ def limites_del_dia(fecha: date, tz):
     inicio = datetime(fecha.year, fecha.month, fecha.day, 0, 0, 0, tzinfo=tz)
     fin = datetime(fecha.year, fecha.month, fecha.day, 0, 0, 0, tzinfo=tz) + timedelta(days=1)
     return inicio, fin
+
+
+def corte_fijado() -> bool:
+    """True si la ventana tiene corte oficial fijado (tarea 6.1 ejecutada)."""
+    return VENTANA_CORTE_FECHA is not None
+
+
+def corte_fecha() -> date:
+    """Fecha del corte oficial. Solo válida si `corte_fijado()`."""
+    return date.fromisoformat(VENTANA_CORTE_FECHA)
+
+
+def etiqueta_corte() -> str:
+    """Valor que la evidencia escribe en el campo «corte» de la cabecera."""
+    return VENTANA_CORTE_FECHA if corte_fijado() else "no fijada"
+
+
+def corte_efectivo_dt(tz) -> datetime:
+    """Límite superior de la ventana, resuelto.
+
+    * Corte fijado: instante FIJO, el inicio local del día siguiente al corte
+      (exclusivo). Es el límite canónico de la ventana: no depende de cuándo se
+      corre el script, de modo que el acumulado y el conteo de días quedan
+      congelados.
+    * Corte sin fijar: el instante de ejecución del script, que es el único
+      límite disponible mientras la decisión de cierre siga abierta.
+    """
+    if corte_fijado():
+        d = corte_fecha() + timedelta(days=1)
+        return datetime(d.year, d.month, d.day, 0, 0, 0, tzinfo=tz)
+    return datetime.now(tz)
+
+
+def dia_en_ventana(fecha: date) -> bool:
+    """True si el día pertenece a la ventana oficial (fecha <= corte).
+
+    Con el corte fijado, los días posteriores al corte quedan fuera de la
+    ventana: sus entradas son constancia del hueco, no evidencia de la ventana.
+    """
+    if not corte_fijado():
+        return True
+    return fecha <= corte_fecha()
 
 
 def iso(dt: datetime) -> str:
@@ -236,12 +319,23 @@ def sql_dias_evaluados(inicio_ventana: datetime, corte_efectivo: datetime) -> st
     # El WHERE sigue en ventana_fin porque ese es el corte temporal con que se
     # genero la entrada; moverlo a ventana_inicio meteria evaluaciones que se
     # corrieron despues del corte y cambiaria los numeros ya archivados.
+    #
+    # El limite es INCLUSIVO (`<=`). La ventana de cada fila es [ventana_inicio,
+    # ventana_fin), con ventana_fin guardado EXACTAMENTE en el inicio del dia
+    # siguiente (verificado: la fila del 17-10 tiene ventana_fin = 2026-10-18
+    # 03:00:00+00 = 18-10 00:00 ART). Con el corte fijado en el 17-10, el limite
+    # superior de la ventana es justo ese instante, asi que la fila del propio dia
+    # del corte queda EN el limite: con `<` se caia y el conteo daba 14 dias en vez
+    # de los 15 publicados. `<=` es la contencion correcta de la ventana. Mientras
+    # el corte no estaba fijado el limite era el instante de ejecucion, un punto
+    # dentro de un dia posterior, nunca sobre el borde: por eso `<` daba el mismo
+    # resultado y la correccion no cambia ningun numero archivado (tarea 6.1).
     return (
         "SELECT (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS dia,\n"
         "       COUNT(*) AS n_evaluaciones\n"
         "FROM anomalias\n"
         f"WHERE ventana_fin >= TIMESTAMPTZ '{ts_literal(inicio_ventana)}'\n"
-        f"  AND ventana_fin <  TIMESTAMPTZ '{ts_literal(corte_efectivo)}'\n"
+        f"  AND ventana_fin <= TIMESTAMPTZ '{ts_literal(corte_efectivo)}'\n"
         "GROUP BY (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date\n"
         "ORDER BY dia;"
     )
@@ -281,9 +375,18 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     observado = estado_n8n != ESTADO_N8N_POR_DEFECTO
     detalle_txt = texto_declarado(detalle_n8n) if detalle_n8n else ""
 
+    # Corte oficial: con la ventana cerrada (tarea 6.1), los días posteriores al
+    # corte no son evidencia de la ventana sino constancia del hueco.
+    fijo = corte_fijado()
+    corte_txt = etiqueta_corte()
+    fuera_de_ventana = not dia_en_ventana(fecha)
+
     L = []
     A = L.append
-    A(f"# Bitácora B5 — {fecha.isoformat()}\n")
+    titulo = f"# Bitácora B5 — {fecha.isoformat()}"
+    if fuera_de_ventana:
+        titulo += " (día posterior al corte oficial: constancia del hueco)"
+    A(titulo + "\n")
     A(f"> Entrada generada por `V4/scripts/bitacora_b5.py`. Conteo operativo de la ventana, "
       f"no métrica de resultados (RN-GL-01).\n")
 
@@ -292,28 +395,49 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     A("|---|---|")
     A(f"| Fecha de la entrada | `{fecha.isoformat()}` |")
     A(f"| Identificador de la ventana | `{VENTANA_ID}` |")
-    A(f"| Ventana | inicio `{VENTANA_INICIO}`, corte `{VENTANA_CORTE_ESTADO}` "
-      f"(decisión abierta de los autores; la cierra la tarea {VENTANA_CORTE_TAREA}) |")
+    if fijo:
+        A(f"| Ventana | inicio `{VENTANA_INICIO}`, corte `{corte_txt}` "
+          f"(corte oficial fijado el {VENTANA_CORTE_FECHA_DECISION}; tarea {VENTANA_CORTE_TAREA} "
+          f"de C-05) |")
+    else:
+        A(f"| Ventana | inicio `{VENTANA_INICIO}`, corte `{corte_txt}` "
+          f"(decisión abierta de los autores; la cierra la tarea {VENTANA_CORTE_TAREA}) |")
     A(f"| Fecha y hora de ejecución | `{iso(ejecucion)}` |")
     A(f"| Zona horaria de los límites | `{TZ_SISTEMA}` |")
     A(f"| Límite inferior del día | `{iso(inicio)}` |")
     A(f"| Límite superior del día (excluido) | `{iso(fin)}` |")
     A(f"| `n` de la observación | **{total_dia}** posts ingeridos en el día |")
-    A(f"| Naturaleza del `n` | **{'día cerrado' if dia_cerrado else 'corte a mitad de día (snapshot)'}**"
-      + ("" if dia_cerrado else
-         f" — el día `{fecha.isoformat()}` todavía no termina en el momento de esta ejecución "
-         f"(`{iso(ejecucion)}` < `{iso(fin)}`); este `n` NO es el total del día y va a crecer") + " |")
+    if fuera_de_ventana:
+        A(f"| Naturaleza del `n` | **día posterior al corte oficial `{corte_txt}`** — fuera de la "
+          f"ventana `{VENTANA_ID}`: se registra como constancia del hueco y **no** integra el "
+          f"acumulado de §3 ni el cómputo de días de §4 |")
+    else:
+        A(f"| Naturaleza del `n` | **{'día cerrado' if dia_cerrado else 'corte a mitad de día (snapshot)'}**"
+          + ("" if dia_cerrado else
+             f" — el día `{fecha.isoformat()}` todavía no termina en el momento de esta ejecución "
+             f"(`{iso(ejecucion)}` < `{iso(fin)}`); este `n` NO es el total del día y va a crecer") + " |")
     A(f"| Denominador de cobertura | **{len(filas_dist)}** subreddit(s) monitorizado(s) "
       f"(se incluyen los que aportan 0) |")
     A("| Origen del dato | consultas `SELECT` sobre `tesi_osint` |")
-    A(f"| Límite superior aplicado a la ventana | corte `no fijada` → se usa el instante de "
-      "ejecución de la consulta |")
+    if fijo:
+        A(f"| Límite superior aplicado a la ventana | corte `{corte_txt}` → `{iso(corte_efectivo)}` "
+          f"(**fijo**: no es el instante de ejecución; §3 y §4 quedan congelados) |")
+    else:
+        A(f"| Límite superior aplicado a la ventana | corte `{corte_txt}` → se usa el instante de "
+          "ejecución de la consulta |")
     A("")
 
     A("## 1. Total de posts ingeridos en el día\n")
     A(f"Criterio del corpus de la ventana: `posts.ingested_at` (D-1). "
       f"Rango del día `ingested_at >= {iso(inicio)}` y `ingested_at < {iso(fin)}`.\n")
-    if not dia_cerrado:
+    if fuera_de_ventana:
+        A(f"> **Día posterior al corte oficial `{corte_txt}`.** La ventana `{VENTANA_ID}` está "
+          f"cerrada (tarea {VENTANA_CORTE_TAREA} de C-05): el día `{fecha.isoformat()}` **no "
+          f"pertenece a la ventana oficial** y su `n` no se suma al acumulado de §3 ni al cómputo "
+          f"de días de §4. Esta entrada se genera como **constancia del hueco de recolección**, "
+          f"para que la ausencia de datos quede registrada con su causa declarada y no como un "
+          f"olvido (RN-GL-01).\n")
+    elif not dia_cerrado:
         A(f"> **El `n = {total_dia}` de esta sección es un corte a mitad de día, no un total de "
           f"día cerrado.** Cuando se generó esta entrada el día `{fecha.isoformat()}` no había "
           f"terminado: el rango consultado llega hasta `{iso(fin)}` pero la recolección seguía "
@@ -353,8 +477,13 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
     A(bloque_sql(q_subs, r_subs))
 
     A(f"## 3. Acumulado de la ventana `{VENTANA_ID}`\n")
-    A(f"Rango: `ingested_at >= {iso(inicio_ventana)}` y `ingested_at < {iso(corte_efectivo)}` "
-      f"(corte `{VENTANA_CORTE_ESTADO}`, por eso el límite superior es el instante de ejecución).\n")
+    if fijo:
+        A(f"Rango: `ingested_at >= {iso(inicio_ventana)}` y `ingested_at < {iso(corte_efectivo)}` "
+          f"(corte `{corte_txt}` fijado el {VENTANA_CORTE_FECHA_DECISION}: el límite superior es "
+          f"**fijo**, no el instante de ejecución, así que el acumulado queda congelado).\n")
+    else:
+        A(f"Rango: `ingested_at >= {iso(inicio_ventana)}` y `ingested_at < {iso(corte_efectivo)}` "
+          f"(corte `{corte_txt}`, por eso el límite superior es el instante de ejecución).\n")
     A(bloque_sql(q_acum, r_acum))
 
     if dias_completos < DIAS_MINIMO:
@@ -451,9 +580,15 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
 
     A("## 6. Observaciones del día\n")
     if total_dia == 0:
-        A(f"- El día `{fecha.isoformat()}` tiene `n = 0` posts ingeridos. La causa **no es "
-          f"observable desde `tesi_osint`**: hay que contrastar con el log de ejecuciones de n8n "
-          f"(tarea 3.2). Queda registrado como observación, no como falla atribuida.\n")
+        if fuera_de_ventana:
+            A(f"- El día `{fecha.isoformat()}` tiene `n = 0` posts ingeridos y queda **fuera de la "
+              f"ventana oficial** (posterior al corte `{corte_txt}`): no es una falla del recolector "
+              f"ni un dato de la ventana. Se registra como **constancia del hueco de recolección**, "
+              f"con la causa declarada por el operador en §5.\n")
+        else:
+            A(f"- El día `{fecha.isoformat()}` tiene `n = 0` posts ingeridos. La causa **no es "
+              f"observable desde `tesi_osint`**: hay que contrastar con el log de ejecuciones de n8n "
+              f"(tarea 3.2). Queda registrado como observación, no como falla atribuida.\n")
     else:
         # La condicion sobre `dia_cerrado` no estaba: el bullet salia siempre
         # con el texto de "corte a mitad de dia", incluso cuando la cabecera
@@ -485,10 +620,15 @@ def render_entrada(fecha, tz, ejecucion, inicio, fin, inicio_ventana, corte_efec
       f"reporta como limitación en `V4/evidencias/CARACTERIZACION_RATE_LIMIT.md` y no se "
       f"compensa (D-5).\n")
     A("- Entrada idempotente: reejecutar el script con la misma fecha regenera este archivo desde "
-      "el mismo estado de la base, sin modificar datos ni esquema. Los conteos, la distribución "
-      "por subreddit y el estado de suficiencia se mantienen; lo único que cambia entre corridas "
-      "es la marca de tiempo de ejecución, que figura en la cabecera y actúa de límite superior "
-      "de la ventana mientras el corte siga `no fijada`.\n")
+      + ("el mismo estado de la base, sin modificar datos ni esquema. Con el corte oficial fijado "
+         "(tarea 6.1), el límite superior de la ventana es un instante **fijo**: los conteos de §3 y "
+         "§4 no dependen del momento de ejecución y el contenido es estable entre corridas (lo "
+         "único que cambia es la marca de tiempo de ejecución de la cabecera).\n"
+         if fijo else
+         "el mismo estado de la base, sin modificar datos ni esquema. Los conteos, la distribución "
+         "por subreddit y el estado de suficiencia se mantienen; lo único que cambia entre corridas "
+         "es la marca de tiempo de ejecución, que figura en la cabecera y actúa de límite superior "
+         "de la ventana mientras el corte siga `no fijada`.\n"))
 
     return "\n".join(L)
 
@@ -523,6 +663,10 @@ def main(argv=None) -> int:
     ap.add_argument("--n8n-detalle", default=None,
                     help="Detalle literal de lo observado por el operador, para transcribirlo a "
                          "la entrada. Requiere --n8n-estado explícito.")
+    ap.add_argument("--permitir-reescritura", action="store_true",
+                    help="Permite regenerar una entrada de la ventana ya archivada (día <= corte "
+                         "oficial). Solo para una corrección explícita y registrada: cambia la "
+                         "cabecera de un archivo de evidencia ya publicado.")
     args = ap.parse_args(argv)
 
     try:
@@ -542,11 +686,24 @@ def main(argv=None) -> int:
               "(no con el valor por defecto). No se escribe ninguna entrada.", file=sys.stderr)
         return 4
 
+    # Guarda de evidencia publicada: con el corte oficial fijado (tarea 6.1), las entradas de los
+    # días de la ventana ya están archivadas y no se reescriben. Reejecutarlas cambiaría su
+    # cabecera —el corte `no fijada` del momento en que se generaron pasó a ser una fecha fija—,
+    # es decir alteraría un archivo de evidencia ya publicado. Se aborta en vez de reescribirlo
+    # en silencio.
+    if corte_fijado() and fecha <= corte_fecha() and not args.permitir_reescritura:
+        print(f"ERROR: la entrada del {fecha.isoformat()} pertenece a la ventana oficial "
+              f"(corte `{VENTANA_CORTE_FECHA}`) y ya está archivada: no se reescribe. "
+              f"Regenerarla cambiaría su cabecera. Si de verdad hay que corregir una entrada ya "
+              f"publicada, pasar --permitir-reescritura de forma explícita y registrar la "
+              f"corrección. No se escribe ninguna entrada.", file=sys.stderr)
+        return 5
+
     tz = zona()
     inicio, fin = limites_del_dia(fecha, tz)
     inicio_ventana = datetime.fromisoformat(VENTANA_INICIO).replace(tzinfo=tz)
     ejecucion = datetime.now(tz)
-    corte_efectivo = ejecucion  # corte "no fijada": el límite superior es el instante de ejecución
+    corte_efectivo = corte_efectivo_dt(tz)  # fijo si la tarea 6.1 ya cerró la ventana
 
     try:
         import psycopg2
