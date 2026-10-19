@@ -36,6 +36,7 @@ WD_ALIGN_CENTER = 1
 WD_ALIGN_JUSTIFY = 3
 WD_LINE_SPACE_SINGLE = 0
 WD_LINE_SPACE_1PT5 = 1
+WD_PARAGRAPH = 4
 WD_EXPORT_FORMAT_PDF = 17
 WD_EXPORT_ALL_DOCUMENT = 0
 WD_EXPORT_DOCUMENT_CONTENT = 0
@@ -233,14 +234,15 @@ def estilo_cuerpo(doc) -> None:
         p.Range.Font.Size = 12
         f.LineSpacingRule = WD_LINE_SPACE_1PT5
         f.SpaceBefore = 0
-        f.SpaceAfter = 6
+        # 8 pt entre parrafos; 6 pt entre items de lista, que se leen como bloque
+        f.SpaceAfter = 6 if nombre == "Compact" else 8
         f.FirstLineIndent = 0
         f.Alignment = WD_ALIGN_JUSTIFY
         if ROTULO.match(p.Range.Text.strip()):
             p.Range.Font.Bold = True
             f.Alignment = WD_ALIGN_LEFT
             f.KeepWithNext = True
-            f.SpaceBefore = 10
+            f.SpaceBefore = 12
         elif nombre in ESTILOS_CITA:
             f.LeftIndent = 28
             f.RightIndent = 14
@@ -269,12 +271,12 @@ def estilo_titulos(doc) -> None:
             f.SpaceAfter = 12
         elif nivel == 2:
             p.Range.Font.Size = 12.5
-            f.SpaceBefore = 12
-            f.SpaceAfter = 6
+            f.SpaceBefore = 14
+            f.SpaceAfter = 8
         else:
             p.Range.Font.Size = 12
-            f.SpaceBefore = 10
-            f.SpaceAfter = 4
+            f.SpaceBefore = 12
+            f.SpaceAfter = 6
 
 
 def estilo_portada(doc) -> None:
@@ -317,6 +319,36 @@ def estilo_tablas(doc) -> None:
             f.FirstLineIndent = 0
             f.Alignment = WD_ALIGN_LEFT
     print(f"[word] tablas formateadas: {doc.Tables.Count}")
+
+
+def espaciado_bloques(doc) -> None:
+    """Separa visualmente cada tabla del texto que la rodea.
+
+    Word no admite espacio despues de una tabla: el aire se logra con
+    SpaceBefore del parrafo siguiente y SpaceAfter del que la precede. Sin esto,
+    el primer renglon queda a 1-3 pt del borde inferior (medido en el PDF).
+    """
+    tras, previas = [], []
+    rangos = [(t.Range.Start, t.Range.End) for t in doc.Tables]
+    for t in doc.Tables:
+        for rango, destino in ((t.Range.Next(WD_PARAGRAPH, 1), tras),
+                               (t.Range.Previous(WD_PARAGRAPH, 1), previas)):
+            if rango is None:
+                continue
+            if any(a <= rango.Start and rango.End <= b for a, b in rangos):
+                continue      # es un parrafo dentro de otra tabla
+            parrafo = rango.Paragraphs(1)
+            if not parrafo.Range.Text.strip():
+                continue
+            if destino is tras:
+                parrafo.Format.SpaceBefore = 12
+            elif ROTULO.match(parrafo.Range.Text.strip()):
+                parrafo.Format.SpaceAfter = 4      # el rotulo abraza a la tabla
+            else:
+                parrafo.Format.SpaceAfter = 10
+            destino.append(parrafo)
+    print(f"[word] tablas separadas: {len(tras)} con espacio despues, "
+          f"{len(previas)} con espacio antes")
 
 
 def estilo_figuras(doc) -> None:
@@ -542,6 +574,7 @@ def procesar_con_word(numerar: bool) -> None:
         estilo_titulos(doc)
         estilo_portada(doc)
         estilo_tablas(doc)
+        espaciado_bloques(doc)
         estilo_figuras(doc)
         numerar_paginas(doc)
         print(f"[word] paginas tras el formateo: {doc.ComputeStatistics(2)}")
