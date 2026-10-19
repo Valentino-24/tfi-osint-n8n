@@ -250,7 +250,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 > `C-24` cierra esta fase. No es documental ni es temporal: es un **cambio de pipeline**, pero es la precondición de `C-10` (Fase 2) y `C-13` (Fase 3), así que va acá y no más abajo.
 
 ### [C-05] `ventana-recoleccion-b5`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[~]` parcial — **ejecutado, no archivable**: quedó 1 tarea abierta de 38 (6.3, posts previos)
 - **Scope**:
   - Fijar por escrito la **fecha de inicio** y la **fecha de corte** de la ventana real de recolección; reemplazar toda mención a la ventana ficticia de 6 meses de V2/V3 (SU-02)
   - Mantener el `Schedule Ingesta` de 15 min activo durante la ventana; registrar en `V4/evidencias/` una entrada por día con: fecha, posts ingeridos, posts por subreddit, ejecuciones fallidas y su causa
@@ -260,7 +260,8 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - No declarar ninguna métrica de resultados hasta cerrar la ventana (RN-GL-01)
   - **Correcciones ya aplicadas dentro de la ventana**, sin efecto sobre conteos ni sobre el criterio de suficiencia: `poissonCdf` del motor y endurecimiento del despliegue (`9612715`, 2026-10-05 — dos categorías quedaban con umbral 501 e inhibidas); rótulo de la §4 de la bitácora por el día evaluado (`d21232f`) y cierre de la contradicción cabecera/§6 en tres entradas (`3e45d59`), ambas 2026-10-07. Detalle en `V4/evidencias/VENTANA_B5.md` §15-§16
   - **Resolución IN-07 (2026-10-07, decisión de los autores)**: alcance fijado al Plan C (`r/netsec`, `r/Malware`, `r/devsarg`); `r/derechogenial` pasada a `active_monitoring = false` por decisión temática (se desactiva, no se elimina); denominador de cobertura corregido de 6 a 3 en `bitacora_b5.py`, en §6 de `VENTANA_B5.md` (nueva §6.1: el control negativo se documenta con la clase real `No relevante` — `r/devsarg` 99,1 %, `r/netsec` 55,8 %, `r/Malware` 31,3 %) y en las 8 entradas archivadas vía `V4/scripts/corregir_in07.py`; `knowledge-base/10_preguntas_abiertas.md` cierra IN-07. La entrada `2026-09-25.md` queda como registro histórico del último día con alcance Plan B
-  - **Bloqueado por**: pregunta abierta de prioridad alta (fecha de inicio/cierre) — decisión de los autores con sus directores
+  - **Cierre ejecutado (2026-10-19)**: corte fijado en **`2026-10-17`** por decisión del autor (tarea 6.1, **DD-08**) — ventana **CERRADA** con **15 días completos evaluados** (objetivo alcanzado) y **724 posts**, con límite superior fijo `2026-10-18 00:00:00 -03:00`. Tarea 6.2 resuelta en **conservar** (sin reinicio); 6.5 confirmada. El `2026-10-18` quedó como día sin recolección documentado (`VENTANA_B5.md` §18) y la recolección posterior corre como **track secundario** en `C-25`
+  - **Bloqueado para archivar por**: solo la decisión 6.3 (si los posts previos al 2026-09-25 entran al corpus) — decisión de los autores
 - **Dependencias**: C-04
 - **Governance**: MEDIO
 - **Leer antes**:
@@ -336,6 +337,23 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - `knowledge-base/05_reglas_de_negocio.md` §Dominio: clasificación y entidades (RN-CL)
   - `V4/evidencias/evaluacion_muestra_control_2026-09-30.md` §6 (limitaciones del método)
   - `V4/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md`
+
+---
+
+### [C-25] `recoleccion-secundaria`
+- **Estado**: `[~]` parcial — change **abierto a propósito**: es el registro vivo del track paralelo posterior al corte de B5; se archiva cuando se le fije fecha fin. Vive en `openspec/changes/recoleccion-secundaria/`
+- **Fase**: **—** (track paralelo; no ocupa ninguna fase ni cambia el tramo crítico)
+- **Scope**:
+  - Delimitar la recolección **posterior al corte** `2026-10-17` como **track secundario de respaldo**, con frontera temporal única — `posts.ingested_at < 2026-10-18 00:00:00 -03:00` para el corpus de B5, `anomalias.ventana_fin <= 2026-10-18 00:00:00 -03:00` para sus días evaluados — y **sin efecto** sobre las métricas ya publicadas (724 posts, 15 días)
+  - Mantener el registro diario con el mismo script y directorio de bitácora (con el rótulo de día posterior al corte que el script ya aplica), y declarar los días sin ninguna ejecución como **constancia de jornada sin operación**, no como falla (RN-GL-01)
+  - Impedir que ninguna métrica del track se presente como evidencia de B5, y dejar trazado que una eventual **extensión del corte** es una enmienda documentada de DD-08 y de `VENTANA_B5.md` §3, no una continuidad implícita
+  - **Sin publicar workflows** (lo hace el operador desde la UI), sin tocar DDL, artefacto del workflow, nodos ni credenciales: solo documentación y consultas `SELECT`
+- **Dependencias**: C-05 (**cerrado el 2026-10-19**)
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `V4/evidencias/VENTANA_B5.md` §18
+  - `knowledge-base/09_decisiones_y_supuestos.md` §DD-08
+  - `openspec/changes/recoleccion-secundaria/design.md`
 
 ---
 
@@ -675,6 +693,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 | C-22 | `figuras-2-3-4-e-indices` | 5 | `[ ]` pendiente | C-12, C-08 | BAJO |
 | C-23 | `auto-auditoria-final` | 5 | `[ ]` pendiente | C-21, C-22 | ALTO |
 | C-24 | `rediseno-diccionario-evaluacion` | 1 | `[~]` parcial | C-04, C-05 | ALTO |
+| C-25 | `recoleccion-secundaria` | — | `[~]` parcial | C-05 | MEDIO |
 
 **Cobertura de evidencias E1–E15:** E1, E2, E3, E10 → C-12 · E4, E6 → C-08 · E5 → C-10 · E7 → C-09 · E8 → C-11 · E9, E12, E13 → C-14 · E11 → C-13 · E14 → C-15 · E15 → C-17.
 

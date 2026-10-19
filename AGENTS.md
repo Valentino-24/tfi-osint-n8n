@@ -55,9 +55,10 @@ Cargar la skill correspondiente al contexto antes de escribir código o modifica
 
 El plan completo está en [CHANGES.md](CHANGES.md).
 
-- **Total**: 24 changes en 6 fases.
+- **Total**: **25** changes — los 24 del plan en 6 fases, más `C-25` `recoleccion-secundaria` (track paralelo posterior al corte de B5).
 - **Fundación verificada**: C-01 a C-04 (B1–B4, ingesta RSS/Plan C).
 - **Camino crítico pendiente**: `C-05 → C-08 → C-09 → C-20 → C-21 → C-23`.
+- **Estado de C-05**: **`[~]` parcial** — la ventana B5 se **cerró el 2026-10-19 con corte `2026-10-17`** (**15** días completos evaluados, **724** posts, decisión DD-08). No se archiva hasta decidir la 6.3 (posts previos). La recolección posterior al corte corre como track secundario en `C-25`.
 - **Primer change**: C-05 `ventana-recoleccion-b5`.
 - **Prerrequisito de latencia**: C-07 debe cerrarse antes de C-08.
 
