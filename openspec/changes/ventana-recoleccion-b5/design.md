@@ -94,6 +94,8 @@ Restricciones que gobiernan el diseño:
 
 **Alternativas consideradas**: (a) proponer 30 días como default por si los autores no responden, rechazado explícitamente: una fecha sin decisión es una fecha inventada; (b) dejar el campo vacío, rechazado por el motivo de ambigüedad anterior.
 
+**Actualización 2026-10-19**: la decisión se tomó y el corte quedó fijado en **`2026-10-17`** (tarea 6.1, **DD-08**), con su registro de RN-GL-03 en `V4/evidencias/VENTANA_B5.md` §3 y la ventana **CERRADA** en 15 días y 724 posts. El modelo de "no fijada" deja de estar vigente en la definición de la ventana, y se conserva en dos usos: (a) como valor que declaran las entradas de bitácora archivadas, que no se reescriben, y (b) como regla para todo cambio futuro del corte: una enmienda se registra con trazabilidad, no se improvisa (D-4 del change `recoleccion-secundaria`).
+
 ### D-8 — Las actualizaciones documentales se limitan a sustituir la ventana ficticia por la real
 
 **Qué**: `V4/GUIA_EJECUCION.md`, `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 se editan solo en lo relativo a la ventana. El resto de las correcciones documentales de esos archivos son C-06.

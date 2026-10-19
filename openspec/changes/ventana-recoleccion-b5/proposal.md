@@ -16,6 +16,14 @@ Además, dos limitaciones de la corrida B4 quedaron sin caracterizar formalmente
 - Registrar la **decisión de los autores** sobre la fecha de cierre y sobre si se conserva la recolección actual o se reinicia con métricas corregidas (pregunta abierta de prioridad Media).
 - **Ninguna métrica de resultados** se declara en este change (RN-GL-01). No se toca el DDL ni la lógica del pipeline.
 
+> **Actualización 2026-10-19 — el change ejecutó su decisión de cierre.** La fecha de corte dejó de
+> estar abierta y quedó fijada en **`2026-10-17`** (tarea 6.1, **DD-08**): la ventana quedó
+> **CERRADA** con **15 días completos evaluados** (objetivo alcanzado) y **724 posts**, con límite
+> superior fijo `2026-10-18 00:00:00 -03:00`. La tarea 6.2 quedó resuelta en **conservar** la
+> recolección actual, sin reinicio. La recolección posterior al corte se separó como **track
+> secundario** en el change `recoleccion-secundaria`, y el `2026-10-18` se registró como día sin
+> recolección. Queda abierta la 6.3 (inclusión de los posts previos).
+
 ## Capabilities
 
 ### New Capabilities
