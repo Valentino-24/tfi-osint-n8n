@@ -12,12 +12,12 @@
 | Fecha de inicio (primer intento, **abortado**) | 2026-09-25 — ver §7.1. La recolección se interrumpió y los datos se descartaron |
 | Fecha de reinicio del corpus | **2026-10-01 13:05:59** (`America/Argentina/Buenos_Aires`) — `TRUNCATE` de `posts`, `comments`, `anomalias`, `alertas` |
 | **Fecha de inicio operativa** | **2026-10-01 13:15:12** (`America/Argentina/Buenos_Aires`) — instante de la **ejecución automática #15**, la primera que corrió con el workflow publicado tras el reinicio. Es la fecha que define la ventana |
-| Fecha de corte | **`no fijada`** — decisión abierta de los autores con sus directores (ver §3). **Corte estimado `~2026-10-17`**: objetivo declarado por el autor el 2026-10-09, **no** ratificado con los directores |
-| Duración | **Objetivo: 15 días completos evaluados** desde el inicio operativo, con **mínimo de 10** (base comparativa de RN-AN-02); ver §4 |
+| Fecha de corte | **`2026-10-17`** — corte oficial **fijado el 2026-10-19** por el autor al alcanzarse el objetivo de 15 días completos evaluados (tarea 6.1 de C-05; registro completo en §3). `2026-10-17` es el último día con recolección oficial |
+| Duración | **Objetivo: 15 días completos evaluados** desde el inicio operativo, con **mínimo de 10** (base comparativa de RN-AN-02); ver §4. **Alcanzado**: la ventana cerró con **15 días completos evaluados** |
 | Zona horaria de los límites | `America/Argentina/Buenos_Aires` (zona de ejecución del sistema) |
 | Bitácora diaria | [`V4/evidencias/bitacora_b5/`](bitacora_b5/) — una entrada `YYYY-MM-DD.md` por día |
 | Criterio de suficiencia | **Mínimo 10** días completos de evaluaciones en `anomalias` (RN-AN-02) y **objetivo 15** (declarado el 2026-10-09, ver §4) |
-| Estado al redactar este documento | **ABIERTA** — 0 días completos evaluados (mínimo 10, objetivo 15; ver §4) |
+| Estado de la ventana | **CERRADA** — corte `2026-10-17`, con **15 días completos evaluados** (objetivo alcanzado; ver §3 y §4). Al redactarse este documento (2026-09-25) figuraba como **ABIERTA** con 0 días evaluados |
 
 > **Por qué el inicio es 13:15:12 y no 13:05:59.** El `TRUNCATE` vació las tablas a
 > las 13:05:59, pero el workflow seguía sin publicar en ese momento: la recolección
@@ -36,32 +36,73 @@ El corpus de la ventana B5 es **exactamente el conjunto de filas de `posts` cuyo
 
 ```text
 ingested_at >= 2026-09-25 00:00:00 (America/Argentina/Buenos_Aires)
-ingested_at <  <fecha de corte> 00:00:00
+ingested_at <  2026-10-18 00:00:00 (America/Argentina/Buenos_Aires)   <- inicio del dia siguiente al corte 2026-10-17
 ```
 
-Mientras el corte sea `no fijada`, el límite superior aplicado por el script de bitácora es el
-**instante de ejecución** de la consulta, y así queda anotado en la cabecera de cada entrada.
+Con el corte fijado (§3), el límite superior es el **inicio local del día siguiente al
+corte** (`2026-10-18 00:00:00 -03`), un instante **fijo**: no depende de cuándo se ejecute
+la consulta, de modo que el acumulado de la ventana queda congelado en **724** posts. Los
+posts ingeridos desde ese instante **no pertenecen a B5** aunque estén en la misma tabla
+(ver §18).
+
+Mientras el corte estuvo `no fijada`, el límite superior aplicado por el script de bitácora
+era el **instante de ejecución** de la consulta, y así quedó anotado en la cabecera de las
+entradas `2026-09-25` … `2026-10-17`.
 
 **Por qué `ingested_at` y no `created_utc`** (D-1): `ingested_at` es la evidencia de lo que el
 sistema efectivamente recolectó; `created_utc` es la fecha de publicación en Reddit e incluye
 posts que el sistema nunca vio. Es además el mismo campo que usa C-08 para E6, de modo que
 latencia, Tabla 3 y E7 comparten un único criterio de ventana y no dos.
 
-## 3. Fecha de corte: `no fijada` (decisión abierta)
+## 3. Fecha de corte: `2026-10-17` (fijada el 2026-10-19)
+
+> **Nota de transición (2026-10-19).** Hasta esta fecha la sección declaraba el estado
+> `no fijada` con su motivo —«es una decisión de los autores con sus directores, no una
+> decisión técnica»— y la tarea 6.1 como la que la cerraba, sin fecha tentativa. Se
+> reemplaza por el registro de la decisión (tarea 6.1 ejecutada).
 
 | Campo | Valor |
 |---|---|
-| Estado | **`no fijada`** |
-| Motivo | Es una decisión de los **autores con sus directores**, no una decisión técnica. Fijarla desde la ejecución sería inventar un parámetro de investigación. |
-| Tarea que la cierra | **6.1** de este change (`decision-cierre-ventana`) |
-| Changes que dependen del corte | C-08 → C-09 → C-20 → C-21 → C-23 |
-| Fecha tentativa propuesta | **Ninguna.** No existe en este documento ni en los demás artefactos del change. |
+| Estado | **Fijada** |
+| Fecha de corte | **`2026-10-17`** — último día con recolección oficial |
+| Límite superior de la ventana | **`2026-10-18 00:00:00 -03:00`**, exclusivo para `posts.ingested_at` |
+| Responsable de la decisión | El **autor** (operador del sistema) |
+| Fecha de la decisión | **`2026-10-19`** |
+| Motivo | El **objetivo declarado el 2026-10-09** se cumplió: la ventana llegó a **15 días completos evaluados** en `anomalias` (dos ciclos semanales; ver §4). Alcanzados el piso de RN-AN-02 (10) y el objetivo (15), la ventana se cierra sobre el último día con recolección real. |
+| Changes que habilita | C-08 → C-09 → C-20 → C-21 → C-23 |
+| Tarea que la cerró | **6.1** del change `ventana-recoleccion-b5` (C-05) |
+| Efecto sobre el script de bitácora | `V4/scripts/bitacora_b5.py` aplica el corte fijo (`VENTANA_CORTE_FECHA = "2026-10-17"`): el acumulado de §3 (**724**) y el conteo de días de §4 (**15**) quedan **congelados** y dejan de depender del instante de ejecución |
+| Efecto sobre las entradas archivadas | Las entradas `2026-09-25` … `2026-10-17` **no se reescriben**: declaran el corte `no fijada` que regía cuando se generaron. El script **aborta** con código 5 si se intenta regenerarlas, salvo `--permitir-reescritura` explícito |
+| Recolección posterior al corte | **No pertenece a la ventana B5.** Continúa (si el operador publica el workflow) como recolección **secundaria** de respaldo; ver §18 |
 
-Al cerrarse, la tarea 6.1 debe registrar en este archivo: la fecha, el responsable, la fecha de
-la decisión, el motivo y los changes que habilita (RN-GL-03).
+### 3.1 Por qué el corte es el `2026-10-17` y no una fecha posterior
 
-Un campo de fecha en blanco podría leerse más adelante como un olvido; por eso el valor es el
-estado explícito `no fijada` con su motivo, y no un espacio vacío.
+El `2026-10-17` es el **último día con recolección oficial** y su evaluación (6 filas en
+`anomalias`, corrida `#463`) ya integra el conteo de 15 días de §4. Un corte posterior
+no agregaría días evaluados: agregaría días **sin recolección** (`2026-10-18` en `0`),
+que no son datos de la ventana sino ausencia de operación. Extenderlo, por lo tanto,
+sumaría ceros y no información.
+
+### 3.2 Corrección del límite de §4 (inclusivo) al fijar el corte
+
+La ventana de cada fila de `anomalias` es `[ventana_inicio, ventana_fin)` y `ventana_fin`
+está guardado **exactamente en el inicio del día siguiente**: verificado en la base, la
+fila del `2026-10-17` tiene `ventana_inicio = 2026-10-17 03:00:00+00` y
+`ventana_fin = 2026-10-18 03:00:00+00`, es decir `2026-10-18 00:00 -03`. Al fijarse el
+corte, ese instante pasa a ser el límite superior de la ventana y la fila del propio día
+del corte cae **sobre el borde**: con el operador `<` quedaba fuera y el conteo daba
+**14** días en vez de los **15** ya publicados. El script quedó con `ventana_fin <= corte`
+(inclusivo), que es la contención correcta. Mientras el corte no estaba fijado el límite
+era el instante de ejecución —un punto dentro de un día posterior, nunca sobre el borde—,
+por eso `<` daba el mismo resultado: **la corrección no cambia ningún número archivado**.
+
+### 3.3 Alcance de la decisión
+
+La decisión fija el **corte operativo** de la ventana y su límite temporal, con la
+trazabilidad de RN-GL-03 (fecha, responsable, fecha de la decisión, motivo y changes que
+habilita). No consta en este registro una ratificación formal con los directores: lo
+asentado es la decisión del autor; el acto de ratificación sigue siendo de los autores con
+sus directores.
 
 ## 4. Criterio de suficiencia (mínimo 10 días, objetivo 15)
 
@@ -79,9 +120,8 @@ número negociable.
 **Justificación del objetivo (decisión del 2026-10-09)**: el autor decidió extender la ventana a
 **dos ciclos semanales completos** para reducir la varianza del día de la semana en la base
 comparativa. El mínimo de RN-AN-02 (10) se conserva como piso; el objetivo (15) es la meta de
-acumulación. **El corte formal sigue `no fijada`** (§3): lo que se registra acá es el objetivo de
-acumulación, no la ratificación del cierre con los directores (esa decisión queda para los
-autores y sus directores, tarea 6.1 de C-05).
+acumulación. **El corte quedó fijado el 2026-10-19 en `2026-10-17`** (§3), con el objetivo de
+acumulación **alcanzado**: la ventana cerró con **15 días completos evaluados**.
 
 > **Nota de transición (2026-10-14).** Las entradas de bitácora generadas **antes** de esta fecha
 > declaran el umbral como "10" con la etiqueta `SUFICIENTE` al alcanzarlo. A partir del 2026-10-14
@@ -98,10 +138,17 @@ SELECT (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date AS d
        COUNT(*) AS n_evaluaciones
 FROM anomalias
 WHERE ventana_fin >= TIMESTAMPTZ '2026-09-25T00:00:00-03:00'
-  AND ventana_fin <  TIMESTAMPTZ '<instante de ejecución>'
+  AND ventana_fin <= TIMESTAMPTZ '<limite superior de la ventana>'
 GROUP BY (ventana_inicio AT TIME ZONE 'America/Argentina/Buenos_Aires')::date
 ORDER BY dia;
 ```
+
+**El límite es inclusivo (`<=`).** Con el corte fijado, el límite superior es
+`2026-10-18 00:00:00 -03` y la fila del propio día del corte tiene ese mismo instante en
+`ventana_fin`, así que cae justo sobre el borde: con `<` el conteo daría 14 días en vez de
+15. Ver §3.2. Mientras el corte estuvo `no fijada` el límite era el instante de ejecución
+(la cabecera de las entradas archivadas registra ese instante), un punto dentro de un día
+posterior y nunca sobre el borde, por lo que `<` daba el mismo número.
 
 **Por qué se etiqueta por `ventana_inicio` y no por `ventana_fin`.** La convención del sistema
 es que la evaluación corre **al día siguiente, a mediodía**, y evalúa **el día anterior**: la
@@ -599,6 +646,11 @@ partir de la **segunda** evaluacion, cuando el 2026-10-01 entre en la ventana de
 **Corte de la jornada: 2026-10-02 ~19:00 BA.** El workflow fue despublicado por el operador. No es
 el corte de la ventana B5, que sigue `no fijada` (§3).
 
+> **Actualización 2026-10-19.** Esta frase refleja el estado del `2026-10-02`: en ese momento el
+> corte de la ventana **no estaba fijado**. Se fijó recién el **2026-10-19** en `2026-10-17`
+> (tarea 6.1; registro en §3). El corte de esta jornada, que sigue sin ser el de la ventana,
+> quedó parcial en 19:00 BA.
+
 | HECHO | VALOR | VERIFICADO POR |
 |---|---|---|
 | Ejecuciones totales del dia | **30** (`#39`–`#68`), todas `status = success` | log de n8n |
@@ -813,6 +865,54 @@ posts, de modo que el conjunto evaluado sea estable. **No se aplica ahora**: el 
 congelado durante la ventana B5 y cambiar la consulta a mitad vuelve incomparable el conjunto de
 categorías de los días anteriores y posteriores (mismo criterio que IN-06 e IN-08). Queda para el
 cierre, como cambio de versión del artefacto.
+
+## 18. Cierre oficial de la ventana y hueco del 2026-10-18 (2026-10-19)
+
+**2026-10-19.** Se ejecuta la tarea 6.1: la ventana B5 queda **cerrada con corte `2026-10-17`**,
+con **15 días completos evaluados** (objetivo alcanzado) y **724 posts** en el corpus. El registro
+trazable de la decisión —fecha, responsable, fecha de la decisión, motivo y changes que habilita—
+está en §3.
+
+### 18.1 El 2026-10-18 es un día SIN recolección (decisión, no falla)
+
+El `2026-10-18` la ventana cursó **sin recolección**: el workflow permaneció **inactivo**
+(`workflow_entity.active = 0`) durante todo el día y **no hubo ninguna ejecución de trigger** (ni
+`Schedule Ingesta` ni `Schedule Anomalias`). La única ejecución registrada del día fue la **`#463`
+manual de las 23:08:25**, de la rama de anomalías (0 s), que creó las **6 filas** de la ventana del
+`2026-10-17` —evaluación que **sí** integra el conteo de §4—. `created_at` de esas 6 filas:
+`2026-10-18 23:08:25.605516 -03`.
+
+| Dato del 2026-10-18 | Valor | Origen |
+|---|---|---|
+| Posts con `ingested_at` del día | **0** | `SELECT` acotado por día local |
+| `max(ingested_at)` de la base | `2026-10-17 13:16:14 -03` | `SELECT` de solo lectura |
+| Ejecuciones de trigger | **0** (workflow inactivo) | log de la instancia n8n (SQLite, transcripción manual, D-3) |
+| Única ejecución del día | `#463`, **manual**, 23:08:25, rama de anomalías, 0 s | mismo log |
+| Estado del workflow al generar el cierre | **inactivo** (`active = 0`) | base de n8n, `mode=ro` |
+
+El día **no pertenece a la ventana**: es posterior al corte y su `n` es `0`. Queda registrado como
+**constancia del hueco** en [`bitacora_b5/2026-10-18.md`](bitacora_b5/2026-10-18.md), cuya cabecera
+declara la naturaleza del dato («día posterior al corte oficial: constancia del hueco») y aclara que
+**no** integra el acumulado de §3 ni el conteo de días de §4.
+
+**Por qué se documenta un día sin recolección.** Un hueco de un día en una serie diaria puede
+leerse más adelante como un olvido, un error de consulta o una caída no registrada. Queda declarado
+que fue **una jornada sin operación del recolector**, con el estado del workflow como evidencia,
+para que la ausencia no se interprete ni como silencio de los subreddits ni como falla del pipeline
+(RN-GL-01).
+
+### 18.2 Recolección posterior al corte: track secundario
+
+La recolección que continúe desde el `2026-10-19` **no pertenece a B5**. Aunque el operador vuelva
+a publicar el workflow, los posts que ingiera caen en la misma tabla `posts` —y por lo tanto **no**
+entran al corpus de B5, porque el corte es un límite temporal fijo sobre `ingested_at` (§2)— y las
+evaluaciones que genere el motor quedan fuera del conteo de §4 por el mismo límite. Las cifras de la
+ventana (**724** posts, **15** días) quedan como están.
+
+Ese track se documenta por separado, con su propio registro, en el change
+`openspec/changes/recoleccion-secundaria/`. Su motivo es de **respaldo**: si la ventana B5 fuera
+observada o devuelta, los datos posteriores al corte existen y están fechados. **No es evidencia de
+B5 y no se mezcla con ella.**
 
 
 
