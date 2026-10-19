@@ -56,3 +56,9 @@ env.txt
 .opencode/node_modules/
 .opencode/package-lock.json
 .opencode/package.json
+
+# --- agregado 2026-10-19: intermedios de la conversion a PDF ---
+# V4/scripts/convertir_pdf.py los regenera en cada corrida (Markdown de
+# trabajo, DOCX intermedio y PNG de revision): no son entregables.
+V4/devoluciones/build/
+

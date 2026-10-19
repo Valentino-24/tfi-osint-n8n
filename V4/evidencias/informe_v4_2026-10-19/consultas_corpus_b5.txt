@@ -1,0 +1,167 @@
+=== Q1 TOTALES ===
+ total | ventana | previos | track | comentarios | sin_categoria 
+-------+---------+---------+-------+-------------+---------------
+   755 |     724 |       0 |    31 |           0 |             0
+(1 row)
+
+=== Q2 RANGO DE INGESTA VENTANA ===
+          min_ingesta          |          max_ingesta          |       min_creado       |       max_creado       
+-------------------------------+-------------------------------+------------------------+------------------------
+ 2026-10-01 16:15:43.944968+00 | 2026-10-17 16:16:14.406781+00 | 2026-05-21 18:47:28+00 | 2026-10-17 16:06:14+00
+(1 row)
+
+=== Q3 POR SUBREDDIT ===
+ subreddit_id |  n  |  pct  | no_relevante | pct_no_rel 
+--------------+-----+-------+--------------+------------
+ devsarg      | 428 | 59.12 |          421 |      98.36
+ netsec       | 150 | 20.72 |           84 |      56.00
+ Malware      | 146 | 20.17 |           49 |      33.56
+(3 rows)
+
+=== Q4 POR DIA (hora local) ===
+    dia     |  n  
+------------+-----
+ 2026-10-01 | 307
+ 2026-10-02 |  32
+ 2026-10-04 |  37
+ 2026-10-05 |  25
+ 2026-10-06 |  39
+ 2026-10-07 |  16
+ 2026-10-08 |  35
+ 2026-10-09 |  31
+ 2026-10-10 |  26
+ 2026-10-11 |  17
+ 2026-10-12 |  31
+ 2026-10-13 |  28
+ 2026-10-14 |  28
+ 2026-10-15 |  31
+ 2026-10-16 |  33
+ 2026-10-17 |   8
+(16 rows)
+
+=== Q5 TABLA 3 CATEGORIAS ===
+         categoria         |  n  |  pct  | score_medio 
+---------------------------+-----+-------+-------------
+ No relevante              | 554 | 76.52 |       0.000
+ Malware                   |  79 | 10.91 |       0.389
+ Vulnerabilidades          |  61 |  8.43 |       0.320
+ Phishing                  |  12 |  1.66 |       0.250
+ Robo de Credenciales      |   5 |  0.69 |       0.250
+ Filtraci├│n de Datos       |   4 |  0.55 |       0.250
+ Ransomware                |   4 |  0.55 |       0.250
+ Infraestructura y Ataques |   3 |  0.41 |       0.250
+ Hacktivismo               |   2 |  0.28 |       0.250
+(9 rows)
+
+=== Q6 LATENCIA ===
+  n  |  media   |    ds    |  p50   |    p95    | minimo |  maximo   | gt5 | gt15 | gt60 | gt24h | negativos 
+-----+----------+----------+--------+-----------+--------+-----------+-----+------+------+-------+-----------
+ 724 | 16483.78 | 38407.90 | 889.85 | 117613.06 |   0.28 | 191368.81 | 685 |  580 |  541 |   295 |         0
+(1 row)
+
+=== Q7 ANOMALIAS RESUMEN ===
+ filas | dias | disparos |         desde          |         hasta          
+-------+------+----------+------------------------+------------------------
+   112 |   15 |        6 | 2026-10-02 03:00:00+00 | 2026-10-18 03:00:00+00
+(1 row)
+
+=== Q8 ANOMALIAS POR CATEGORIA ===
+         categoria         | evals | observados | disparos | base_media_prom | umbral_prom 
+---------------------------+-------+------------+----------+-----------------+-------------
+ Filtraci├│n de Datos       |    15 |          4 |        0 |            0.19 |        3.00
+ Malware                   |    15 |         79 |        1 |            4.00 |        8.33
+ Phishing                  |    15 |         11 |        1 |            0.57 |        3.00
+ Robo de Credenciales      |    15 |          5 |        0 |            0.25 |        3.00
+ Vulnerabilidades          |    15 |         59 |        2 |            2.95 |        6.87
+ Hacktivismo               |    14 |          2 |        0 |            0.11 |        3.00
+ Ransomware                |    14 |          4 |        1 |            0.24 |        3.00
+ Infraestructura y Ataques |     9 |          3 |        1 |            0.27 |        3.00
+(8 rows)
+
+=== Q9 DISPAROS DETALLE ===
+    dia     |         categoria         | n_observado | base_media | umbral 
+------------+---------------------------+-------------+------------+--------
+ 2026-10-02 | Infraestructura y Ataques |           3 |          0 |      3
+ 2026-10-02 | Malware                   |          55 |          0 |      3
+ 2026-10-02 | Phishing                  |           6 |          0 |      3
+ 2026-10-02 | Ransomware                |           3 |          0 |      3
+ 2026-10-02 | Vulnerabilidades          |          41 |          0 |      3
+ 2026-10-13 | Vulnerabilidades          |           4 |        0.8 |      3
+(6 rows)
+
+=== Q10 CATEGORIAS EVALUADAS POR DIA ===
+    dia     | filas |                                                                   cats                                                                    
+------------+-------+-------------------------------------------------------------------------------------------------------------------------------------------
+ 2026-10-02 |     7 | Filtraci├│n de Datos | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-05 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-06 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-07 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-08 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-09 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-10 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-11 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-12 |     8 | Filtraci├│n de Datos | Hacktivismo | Infraestructura y Ataques | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-13 |     7 | Filtraci├│n de Datos | Hacktivismo | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-14 |     7 | Filtraci├│n de Datos | Hacktivismo | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-15 |     7 | Filtraci├│n de Datos | Hacktivismo | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-16 |     7 | Filtraci├│n de Datos | Hacktivismo | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-17 |     7 | Filtraci├│n de Datos | Hacktivismo | Malware | Phishing | Ransomware | Robo de Credenciales | Vulnerabilidades
+ 2026-10-18 |     6 | Filtraci├│n de Datos | Hacktivismo | Malware | Phishing | Robo de Credenciales | Vulnerabilidades
+(15 rows)
+
+=== Q11 ALERTAS ===
+  canal   |  estado   | n 
+----------+-----------+---
+ telegram | PENDIENTE | 6
+(1 row)
+
+=== Q12 TOP POSTS POR CATEGORIA ===
+       nlp_category        |   id    |                                                titulo                                                | score |   fecha    |                                                 url                                                  
+---------------------------+---------+------------------------------------------------------------------------------------------------------+-------+------------+------------------------------------------------------------------------------------------------------
+ Filtraci├│n de Datos       | 1x2vur9 | Guardar datos personales                                                                             | 0.250 | 2026-10-11 | https://www.reddit.com/r/devsarg/comments/1x2vur9/guardar_datos_personales/
+ Filtraci├│n de Datos       | 1x2kl6z | Consulta sobre monetizar APP Android y datos personales (Argentina)                                  | 0.250 | 2026-10-10 | https://www.reddit.com/r/devsarg/comments/1x2kl6z/consulta_sobre_monetizar_app_android_y_datos/
+ Hacktivismo               | 1x42omu | hackearon el sitio oficial de la fundacion altos estudios en ciencias comerciales                    | 0.250 | 2026-10-12 | https://www.reddit.com/r/devsarg/comments/1x42omu/hackearon_el_sitio_oficial_de_la_fundacion_altos/
+ Hacktivismo               | 1wsgqxi | Design behind OIDA, a nxc like CLI for OT/ICS assessments                                            | 0.250 | 2026-09-28 | https://www.reddit.com/r/netsec/comments/1wsgqxi/design_behind_oida_a_nxc_like_cli_for_otics/
+ Infraestructura y Ataques | 1wr7qwo | Sobre el sentido de aprender vs la IA                                                                | 0.250 | 2026-09-27 | https://www.reddit.com/r/devsarg/comments/1wr7qwo/sobre_el_sentido_de_aprender_vs_la_ia/
+ Infraestructura y Ataques | 1w8w0ou | Tengu, a Mirai-style Linux and IoT botnet                                                            | 0.250 | 2026-09-06 | https://www.reddit.com/r/Malware/comments/1w8w0ou/tengu_a_miraistyle_linux_and_iot_botnet/
+ Malware                   | 1x5iauj | ÔÜá´©Å URGENT WARNING: Fake "VRChat-DLSS5-Cam" GitHub repository is a dangerous Infostealer Malware (Sma  | 1.000 | 2026-10-14 | https://www.reddit.com/r/Malware/comments/1x5iauj/urgent_warning_fake_vrchatdlss5cam_github/
+ Malware                   | 1wwmtnr | Pre-installed C2 loader on cheap Android projectors - deploys proxy/ad-fraud botnets, can run arbitr | 1.000 | 2026-10-03 | https://www.reddit.com/r/Malware/comments/1wwmtnr/preinstalled_c2_loader_on_cheap_android/
+ Phishing                  | 1x5pk5e | One Android Loader, Four Malicious APKs: Linking Challan and Gas Phishing to BTMOB                   | 0.250 | 2026-10-14 | https://www.reddit.com/r/Malware/comments/1x5pk5e/one_android_loader_four_malicious_apks_linking/
+ Phishing                  | 1x5acdz | Recruiter de Brasil me pide e-mail y contrase├▒a de LinkedIn para "optimizarme el perfil              | 0.250 | 2026-10-13 | https://www.reddit.com/r/devsarg/comments/1x5acdz/recruiter_de_brasil_me_pide_email_y_contrase├▒a_de/
+ Ransomware                | 1wz2lr8 | IronChain Ransomware Threatens Businesses with Permanent Data Loss and Costly Downtime               | 0.250 | 2026-10-06 | https://www.reddit.com/r/Malware/comments/1wz2lr8/ironchain_ransomware_threatens_businesses_with/
+ Ransomware                | 1wcqfzm | SonicWall SMA1000 campaign: standalone Linux Impacket secretsdump deployed onto appliances (SHA-256  | 0.250 | 2026-09-10 | https://www.reddit.com/r/Malware/comments/1wcqfzm/sonicwall_sma1000_campaign_standalone_linux/
+ Robo de Credenciales      | 1x6o056 | Usar ingeniera inversa para portear juegos de pc a Android es el futuro del gaming en celular? Yo lo | 0.250 | 2026-10-15 | https://www.reddit.com/r/devsarg/comments/1x6o056/usar_ingeniera_inversa_para_portear_juegos_de_pc/
+ Robo de Credenciales      | 1wzchsp | Rockstar Games has now been compromised several different ways since 2018, and none of them were a z | 0.250 | 2026-10-06 | https://www.reddit.com/r/netsec/comments/1wzchsp/rockstar_games_has_now_been_compromised_several/
+ Vulnerabilidades          | 1wtcs22 | Community Threat Notice: Citrix NetScaler ADC and NetScaler Gateway Vulnerabilities                  | 0.750 | 2026-09-29 | https://www.reddit.com/r/Malware/comments/1wtcs22/community_threat_notice_citrix_netscaler_adc_and/
+ Vulnerabilidades          | 1wdo45j | CISA: WatchGuard RCE flaw now exploited in ransomware attacks                                        | 0.750 | 2026-09-11 | https://www.reddit.com/r/Malware/comments/1wdo45j/cisa_watchguard_rce_flaw_now_exploited_in/
+(16 rows)
+
+=== Q13 DISTRIBUCION DE SCORE ===
+ score |  n  
+-------+-----
+  0.00 | 554
+  0.25 | 130
+  0.50 |  26
+  0.75 |   7
+  1.00 |   7
+(5 rows)
+
+=== Q14 CATEGORIAS DISTINTAS EN VENTANA ===
+         categoria         |  n  
+---------------------------+-----
+ No relevante              | 554
+ Malware                   |  79
+ Vulnerabilidades          |  61
+ Phishing                  |  12
+ Robo de Credenciales      |   5
+ Filtraci├│n de Datos       |   4
+ Ransomware                |   4
+ Infraestructura y Ataques |   3
+ Hacktivismo               |   2
+(9 rows)
+
+=== Q15 TRACK SECUNDARIO ===
+ n  |             desde             |             hasta             
+----+-------------------------------+-------------------------------
+ 31 | 2026-10-19 16:53:41.054809+00 | 2026-10-19 17:18:19.823468+00
+(1 row)
