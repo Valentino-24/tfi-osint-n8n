@@ -118,4 +118,38 @@ El PDF de entrega (`V4/devoluciones/tesis_v4.pdf`, **74 páginas A4**) se gener�
 
 *Documento generado el 2026-10-19 para el change `reconstruccion-informe-v4`. Las referencias `§` corresponden a `V4/devoluciones/tesis_v4.md`.*
 
+---
+
+## 8. Tercera instancia de revisión externa (2026-10-20)
+
+El docente envió un *prompt* de revisión para ejecutar con un asistente de lenguaje (Claude) antes de la entrega. Su salida se contrastó ítem por ítem contra el repositorio, sin modificar archivos durante la verificación. Se separaron tres clases de observación: **(a)** defectos reales del documento, **(b)** hallazgos correctos en su diagnóstico pero que el asistente no pudo comprobar sin acceso al repositorio, y **(c)** afirmaciones del asistente que no se sostienen contra el texto.
+
+### 8.1. Defectos reales corregidos en `tesis_v4.md` (2026-10-20)
+
+| ID | Observación | Verificación en el repo | Corrección aplicada |
+|---|---|---|---|
+| R-01 | Referencia no localizable: Zong, Yu y Wang (2020), *Cybersecurity Journal, 3*(1) | El DOI `10.1186/s42400-020-00045-w` **no resuelve**; existe el trabajo real **Zong, Ritter, Mueller y Wright (2019)**, *Analyzing the perceived severity of cybersecurity threats reported on social media* (NAACL-HLT 2019). La cita era **fabricada** | Se reemplazó la entrada por la fuente real (NAACL 2019, DOI `10.18653/v1/N19-1140`) y se reescribieron las **dos** afirmaciones del cuerpo que la invocaban (§2.1.3 y §2.2) conforme al contenido real del trabajo |
+| R-02 | Rótulo de objetivo cruzado en §5.7 | El rótulo «OE5» describía el contenido del **OE4** (categorización/NLP); la Tabla 7.2 confirma OE4 = NLP y OE5 = motor de anomalías | `OE5 (categorización)` → `OE4 (categorización)` |
+| R-03 | Terminología: `FP / (TP + FP)` se rotulaba «tasa de falsos positivos» | Es la **tasa de falsos descubrimientos** (`1 − precisión`), no la FPR estándar `FP / (FP + TN)` | Renombrada en §1.3 (OE7), §1.6, §3.3.5 (definición, con la aclaración de por qué no se llama FPR), Tablas 5.8, 5.12 y 7.1, y §7.4 |
+| R-04 | Ambigüedad de alcance: la sensibilidad se marca CUMPLIDA al mismo nivel que la precisión, pese a que §3.3.3 declara que no es publicable como propiedad poblacional | La precisión y la FDR son estimables (denominador = 29 predicciones positivas censadas); la sensibilidad depende del estrato sorteado de 22 casos | Se agregó una columna **«Alcance»** a la Tabla 5.8, notas al pie en las Tablas 5.12 y 7.1, y se ajustaron §5.5, §5.7 (OE4) y §7.4 para distinguir métrica estimable de valor puntual de muestra |
+| R-05 | Fuente de las fases DSR ausente | La Tabla 3.1 aplica las **seis fases** del proceso DSR pero solo citaba a Hevner et al. (2004), que propone directrices de diseño, no el proceso por fases | Se agregó **Peffers et al. (2007)** a las Referencias y se corrigió §3.1 para atribuir el modelo de seis fases a Peffers et al. (2007), complementado con Hevner et al. (2004) |
+
+**Efecto en el artefacto:** regenerado el PDF (`tesis_v4.pdf`, **75 páginas**, antes 74). Verificado: **0 rótulos ausentes**, 4 imágenes, sin marcadores de error, índices **36/36 correctos**, cifras clave intactas (724, 0,931, 6,9, 1.376,2, 1,8 posts/hora). Referencias: **16 entradas**.
+
+### 8.2. Observaciones del asistente no sostenidas contra el texto (sin acción)
+
+Se conservan aquí para trazabilidad; el asistente no tuvo acceso al repositorio y varias de sus afirmaciones son verificables y resultan falsas o imprecisas.
+
+| Observación del asistente | Verificación |
+|---|---|
+| «FP de r/devsarg = 6 de 7 (85,7 %)» | **No existe en el documento.** El único `0,857` es la **precisión** del clasificador anterior en la Tabla 5.9, no una tasa de FP. Confusión del asistente |
+| «“17 días de operación continua” (PI-1) contradice 44 h de interrupción» | El texto distingue **17 días calendario** del throughput y **16 días efectivos** de recolección (§5.7, OE1), con la interrupción de 44 h declarada en §5.7 y §6.3. No hay contradicción |
+| «“25 de 29” (4.4.1) contradice TP = 24 (Tabla 5.9)» | La Tabla 5.9 explicita la transición `TP: 24 → 27` entre clasificador anterior y vigente, y §5.6 explica el origen de las 3 filas. Dos mediciones fechadas, declaradas |
+| «Zong et al. (2020) no es verificable» | Correcto en el fondo, pero se resolvió como **R-01** (la referencia se retiró y se reemplazó), no como una laguna de literatura |
+| «La sensibilidad ponderada arroja ≈ 76 %» | Estimación no reproducible: trata como aleatoria simple una muestra **estratificada por diseño**, que es justamente lo que §3.3.3 declara no estimable |
+| «Faltan kappa / Landis y Koch / Ley 25.326» | Los tres están presentes: Landis y Koch (1977) en Referencias, la discusión de ausencia de acuerdo entre anotadores en §3.3.3 y §2.2 punto 5, y la Ley 25.326 en el Resumen, §3.4 y §2.2 punto 6 |
+
+Las observaciones restantes del asistente (título, estado del arte posterior a 2020, amplitud del alcance geográfico, validación con un solo anotador) son **juicios de criterio** que dependen del estándar de evaluación aplicado y quedan a la espera de la devolución del docente, sin modificación del entregable.
+
+
 

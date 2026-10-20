@@ -70,7 +70,7 @@ El presente Trabajo Final de Inserción detalla el diseño, desarrollo, implemen
 
 La recolección se realizó sobre la fuente pública de Reddit en formato RSS/Atom (`new/.rss`) de tres comunidades con monitoreo activo: r/netsec, r/Malware y r/devsarg. El corpus analizado corresponde a la ventana de recolección cerrada el 17/10/2026 y está compuesto por **724 publicaciones** persistidas entre el 01/10/2026 y el 17/10/2026, con **15 fechas de evaluación** registradas por el motor de anomalías. El flujo se ejecutó cada 15 minutos, con una espera fija entre comunidades para respetar los límites de la plataforma, y aplicó una seudonimización irreversible de los autores mediante HMAC-SHA-256 con clave por despliegue antes de persistir cada registro.
 
-Sobre ese corpus, el clasificador —9 categorías y 201 términos, con una puntuación saturante `min(1, hits/4)` y umbral mínimo de una coincidencia— determinó que el 76,52 % de las publicaciones no era relevante y asignó las 170 restantes a 8 categorías de amenaza, con predominio de Malware (79) y Vulnerabilidades (61). El motor de detección evaluó 8 categorías en 15 fechas mediante un umbral de Poisson calibrado sobre una ventana móvil de 11 días, con un piso absoluto de 3 eventos, y registró 6 disparos. La muestra de control de 50 publicaciones etiquetadas manualmente por un único anotador arrojó una precisión, una sensibilidad y un F1-score de **0,931** cada uno, con una exactitud de categoría del **84,0 %** y una tasa de falsos positivos del **6,9 %**.
+Sobre ese corpus, el clasificador —9 categorías y 201 términos, con una puntuación saturante `min(1, hits/4)` y umbral mínimo de una coincidencia— determinó que el 76,52 % de las publicaciones no era relevante y asignó las 170 restantes a 8 categorías de amenaza, con predominio de Malware (79) y Vulnerabilidades (61). El motor de detección evaluó 8 categorías en 15 fechas mediante un umbral de Poisson calibrado sobre una ventana móvil de 11 días, con un piso absoluto de 3 eventos, y registró 6 disparos. La muestra de control de 50 publicaciones etiquetadas manualmente por un único anotador arrojó una precisión, una sensibilidad y un F1-score de **0,931** cada uno, con una exactitud de categoría del **84,0 %** y una tasa de falsos descubrimientos del **6,9 %**.
 
 Los resultados son deliberadamente presentados con su alcance: el criterio de cobertura se retira por no ser verificable con una única fuente y una única captura; el criterio de latencia extremo a extremo (≤ 5 minutos) **no se cumple** (P95 medido de 1.376 minutos sobre las publicaciones creadas dentro de la ventana), y el criterio de throughput (≥ 1.000 posts/hora) tampoco se verifica en operación, donde el sistema procesó alrededor de 45 publicaciones por día. El módulo de alertas quedó implementado y deshabilitado por defecto, sin evidencia de envío real. El informe documenta el marco legal de protección de datos personales bajo la Ley Nacional 25.326 y el Decreto 1558/2001, los principios de minimización y seudonimización aplicados y el riesgo residual que persiste sobre datos potencialmente reidentificables.
 
@@ -136,7 +136,7 @@ La elección de un clasificador por diccionario —en lugar de un modelo estadí
 - **OE4.** Desarrollar un componente de procesamiento de lenguaje natural en español capaz de categorizar semánticamente los textos y extraer entidades tecnológicas críticas, y describir con precisión su alcance y sus límites.
 - **OE5.** Implementar un motor de reglas estadísticas para la detección automática de anomalías y tendencias emergentes en el flujo continuo de datos.
 - **OE6.** **Diseñar y configurar** un sistema automatizado de generación de alertas integrado con plataformas de mensajería, dejando explícito su estado operativo al cierre de la ventana.
-- **OE7.** Evaluar cuantitativamente el rendimiento del sistema mediante métricas de precisión, *recall*, F1-score, latencia, throughput y tasa de falsos positivos en un entorno operativo real, comparando cada resultado con los umbrales definidos a priori.
+- **OE7.** Evaluar cuantitativamente el rendimiento del sistema mediante métricas de precisión, *recall*, F1-score, latencia, throughput y tasa de falsos descubrimientos en un entorno operativo real, comparando cada resultado con los umbrales definidos a priori.
 - **OE8.** Analizar los aspectos legales, regulatorios y éticos vinculados a la recolección y el procesamiento de datos de fuentes abiertas en Argentina, implementando mecanismos efectivos de seudonimización en cumplimiento de la Ley 25.326.
 
 ## 1.6. Supuesto de trabajo y criterios de éxito
@@ -154,16 +154,16 @@ De acuerdo con la metodología *Design Science Research* (DSR) adoptada, se esta
 | Precisión de la clasificación | ≥ 80 % | Se evalúa en 5.5 |
 | Sensibilidad (*recall* de clasificación) | ≥ 80 % | Se evalúa en 5.5 |
 | F1-score de clasificación | ≥ 0,80 | Se evalúa en 5.5 |
-| Tasa de falsos positivos | ≤ 20 % | Se evalúa en 5.5 |
+| Tasa de falsos descubrimientos | ≤ 20 % | Se evalúa en 5.5 |
 | Latencia extremo a extremo | ≤ 5 minutos | **NO CUMPLIDO** (5.3) |
 | Throughput del pipeline | ≥ 1.000 posts/hora | **NO CUMPLIDO** (5.7) |
 | Cobertura de recolección | ≥ 80 % | **Retirada** (ver nota) |
 
 > **Nota metodológica sobre la cobertura.** La versión previa de este informe declaraba un criterio de cobertura del 80 % y lo reportaba como superado. La V4 **retira ese criterio**. La razón es que su verificación requiere un diseño de captura–recaptura sobre fuentes independientes, y este trabajo dispone de una única fuente y de una única captura: cualquier cifra de cobertura calculada sobre el propio corpus sería un cociente sin denominador verificable. El tribunal de la V3 admitió explícitamente esta salida —retirar la métrica antes que presentarla como parcial sin justificación—. En consecuencia, la cobertura no aparece en el Resumen, en el Capítulo 5 ni en el Capítulo 7, y el análisis de la *representatividad* del corpus se hace de forma cualitativa y con las limitaciones declaradas en 6.3.
 >
-> **Nota metodológica sobre el F1-score.** El F1-score se incorpora aquí como criterio propio, con umbral explícito, para evitar la redundancia señalada en la evaluación anterior, donde la precisión y la tasa de falsos positivos describían en parte el mismo fenómeno: ambas se derivan de los mismos verdaderos y falsos positivos, y su presentación conjunta como dos criterios independientes sugería una validación más amplia que la realmente existente. La tasa de falsos positivos se reporta con su fórmula explícita, `FP / (TP + FP)`, que no estaba definida en la versión previa.
+> **Nota metodológica sobre el F1-score.** El F1-score se incorpora aquí como criterio propio, con umbral explícito, para evitar la redundancia señalada en la evaluación anterior, donde la precisión y la tasa de falsos descubrimientos describían en parte el mismo fenómeno: ambas se derivan de los mismos verdaderos y falsos positivos, y su presentación conjunta como dos criterios independientes sugería una validación más amplia que la realmente existente. La tasa de falsos descubrimientos se reporta con su fórmula explícita, `FP / (TP + FP)`, que no estaba definida en la versión previa.
 >
-> **Nota metodológica sobre el cambio de umbral de clasificación.** La versión previa declaraba los umbrales de clasificación en 82 % de precisión y 18 % de falsos positivos. Se declara aquí que ambos valores **se modificaron a 80 % y 20 %** y se explicita la razón: las dos cifras eran complementarias —`FP / (TP + FP) = 1 − precisión` cuando no se cuentan los falsos negativos en el denominador—, de modo que no eran dos criterios sino uno expresado dos veces, y el valor 82 % no tenía derivación declarada. En esta versión se conserva un único umbral de precisión del 80 %, alineado con el valor que la tabla aplica también a sensibilidad y a F1, y la tasa de falsos positivos se reporta como su complemento explícito. El cambio es previo a la observación de resultados y **no altera ninguna conclusión**, porque el valor alcanzado (93,1 % de precisión, 6,9 % de falsos positivos) supera ambos conjuntos de umbrales, el anterior y el vigente.
+> **Nota metodológica sobre el cambio de umbral de clasificación.** La versión previa declaraba los umbrales de clasificación en 82 % de precisión y 18 % de falsos descubrimientos. Se declara aquí que ambos valores **se modificaron a 80 % y 20 %** y se explicita la razón: las dos cifras eran complementarias —`FP / (TP + FP) = 1 − precisión` cuando no se cuentan los falsos negativos en el denominador—, de modo que no eran dos criterios sino uno expresado dos veces, y el valor 82 % no tenía derivación declarada. En esta versión se conserva un único umbral de precisión del 80 %, alineado con el valor que la tabla aplica también a sensibilidad y a F1, y la tasa de falsos descubrimientos se reporta como su complemento explícito. El cambio es previo a la observación de resultados y **no altera ninguna conclusión**, porque el valor alcanzado (93,1 % de precisión, 6,9 % de falsos descubrimientos) supera ambos conjuntos de umbrales, el anterior y el vigente.
 
 Los criterios aquí listados **no fueron modificados después de observar los resultados**. Los dos criterios que no se alcanzan (latencia y throughput) se informan como no cumplidos en el Capítulo 5 y se retoman en los Capítulos 6 y 7.
 
@@ -226,7 +226,7 @@ En el ámbito profesional y académico existen herramientas consolidadas para la
 - **Maltego CE** provee un motor sólido de visualización de grafos de relaciones, pero requiere ejecuciones manuales y sus transformaciones para foros sociales en español son limitadas.
 - **theHarvester** y **Recon-ng** están orientadas al reconocimiento pasivo en pruebas de penetración, sin capacidad de monitoreo temporal continuo ni de clasificación temática de texto libre.
 
-En el plano académico, Liao et al. (2016) abordan la extracción automática de indicadores de compromiso desde fuentes abiertas de inteligencia de amenazas y muestran que la calidad de los indicadores depende críticamente de la normalización y del filtrado del texto; ese hallazgo es directamente aplicable a la decisión de este trabajo de priorizar la trazabilidad de cada categoría asignada. Zong et al. (2020) sistematizan el estado del arte de la minería de redes sociales para ciberseguridad y señalan como desafíos abiertos la heterogeneidad lingüística, el ruido semántico y la falta de conjuntos de referencia anotados en idiomas distintos del inglés. Ambos desafíos se manifestaron en este proyecto: el corpus es mayoritariamente en español rioplatense y la muestra de referencia se construyó específicamente para este trabajo.
+En el plano académico, Liao et al. (2016) abordan la extracción automática de indicadores de compromiso desde fuentes abiertas de inteligencia de amenazas y muestran que la calidad de los indicadores depende críticamente de la normalización y del filtrado del texto; ese hallazgo es directamente aplicable a la decisión de este trabajo de priorizar la trazabilidad de cada categoría asignada. Zong et al. (2019) analizan la severidad percibida de las amenazas de ciberseguridad a partir del lenguaje con que se las describe en redes sociales y muestran que ese lenguaje es ruidoso, heterogéneo y dependiente del contexto en que se publica; ese rasgo condiciona cualquier clasificación automática construida sobre texto social. El desafío se manifestó en este proyecto: el corpus es mayoritariamente en español rioplatense, con modismos que no aparecen en los vocabularios técnicos en inglés, y la muestra de referencia se construyó específicamente para este trabajo.
 
 **Antecedente directo de la misma casa de estudios.** Dengra y Rivas (2026) presentan el *Observatorio OSINT: Diseño e implementación de un sistema de recolección y análisis del discurso público sobre ciberseguridad en Bluesky en América Latina y el Caribe*, Trabajo Final de Carrera de la misma carrera y facultad, dirigido por el mismo director que este trabajo. El antecedente es de lectura obligada porque comparte objetivo general y difiere en decisiones estructurales. El contraste se resume en seis puntos:
 
@@ -237,7 +237,7 @@ En el plano académico, Liao et al. (2016) abordan la extracción automática de
 5. **Validación y fiabilidad.** El antecedente construye una muestra de **n = 80** con semilla fija, script versionado y hash del archivo de origen, y la anota con **dos** evaluadores para calcular el **kappa de Cohen** (κ = 0,356 para relevancia temática y κ = 0,758 para país). Este trabajo usa **n = 50** y **un solo anotador**, por lo que no puede reportar acuerdo entre evaluadores. La comparación es incómoda y se declara: el antecedente tiene un mecanismo de fiabilidad que este trabajo no tiene.
 6. **Marco legal y reutilización.** El antecedente invoca la Ley 25.326 y recomienda seudonimizar los identificadores antes de publicar los datos, además de advertir que la recolección multi-jurisdiccional exige adoptar el criterio más estricto disponible. Este trabajo aplica seudonimización irreversible en la etapa de ingesta, lo que respalda y anticipa esa recomendación.
 
-**Brecha de conocimiento.** La brecha que este trabajo aborda no es la ausencia de herramientas OSINT, sino la ausencia de **sistemas de monitoreo continuo adaptados al léxico local y con un mecanismo de detección temporal** sobre comunidades de habla hispana. Las herramientas relevadas asumen el inglés como idioma estándar y no contemplan los modismos con los que los usuarios locales discuten estafas o incidentes: una caída de servicio se narra como «tiraron el sitio» o «se cayeron los servidores», una apropiación de cuenta como «me robaron la contraseña» o «me tomaron el control de la cuenta», y una extorsión como «me piden rescate» o «me bloquearon los archivos». Esos giros no aparecen en los vocabularios técnicos en inglés y son, sin embargo, los que un analista local necesita leer. El diccionario de este trabajo los incorpora de forma explícita (`tiraron el sitio`, `caeron los servidores`, `robaron mi contrasena`, `tomaron control de la cuenta`, `piden rescate`, `bloquearon mis archivos`, entre otros; Anexo C), y la contrapartida de esa decisión —comparar cadenas sin lematizar— es la causa de la mayoría de los falsos positivos declarados en 6.3. Los trabajos académicos disponibles o bien se centran en indicadores técnicos (Liao et al., 2016), o bien relevan plataformas globales sin anclaje local (Zong et al., 2020). El antecedente de Dengra y Rivas (2026) cubre el análisis del discurso en otra plataforma y con otro método. Este trabajo aporta, sobre esa base, un artefacto que además de recolectar y clasificar incorpora un motor de detección de anomalías con umbral estadístico explícito (Capítulo 4, sección 4.5) y un corpus fechado, auditable y con trazabilidad por consulta.
+**Brecha de conocimiento.** La brecha que este trabajo aborda no es la ausencia de herramientas OSINT, sino la ausencia de **sistemas de monitoreo continuo adaptados al léxico local y con un mecanismo de detección temporal** sobre comunidades de habla hispana. Las herramientas relevadas asumen el inglés como idioma estándar y no contemplan los modismos con los que los usuarios locales discuten estafas o incidentes: una caída de servicio se narra como «tiraron el sitio» o «se cayeron los servidores», una apropiación de cuenta como «me robaron la contraseña» o «me tomaron el control de la cuenta», y una extorsión como «me piden rescate» o «me bloquearon los archivos». Esos giros no aparecen en los vocabularios técnicos en inglés y son, sin embargo, los que un analista local necesita leer. El diccionario de este trabajo los incorpora de forma explícita (`tiraron el sitio`, `caeron los servidores`, `robaron mi contrasena`, `tomaron control de la cuenta`, `piden rescate`, `bloquearon mis archivos`, entre otros; Anexo C), y la contrapartida de esa decisión —comparar cadenas sin lematizar— es la causa de la mayoría de los falsos positivos declarados en 6.3. Los trabajos académicos disponibles o bien se centran en indicadores técnicos (Liao et al., 2016), o bien analizan el lenguaje de las amenazas sobre plataformas globales en inglés, sin anclaje local (Zong et al., 2019). El antecedente de Dengra y Rivas (2026) cubre el análisis del discurso en otra plataforma y con otro método. Este trabajo aporta, sobre esa base, un artefacto que además de recolectar y clasificar incorpora un motor de detección de anomalías con umbral estadístico explícito (Capítulo 4, sección 4.5) y un corpus fechado, auditable y con trazabilidad por consulta.
 
 ---
 
@@ -245,7 +245,7 @@ En el plano académico, Liao et al. (2016) abordan la extracción automática de
 
 ## 3.1. Tipo y diseño de la investigación
 
-La presente investigación se enmarca en la modalidad de investigación aplicada tecnológica. Su propósito no se restringe a la teorización conceptual, sino al desarrollo, la validación y la evaluación de un artefacto de software concreto orientado a resolver una problemática operativa real. Para estructurar el desarrollo se adoptaron los principios de la *Design Science Research* (DSR), un marco que orienta la creación y evaluación de artefactos tecnológicos mediante iteraciones de diseño, implementación y pruebas empíricas contra criterios de éxito predefinidos (Hevner et al., 2004). La Tabla 3.1 explicita cómo se aplicó cada fase y qué producto verificable dejó cada una.
+La presente investigación se enmarca en la modalidad de investigación aplicada tecnológica. Su propósito no se restringe a la teorización conceptual, sino al desarrollo, la validación y la evaluación de un artefacto de software concreto orientado a resolver una problemática operativa real. Para estructurar el desarrollo se adoptó el modelo de proceso de la *Design Science Research* (DSR) de seis fases —identificación del problema, definición de objetivos, diseño y desarrollo, demostración, evaluación y comunicación— (Peffers et al., 2007), complementado con los principios generales de diseño de artefactos tecnológicos (Hevner et al., 2004). La Tabla 3.1 explicita cómo se aplicó cada fase y qué producto verificable dejó cada una.
 
 **Tabla 3.1. Aplicación de las fases de la DSR al trabajo**
 
@@ -294,7 +294,7 @@ La muestra efectivamente construida y etiquetada el **30/09/2026** tiene las sig
 ### 3.3.3. Consecuencias declaradas de la brecha entre diseño y ejecución
 
 1. **No hay medida de fiabilidad del etiquetado.** Las métricas del Capítulo 5 son válidas respecto de un etiquetado único y reproducible, pero no informan sobre la estabilidad de ese etiquetado frente a un segundo evaluador. Es la limitación más importante de la evaluación.
-2. **La sensibilidad no es publicable como propiedad del sistema sobre el corpus.** En el estrato sorteado de publicaciones predichas como «No relevante» (22 casos) la etiqueta humana marcó **2 como amenaza**, es decir una omisión del **9,1 %**, con un intervalo de confianza exacto del 95 % de **[1,1 %; 29,2 %]**. Esa amplitud impide estimar la omisión del sistema sobre el corpus con precisión útil, y por lo tanto **no se publica una cifra de sensibilidad poblacional**. El valor puntual se informa como orientación, no como resultado de la ventana. El mismo criterio se aplica a la precisión (`27/29 = 93,1 %`, IC 95 % [77,2 %; 99,2 %]) y a la tasa de falsos positivos (`2/29 = 6,9 %`, IC 95 % [0,8 %; 22,8 %]).
+2. **La sensibilidad no es publicable como propiedad del sistema sobre el corpus.** En el estrato sorteado de publicaciones predichas como «No relevante» (22 casos) la etiqueta humana marcó **2 como amenaza**, es decir una omisión del **9,1 %**, con un intervalo de confianza exacto del 95 % de **[1,1 %; 29,2 %]**. Esa amplitud impide estimar la omisión del sistema sobre el corpus con precisión útil, y por lo tanto **no se publica una cifra de sensibilidad poblacional**. El valor puntual se informa como orientación, no como resultado de la ventana. El mismo criterio se aplica a la precisión (`27/29 = 93,1 %`, IC 95 % [77,2 %; 99,2 %]) y a la tasa de falsos descubrimientos (`2/29 = 6,9 %`, IC 95 % [0,8 %; 22,8 %]).
 3. **La muestra no permite estimar prevalencia.** La estratificación dependiente de la predicción garantiza que la proporción de amenazas en la muestra no represente la del corpus. Toda cifra de prevalencia del Capítulo 5 proviene del **recuento completo del corpus**, nunca de la muestra.
 4. **Sesgo endógeno del diseño.** Como toda muestra estratificada sobre la salida del propio sistema, tiende a medir mejor la precisión que la cobertura. Se declara y se compensa parcialmente con el sorteo del estrato no relevante.
 
@@ -309,7 +309,7 @@ Sobre la clasificación binaria «amenaza / no amenaza» se definen: **TP** (el 
 - **Precisión** = `TP / (TP + FP)`
 - **Sensibilidad (*recall*)** = `TP / (TP + FN)`
 - **F1-score** = media armónica de precisión y sensibilidad
-- **Tasa de falsos positivos** = `FP / (TP + FP)`, con la misma base que la precisión, para evitar la ambigüedad de definirla sobre los negativos
+- **Tasa de falsos descubrimientos** = `FP / (TP + FP)`, con la misma base que la precisión, para evitar la ambigüedad de definirla sobre los negativos. Se adopta esta denominación —y no «tasa de falsos positivos»— porque el denominador son las predicciones positivas, no los negativos reales; su complemento es exactamente la precisión
 - **Exactitud de categoría** = proporción de casos en que la categoría asignada coincide exactamente con la etiqueta humana, incluyendo la categoría «No relevante»
 
 ## 3.4. Aspectos legales, regulatorios y éticos
@@ -654,18 +654,18 @@ Los agregados por categoría —evaluaciones emitidas, publicaciones observadas,
 
 **Tabla 5.8. Métricas de clasificación e intervalos de confianza exactos (n = 50)**
 
-| Métrica | Fórmula | Valor | IC 95 % (exacto) |
-|---|---|---:|---|
-| Precisión | `TP / (TP + FP)` = 27/29 | **0,931** | [0,772; 0,992] |
-| Sensibilidad | `TP / (TP + FN)` = 27/29 | **0,931** | [0,772; 0,992] |
-| F1-score | media armónica | **0,931** | — |
-| Tasa de falsos positivos | `FP / (TP + FP)` = 2/29 | **0,069** | [0,008; 0,228] |
-| Acierto exacto de categoría | coincidencia de etiqueta | **42/50 = 0,840** | — |
-| Omisión en el estrato sorteado | 2 de 22 | **0,091** | [0,011; 0,292] |
+| Métrica | Fórmula | Valor | IC 95 % (exacto) | Alcance |
+|---|---|---|---:|---|
+| Precisión | `TP / (TP + FP)` = 27/29 | **0,931** | [0,772; 0,992] | Estimable sobre la muestra; denominador censado |
+| Sensibilidad | `TP / (TP + FN)` = 27/29 | **0,931** | [0,772; 0,992] | Puntual de la muestra, no poblacional (ver 3.3.3) |
+| F1-score | media armónica | **0,931** | — | Descriptivo de la muestra |
+| Tasa de falsos descubrimientos | `FP / (TP + FP)` = 2/29 | **0,069** | [0,008; 0,228] | Complemento de la precisión |
+| Acierto exacto de categoría | coincidencia de etiqueta | **42/50 = 0,840** | — | Descriptivo de la muestra |
+| Omisión en el estrato sorteado | 2 de 22 | **0,091** | [0,011; 0,292] | Estimable solo dentro del estrato sorteado |
 
 Las etiquetas humanas contienen 29 amenazas y 21 casos no relevantes. Las 29 amenazas se ubican íntegramente en `r/netsec` (9) y `r/Malware` (20); los 8 casos de `r/devsarg` de la muestra fueron etiquetados como no relevantes por el anotador, en línea con el comportamiento observado en la ventana B5, donde esa comunidad aporta el 1,64 % de detecciones sobre su propio contenido.
 
-**Contraste con los criterios comprometidos.** Precisión (0,931 ≥ 0,80), sensibilidad (0,931 ≥ 0,80), F1 (0,931 ≥ 0,80) y tasa de falsos positivos (0,069 ≤ 0,20) **superan los cuatro umbrales** definidos en 1.6. La lectura correcta de este resultado es acotada: mide el comportamiento del clasificador sobre 50 publicaciones reales, con un intervalo de confianza amplio, sobre un corpus que no es el de la ventana B5 y con un único anotador. En la discusión (6.3) se explica por qué el resultado es optimista respecto de la operación real: **la muestra es más rica en amenazas que el corpus** (29 de 50, frente a 23,48 % en la ventana), de modo que el clasificador fue evaluado en una zona donde su desempeño es mejor.
+**Contraste con los criterios comprometidos.** Precisión (0,931 ≥ 0,80), sensibilidad (0,931 ≥ 0,80), F1 (0,931 ≥ 0,80) y tasa de falsos descubrimientos (0,069 ≤ 0,20) **superan los cuatro umbrales** definidos en 1.6 **sobre la muestra de control**. La lectura correcta de este resultado es acotada y distingue el alcance de cada métrica: la **precisión** y la **tasa de falsos descubrimientos** son estimables sobre la muestra porque su denominador es el conjunto censado de predicciones positivas (29 casos), mientras que la **sensibilidad** depende del estrato sorteado de 22 publicaciones predichas como «No relevante» y su valor puntual se informa como orientación, no como propiedad poblacional del sistema (sección 3.3.3). Además, la muestra mide el comportamiento del clasificador sobre 50 publicaciones reales, con un intervalo de confianza amplio, sobre un corpus que no es el de la ventana B5 y con un único anotador. En la discusión (6.3) se explica por qué el resultado es optimista respecto de la operación real: **la muestra es más rica en amenazas que el corpus** (29 de 50, frente a 23,48 % en la ventana), de modo que el clasificador fue evaluado en una zona donde su desempeño es mejor.
 
 **Tabla 5.9. Efecto de la corrección del clasificador (misma muestra, mismo texto)**
 
@@ -726,12 +726,14 @@ La Tabla 5.12 concentra el estado de cada criterio comprometido en 1.6, con la e
 | Criterio | Umbral | Resultado | Estado |
 |---|---|---|---|
 | Precisión | ≥ 80 % | 93,1 % (n = 50) | **CUMPLIDO** |
-| Sensibilidad | ≥ 80 % | 93,1 % (n = 50) | **CUMPLIDO** |
+| Sensibilidad | ≥ 80 % | 93,1 % (n = 50) | **CUMPLIDO sobre la muestra** ᵃ |
 | F1-score | ≥ 0,80 | 0,931 (n = 50) | **CUMPLIDO** |
-| Tasa de falsos positivos | ≤ 20 % | 6,9 % (n = 50) | **CUMPLIDO** |
+| Tasa de falsos descubrimientos | ≤ 20 % | 6,9 % (n = 50) | **CUMPLIDO** |
 | Latencia extremo a extremo | ≤ 5 minutos | P95 = 1.376,2 min; mediana 126,9 min (n = 437) | **NO CUMPLIDO** |
 | Throughput | ≥ 1.000 posts/hora | 1,8 posts/hora de promedio operativo (724 en 17 días); máximo observado de un día: 307 | **NO CUMPLIDO** |
 | Cobertura | ≥ 80 % | — | **RETIRADO** (1.6) |
+
+ᵃ El umbral de sensibilidad se declara cumplido **respecto de la muestra de control**, no como propiedad poblacional del sistema: su valor depende del estrato sorteado de publicaciones predichas como «No relevante» (22 casos), por lo que se informa como orientación y no como estimación de la omisión sobre el corpus (sección 3.3.3). Las restantes métricas de clasificación son estimables sobre la muestra porque su denominador es el conjunto censado de predicciones positivas.
 
 **Sobre el throughput.** El criterio de 1.000 publicaciones por hora no se cumple y la explicación es la misma que en la latencia: la métrica comprometida no distingue **capacidad del artefacto** de **ritmo de la fuente**. La capacidad nominal del diseño es de hasta 300 publicaciones por ciclo (100 por comunidad, el máximo que devuelve el listado) y, con un ciclo cada 15 minutos, de hasta 1.200 por hora si las fuentes produjeran ese volumen. Lo observado es 724 publicaciones en 17 días, un promedio de **42,6 por día, equivalente a 1,8 por hora**. El sistema no es el factor limitante: las tres comunidades juntas generan del orden de decenas de publicaciones nuevas por día, muy por debajo del techo del pipeline. La conclusión se informa sin matices atenuantes: **el criterio, tal como estaba formulado, no se alcanza en operación**, y su formulación confundía la capacidad del artefacto con el ritmo de la fuente.
 
@@ -739,7 +741,7 @@ La Tabla 5.12 concentra el estado de cada criterio comprometido en 1.6, con la e
 
 - **OE1 (recolección automatizada)**: cumplido. El sistema recolectó 724 publicaciones en 16 días efectivos, con una interrupción de servicio documentada y sin pérdida de registros por duplicación.
 - **OE6 (alertas)**: **cumplimiento parcial**. El motor detectó una anomalía legítima, generó la alerta y la registró; la entrega externa por el canal de mensajería no se produjo porque está deshabilitada por configuración. No se declara cumplido, ni se declara no cumplido: el eslabón de detección y registro funciona y está evidenciado, y el eslabón de notificación no fue puesto a prueba.
-- **OE5 (categorización)**: cumplido con las limitaciones declaradas. El clasificador categorizó el 100 % del corpus en nueve categorías posibles, con 8 de ellas observadas, y su desempeño sobre la muestra de control supera los cuatro umbrales comprometidos.
+- **OE4 (categorización)**: cumplido con las limitaciones declaradas. El clasificador categorizó el 100 % del corpus en nueve categorías posibles, con 8 de ellas observadas, y su desempeño sobre la muestra de control supera los umbrales comprometidos de precisión y de tasa de falsos descubrimientos; la sensibilidad se declara cumplida respecto de la muestra, no como propiedad poblacional del sistema (sección 3.3.3).
 
 ---
 
@@ -828,12 +830,14 @@ La Tabla 7.1 vincula cada criterio comprometido en 1.6 con su resultado verifica
 | Criterio de 1.6 | Umbral | Resultado verificado | Evidencia | Estado |
 |---|---|---|---|---|
 | Precisión | ≥ 80 % | 93,1 % (n = 50) | Tabla 5.8 | **Cumplido** |
-| Sensibilidad | ≥ 80 % | 93,1 % (n = 50) | Tabla 5.8 | **Cumplido** |
+| Sensibilidad | ≥ 80 % | 93,1 % (n = 50) | Tabla 5.8 | **Cumplido sobre la muestra** ᵃ |
 | F1-score | ≥ 0,80 | 0,931 (n = 50) | Tabla 5.8 | **Cumplido** |
-| Tasa de falsos positivos | ≤ 20 % | 6,9 % (n = 50) | Tabla 5.8 | **Cumplido** |
+| Tasa de falsos descubrimientos | ≤ 20 % | 6,9 % (n = 50) | Tabla 5.8 | **Cumplido** |
 | Latencia extremo a extremo | ≤ 5 min | P95 = 1.376,2 min; mediana 126,9 min (n = 437) | Tabla 5.4 | **No cumplido** |
 | Throughput | ≥ 1.000 posts/h | 1,8 posts/h de promedio operativo | Sección 5.7 | **No cumplido** |
 | Cobertura | ≥ 80 % | — | Sección 1.6 | **Retirado** |
+
+ᵃ Cumplido respecto de la muestra de control; no es una estimación poblacional. Véase la nota de la Tabla 5.12 y la sección 3.3.3.
 
 **Tabla 7.2. Trazabilidad de los objetivos específicos**
 
@@ -874,7 +878,7 @@ La Tabla 7.1 vincula cada criterio comprometido en 1.6 con su resultado verifica
 
 ## 7.4. Conclusión general
 
-El supuesto de trabajo planteado en 1.6 sostenía que un sistema OSINT de código abierto basado en n8n y PostgreSQL, con clasificación heurística especializada en español, podía automatizar la detección de incidentes con precisión y sensibilidad operativamente útiles. La evidencia reunida respalda ese supuesto **en la dimensión de clasificación** —precisión, sensibilidad, F1 y tasa de falsos positivos superan los umbrales comprometidos— y lo acota en las demás:
+El supuesto de trabajo planteado en 1.6 sostenía que un sistema OSINT de código abierto basado en n8n y PostgreSQL, con clasificación heurística especializada en español, podía automatizar la detección de incidentes con precisión y sensibilidad operativamente útiles. La evidencia reunida respalda ese supuesto **en la dimensión de clasificación** —precisión, sensibilidad, F1 y tasa de falsos descubrimientos superan los umbrales comprometidos— y lo acota en las demás:
 
 - **La detección funciona, la cobertura no se puede afirmar.** No hay base empírica para sostener que el sistema ve todo lo relevante, y ese criterio se retiró en lugar de maquillarse.
 - **El ritmo de la fuente manda sobre la capacidad del artefacto.** Los dos criterios incumplidos derivan de no haber distinguido ambas cosas al formular los umbrales.
@@ -950,13 +954,15 @@ n8n GmbH. (2026). *n8n documentation (v2.40.6): Workflow automation, rate limits
 
 Pastor-Galindo, J., Nespoli, P., Gómez Mármol, F., y Martínez Pérez, G. (2020). The not yet exploited goldmine of OSINT: Opportunities, open challenges and future trends. *IEEE Access, 8*, 10282-10304. https://doi.org/10.1109/ACCESS.2020.2965257
 
+Peffers, K., Tuunanen, T., Rothenberger, M. A., y Chatterjee, S. (2007). A design science research methodology for information systems research. *Journal of Management Information Systems, 24*(3), 45-77. https://doi.org/10.2753/MIS0742-1222240302
+
 PostgreSQL Global Development Group. (2026). *PostgreSQL 18 documentation*. https://www.postgresql.org/docs/18/
 
 Reddit Inc. (2026). *Reddit API terms of service and developer documentation: OAuth2 authentication, rate limiting and endpoint guidelines*. https://www.reddit.com/dev/api/
 
 Russell, M. A., y Klassen, M. (2019). *Mining the social web: Data mining Facebook, Twitter, LinkedIn, Instagram, GitHub, and more* (3.ª ed.). O'Reilly Media.
 
-Zong, S., Yu, C., y Wang, H. (2020). Social media mining for cybersecurity: A survey on platforms, techniques and open challenges. *Cybersecurity Journal, 3*(1), 12-28. https://doi.org/10.1186/s42400-020-00045-w
+Zong, S., Ritter, A., Mueller, G., y Wright, E. (2019). Analyzing the perceived severity of cybersecurity threats reported on social media. En *Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT 2019)* (pp. 1380-1390). Association for Computational Linguistics. https://doi.org/10.18653/v1/N19-1140
 
 ---
 
