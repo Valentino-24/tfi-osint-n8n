@@ -35,6 +35,10 @@ NARANJA = "#b45309"
 VERDE = "#1e6f4f"
 ROJO = "#a11a1a"
 
+# Diagnostico de la ultima figura dibujada (fig + cajas de las tablas), para poder
+# verificar solapamientos sin abrir la imagen.
+ULTIMA_FIGURA: dict = {}
+
 
 def caja(ax, x, y, w, h, texto, color=CELESTE, borde=AZUL, size=8, bold=False, radio=0.02):
     ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle=f"round,pad=0.004,rounding_size={radio}",
@@ -105,33 +109,55 @@ def figura_1():
 
 # ---------------------------------------------------------------- Figura 2
 def figura_2():
+    """Modelo entidad-relacion (DER) del esquema fisico.
+
+    El lienzo se calcula a partir de los tamanos reales de las tablas: la version
+    anterior ubicaba tablas de hasta 87 unidades en un eje de 0..62, de modo que
+    `posts` se salia del canvas y todo el texto se superponia.
+    """
+    ALTO_CABECERA = 6.0
+    ALTO_FILA = 4.4
+    ANCHO_MARCO = 1.5
+    X_A, W_A = 1.0, 31.0
+    X_B, W_B = 37.0, 33.0
+    X_C, W_C = 75.0, 25.0
+    TECHO = 105.0          # y del borde superior de la primera fila de tablas
+    HUECO = 3.0            # separacion vertical entre tablas de una columna
+
     fig, ax = plt.subplots(figsize=(10.4, 6.0))
     ax.set_xlim(0, 100)
-    ax.set_ylim(0, 62)
+    ax.set_ylim(0, 112)
     ax.axis("off")
-    ax.text(1, 59.8, "Figura 2. Modelo entidad-relación del esquema físico (V4/anexos/A_DDL.sql)",
+    ax.text(1, 109, "Figura 2. Modelo entidad-relación del esquema físico (V4/anexos/A_DDL.sql)",
             fontsize=10.5, fontweight="bold")
 
-    def tabla(x, y, w, titulo, filas, borde=AZUL, alto=4.6):
-        h = 6.4 + alto * len(filas)
-        ax.add_patch(Rectangle((x, y), w, h, facecolor="white", edgecolor=borde, linewidth=1.4, zorder=2))
-        ax.add_patch(Rectangle((x, y + h - 4.6), w, 4.6, facecolor=borde, edgecolor=borde, zorder=3))
-        ax.text(x + w / 2, y + h - 2.3, titulo, color="white", fontsize=8, fontweight="bold",
-                ha="center", va="center", zorder=4)
-        for i, (f, t) in enumerate(filas):
-            yy = y + h - 4.6 - alto * (i + 1) + alto / 2
-            ax.text(x + 1.1, yy, f, fontsize=6.6, va="center", zorder=4)
-            ax.text(x + w - 1.1, yy, t, fontsize=6.2, va="center", ha="right", color="#444444", zorder=4)
-        return (x, y, w, h)
+    cajas: list[dict] = []
 
-    sub = tabla(2, 40, 30, "subreddits", [
+    def tabla(x, y, w, titulo, filas, borde=AZUL):
+        h = ALTO_CABECERA + ALTO_FILA * len(filas)
+        ax.add_patch(Rectangle((x, y), w, h, facecolor="white", edgecolor=borde,
+                               linewidth=ANCHO_MARCO, zorder=2))
+        ax.add_patch(Rectangle((x, y + h - ALTO_CABECERA), w, ALTO_CABECERA,
+                               facecolor=borde, edgecolor=borde, zorder=3))
+        ax.text(x + w / 2, y + h - ALTO_CABECERA / 2, titulo, color="white",
+                fontsize=8, fontweight="bold", ha="center", va="center", zorder=4)
+        for i, (izq, der) in enumerate(filas):
+            yy = y + h - ALTO_CABECERA - ALTO_FILA * (i + 1) + ALTO_FILA / 2
+            ax.text(x + 1.1, yy, izq, fontsize=6.6, va="center", zorder=4)
+            if der:
+                ax.text(x + w - 1.1, yy, der, fontsize=6.2, va="center", ha="right",
+                        color="#444444", zorder=4)
+        cajas.append({"x": x, "y": y, "w": w, "h": h, "titulo": titulo})
+        return x, y, w, h
+
+    filas_sub = [
         ("id  VARCHAR(50)  PK", ""),
         ("display_name  VARCHAR(100)", "UNIQUE, NOT NULL"),
         ("subscribers  INTEGER", "DEFAULT 0"),
         ("active_monitoring  BOOLEAN", "DEFAULT TRUE"),
         ("created_at  TIMESTAMPTZ", "DEFAULT now()"),
-    ])
-    pos = tabla(38, 30, 38, "posts", [
+    ]
+    filas_pos = [
         ("id  VARCHAR(50)  PK", ""),
         ("subreddit_id  VARCHAR(50)  FK → subreddits", "RESTRICT"),
         ("title / selftext / url", "NOT NULL / — / —"),
@@ -143,8 +169,8 @@ def figura_2():
         ("entities  JSONB", "—"),
         ("nlp_processed  BOOLEAN", "DEFAULT false"),
         ("ingested_at  TIMESTAMPTZ", "DEFAULT now()"),
-    ])
-    com = tabla(2, 12, 30, "comments", [
+    ]
+    filas_com = [
         ("id  VARCHAR(50)  PK", ""),
         ("post_id  VARCHAR(50)  FK → posts", "CASCADE"),
         ("body  TEXT", "NOT NULL"),
@@ -152,38 +178,66 @@ def figura_2():
         ("score / created_utc", "—"),
         ("nlp_category / nlp_score", "—"),
         ("nlp_processed / ingested_at", "—"),
-    ])
-    ano = tabla(38, 12, 38, "anomalias", [
+    ]
+    filas_ano = [
         ("id  BIGSERIAL  PK", ""),
         ("ventana_inicio / ventana_fin", "TIMESTAMPTZ, NOT NULL"),
         ("categoria  VARCHAR(100)", "NOT NULL"),
         ("n_observado / base_media / umbral", "INT / REAL / REAL"),
         ("disparo  BOOLEAN", "DEFAULT false"),
         ("created_at  TIMESTAMPTZ", "DEFAULT now()"),
-    ])
-    ale = tabla(80, 30, 18, "alertas", [
+    ]
+    filas_ale = [
         ("id  BIGSERIAL  PK", ""),
         ("anomalia_id  FK → anomalias", "CASCADE"),
         ("canal  VARCHAR(50)", "NOT NULL"),
         ("destinatario / payload", "— / JSONB"),
         ("estado  VARCHAR(20)", "DEFAULT ENVIADA"),
         ("created_at", "DEFAULT now()"),
-    ])
+    ]
 
-    flecha(ax, (32, 52), (38, 52), AZUL, lw=1.3)
-    ax.text(35, 53.2, "1:N", fontsize=6.4, color=AZUL, ha="center")
-    flecha(ax, (17, 40), (17, 30), AZUL, lw=1.3)
-    ax.text(18, 35, "1:N", fontsize=6.4, color=AZUL)
-    flecha(ax, (57, 12), (57, 8.4), "#6b3fa0", lw=1.3)
-    flecha(ax, (76, 30), (89, 30), ROJO, lw=1.3)
-    ax.text(82.5, 31.2, "1:N", fontsize=6.4, color=ROJO, ha="center")
-    ax.text(50, 7.2, "ON DELETE RESTRICT en posts.subreddit_id · ON DELETE CASCADE en comments.post_id, "
-                     "alertas.anomalia_id (y en anomalias no hay FK saliente).",
+    def alto(filas):
+        return ALTO_CABECERA + ALTO_FILA * len(filas)
+
+    # Columna A: subreddits arriba, comments debajo (alineadas desde el techo).
+    y_sub = TECHO - alto(filas_sub)
+    y_com = y_sub - HUECO - alto(filas_com)
+    tabla(X_A, y_sub, W_A, "subreddits", filas_sub)
+    tabla(X_A, y_com, W_A, "comments", filas_com)
+
+    # Columna B: posts arriba, anomalias debajo.
+    y_pos = TECHO - alto(filas_pos)
+    y_ano = y_pos - HUECO - alto(filas_ano)
+    tabla(X_B, y_pos, W_B, "posts", filas_pos)
+    tabla(X_B, y_ano, W_B, "anomalias", filas_ano)
+
+    # Columna C: alertas a la altura de anomalias (su tabla padre).
+    y_ale = y_ano
+    tabla(X_C, y_ale, W_C, "alertas", filas_ale)
+
+    # Flechas 1:N entre la tabla padre y la que lleva la FK.
+    flecha(ax, (X_A + W_A, y_sub + alto(filas_sub) / 2), (X_B, y_sub + alto(filas_sub) / 2),
+           AZUL, lw=1.3)
+    ax.text((X_A + W_A + X_B) / 2, y_sub + alto(filas_sub) / 2 + 1.4, "1:N",
+            fontsize=6.4, color=AZUL, ha="center")
+    flecha(ax, (X_B, y_pos + 12), (X_A + W_A, y_pos + 12), AZUL, lw=1.3)
+    ax.text((X_A + W_A + X_B) / 2, y_pos + 13.4, "1:N", fontsize=6.4, color=AZUL, ha="center")
+    flecha(ax, (X_B + W_B, y_ano + alto(filas_ano) / 2), (X_C, y_ano + alto(filas_ano) / 2),
+           ROJO, lw=1.3)
+    ax.text((X_B + W_B + X_C) / 2, y_ano + alto(filas_ano) / 2 + 1.4, "1:N",
+            fontsize=6.4, color=ROJO, ha="center")
+
+    ax.text(50, y_ano - 5.0, "ON DELETE RESTRICT en posts.subreddit_id · ON DELETE CASCADE en "
+                             "comments.post_id y alertas.anomalia_id (anomalias no tiene FK saliente).",
             fontsize=6.8, color=GRIS, ha="center")
-    ax.text(1, 3.6, "Índices: idx_posts_created_utc (btree desc) · idx_posts_nlp_category · idx_posts_ingested_at · "
-                    "idx_comments_post_id · idx_anomalias_created_at. La tabla comments existe pero no se pobló en la ventana B5 (0 filas).",
-            fontsize=6.6, color=GRIS)
-    fig.savefig(os.path.join(FIG, "Figura_2_der.png"), dpi=DPI, bbox_inches="tight", facecolor="white")
+    ax.text(1, y_ano - 8.4, "Índices: idx_posts_created_utc (btree desc) · idx_posts_nlp_category · "
+                            "idx_posts_ingested_at · idx_comments_post_id · idx_anomalias_created_at.\n"
+                            "La tabla comments existe pero no se pobló en la ventana B5 (0 filas).",
+            fontsize=6.6, color=GRIS, va="top")
+    ULTIMA_FIGURA["fig"] = fig
+    ULTIMA_FIGURA["cajas"] = cajas
+    fig.savefig(os.path.join(FIG, "Figura_2_der.png"), dpi=DPI, bbox_inches="tight",
+                facecolor="white")
     plt.close(fig)
 
 

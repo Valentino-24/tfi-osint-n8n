@@ -43,6 +43,9 @@ WD_EXPORT_DOCUMENT_CONTENT = 0
 WD_EXPORT_CREATE_HEADING_BOOKMARKS = 1
 WD_HEADER_FOOTER_PRIMARY = 1
 WD_ALIGN_PAGE_NUMBER_CENTER = 1
+WD_TAB_RIGHT = 2
+WD_TAB_DOTS = 1
+WD_UPPERCASE = 1
 WD_AUTOFIT_WINDOW = 2
 WD_INFO_ACTIVE_END_PAGE = 3
 IDIOMA_ES_AR = 11274
@@ -53,6 +56,7 @@ MARGEN_SUP = 70.9   # 25 mm
 MARGEN_INF = 70.9   # 25 mm
 MARGEN_IZQ = 85.0   # 30 mm
 MARGEN_DER = 56.7   # 20 mm
+ANCHO_UTIL = 595.3 - MARGEN_IZQ - MARGEN_DER   # 453.6 pt
 
 FUENTE_CUERPO = "Times New Roman"
 FUENTE_CODIGO = "Consolas"
@@ -65,6 +69,7 @@ ESTILO_FIGURA = {"Captioned Figure"}
 ESTILO_EPIGRAFE = {"Image Caption"}
 ESTILO_CODIGO = {"Source Code"}
 INDICES = ("Índice general", "Índice de tablas", "Índice de figuras")
+INDICES_MIN = tuple(i.lower() for i in INDICES)
 PREFIJO_INDICE = "índice"
 
 ROTULO = re.compile(r"^(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)?)\.\s")
@@ -104,8 +109,24 @@ def preparar_markdown() -> int:
 
     # Salto de pagina antes de cada titulo de nivel 1 (excepto el primero) y antes
     # del primer indice, para que la portada quede sola en su pagina.
+    # Las entradas del "Indice general" vienen como lista numerada ("1. Titulo"),
+    # y pandoc las vuelve una lista de Word cuyo numero vive en numbering.xml:
+    # al desactivarla se pierden los numeros y las entradas se fusionan. Se
+    # convierten en parrafos planos (el numero lo reescribe estilo_indices).
     salida: list[str] = []
+    en_general = False
     for linea in lineas:
+        if linea.strip() == "## Índice general":
+            en_general = True
+            salida.append(linea)
+            continue
+        if linea.startswith("## "):
+            en_general = False
+        if en_general:
+            m = re.match(r"^(\d+)\.\s+(.+)$", linea.strip())
+            if m:
+                salida += ["", m.group(2)]
+                continue
         corta = linea.startswith("# ") or linea.strip() in ("## Índice general",)
         if corta and any(l.strip() for l in salida):
             salida += [""] + SALTO_OPENXML + [""]
@@ -141,6 +162,40 @@ ORDEN_PPR = ("<w:kinsoku", "<w:wordWrap", "<w:overflowPunct", "<w:topLinePunct",
              "<w:mirrorIndents", "<w:suppressOverlap", "<w:jc", "<w:textAlignment",
              "<w:textboxTightWrap", "<w:outlineLvl", "<w:divId", "<w:cnfStyle",
              "<w:rPr", "<w:sectPr", "<w:pPrChange", "</w:pPr>")
+
+
+def normalizar_indices(ruta) -> None:
+    """Desactiva la numeracion automatica del estilo Compact en el DOCX.
+
+    Pandoc numera las entradas de los tres indices con una lista; en DOCX el
+    glifo ('1.', '•') no vive en el texto sino en numbering.xml, colgado del
+    estilo Compact. Word lo escribe antes del texto y lo empuja al margen con el
+    tab, produciendo '1...... I' + 'ntroduccion ... 10'. Se quita el numPr del
+    estilo y de los parrafos para dejar texto plano, que el script formatea con
+    puntos guia y pagina a la derecha.
+    """
+    try:
+        with zipfile.ZipFile(ruta) as z:
+            partes = [(i, z.read(i.filename)) for i in z.infolist()]
+    except zipfile.BadZipFile:
+        return
+    xml = next(d for i, d in partes if i.filename == "word/document.xml").decode("utf-8")
+    trozos = re.split(r"(<w:p(?:\s[^>]*)?>.*?</w:p>)", xml, flags=re.S)
+    tocados = 0
+    for k, trozo in enumerate(trozos):
+        if not trozo.startswith("<w:p") or "<w:numPr>" not in trozo:
+            continue
+        trozo = re.sub(r"<w:numPr>.*?</w:numPr>", "", trozo, flags=re.S)
+        trozo = re.sub(r'(<w:ind\b[^>]*?)\sw:firstLine="[^"]*"', r"\1", trozo)
+        trozo = re.sub(r'(<w:ind\b[^>]*?)\sw:hanging="[^"]*"', r"\1", trozo)
+        trozos[k] = trozo
+        tocados += 1
+    nuevo = "".join(trozos).encode("utf-8")
+    partes = [(i, nuevo if i.filename == "word/document.xml" else d) for i, d in partes]
+    with zipfile.ZipFile(ruta, "w", zipfile.ZIP_DEFLATED) as z:
+        for info, datos in partes:
+            z.writestr(info, datos)
+    print(f"[pandoc] numeracion de indices desactivada en {tocados} parrafos")
 
 
 def sin_guionado(ruta) -> None:
@@ -179,12 +234,71 @@ def sin_guionado(ruta) -> None:
             z.writestr(info, nuevo if info.filename == "word/document.xml" else datos)
     print(f"[pandoc] guionado desactivado: {titulos} titulos, {otros} parrafos de portada")
 
+    separar_notas(ruta)
+
+
+def separar_notas(ruta) -> None:
+    """Word no acepta tabulaciones ni texto pegado en footnotes/endnotes.
+
+    Las notas de portada se insertan como *footnotes* de pandoc; en DOCX viven
+    en documentos aparte (word/footnotes.xml y word/endnotes.xml), por lo que
+    'escapar' el texto desde document.xml es inviable. Se conserva solo la nota
+    #1 (la del bloque en yaml, que resume version + declaracion) y se quita el
+    resto, que duplicaba el texto en el cuerpo.
+    """
+    try:
+        with zipfile.ZipFile(ruta) as z:
+            partes = [(i, z.read(i.filename)) for i in z.infolist()]
+    except zipfile.BadZipFile:
+        return
+    nombres = {i.filename for i, _ in partes}
+    tocadas = []
+    patron = (r"(<w:(?:foot|end)note\b"
+              r"(?![^>]*w:type=\"(?:separator|continuationSeparator)\")"
+              r"[^>]*>.*?</w:(?:foot|end)note>)")
+    for objetivo in ("word/footnotes.xml", "word/endnotes.xml"):
+        if objetivo not in nombres:
+            continue
+        contenido = next(d for i, d in partes if i.filename == objetivo).decode("utf-8")
+        trozos = re.split(patron, contenido, flags=re.S)
+        notas = [(k, t) for k, t in enumerate(trozos)
+                 if re.match(r"<w:(?:foot|end)note\b", t)]
+        if len(notas) <= 1:
+            continue
+        for k, _ in notas[1:]:
+            trozos[k] = ""
+        nuevo = "".join(trozos).encode("utf-8")
+        partes = [(i, nuevo if i.filename == objetivo else d) for i, d in partes]
+        tocadas.append(f"{objetivo.split('/')[-1]}: {len(notas)} -> 1")
+    if tocadas:
+        with zipfile.ZipFile(ruta, "w", zipfile.ZIP_DEFLATED) as z:
+            for info, datos in partes:
+                z.writestr(info, datos)
+    print(f"[pandoc] notas de portada: {'; '.join(tocadas) if tocadas else 'sin notas'}")
+
 
 # --------------------------------------------------------------------------
 # 2. Word
 # --------------------------------------------------------------------------
 def pagina_actual(rango) -> int:
     return rango.Information(WD_INFO_ACTIVE_END_PAGE)
+
+
+def _parrafos(doc):
+    """Materializa los parrafos en una lista para poder recorrerlos varias veces."""
+    return [doc.Paragraphs(i) for i in range(1, doc.Paragraphs.Count + 1)]
+
+
+def indice_rotulo(doc) -> int:
+    """Indice (1-based) del titulo del primer indice, o 0 si no aparece."""
+    for i, p in enumerate(_parrafos(doc), 1):
+        try:
+            if p.Style.NameLocal in ESTILOS_TITULO and \
+                    p.Range.Text.strip().lower().startswith(PREFIJO_INDICE):
+                return i
+        except Exception:  # noqa: BLE001
+            continue
+    return 0
 
 
 def preparar_pagina(doc) -> None:
@@ -280,24 +394,54 @@ def estilo_titulos(doc) -> None:
 
 
 def estilo_portada(doc) -> None:
-    """Centra la portada (todo lo anterior al primer indice) y agranda el titulo."""
-    primero = True
-    for p in doc.Paragraphs:
+    """Portada limpia: solo los datos del trabajo en la pagina 1.
+
+    Mueve las dos notas (version + declaracion de autoria) a su propia pagina y
+    reparte el aire entre los bloques de la portada. La declaracion de autoria
+    no puede quedar fuera del documento: sigue presente, en la pagina siguiente.
+    """
+    fin = indice_rotulo(doc)
+    parrafos = _parrafos(doc)[: fin - 1 if fin else len(_parrafos(doc))]
+
+    notas = [p for p in parrafos
+             if p.Style.NameLocal in ESTILOS_CITA or "Declaraci" in p.Range.Text]
+    if notas:
+        notas[0].Format.PageBreakBefore = True
+        notas[0].Format.SpaceBefore = 0
+        for p in notas:
+            p.Range.Font.Size = 9.5
+            p.Format.Alignment = WD_ALIGN_JUSTIFY
+            p.Format.SpaceAfter = 10
+
+    for p in parrafos:
+        if p in notas:
+            continue
         try:
             nombre = p.Style.NameLocal
         except Exception:  # noqa: BLE001
             continue
-        texto = p.Range.Text.strip()
-        if nombre in ESTILOS_TITULO and texto.lower().startswith(PREFIJO_INDICE):
-            break
-        if nombre in ESTILOS_CITA:
-            continue
         p.Format.Alignment = WD_ALIGN_CENTER
         p.Format.FirstLineIndent = 0
-        if nombre in ESTILOS_TITULO and primero:
+        p.Format.SpaceAfter = 0
+        texto = p.Range.Text.strip()
+        if nombre in ESTILOS_TITULO:
+            if texto.lower().startswith(PREFIJO_INDICE):
+                break
             p.Range.Font.Size = 16
+            p.Format.SpaceAfter = 36
+        elif texto.startswith("Universidad"):
+            p.Range.Font.Size = 11.5
+            p.Format.SpaceAfter = 6
+        elif texto.startswith("Trabajo Final"):
+            p.Range.Font.Size = 11.5
+            p.Format.SpaceBefore = 24
             p.Format.SpaceAfter = 24
-            primero = False
+        elif texto.startswith("Autores:") or texto.startswith("Directores"):
+            p.Format.SpaceBefore = 36
+            p.Format.SpaceAfter = 12
+        elif "Mendoza" in texto and "2026" in texto:
+            p.Format.SpaceBefore = 48
+        p.Format.LineSpacingRule = WD_LINE_SPACE_SINGLE
 
 
 def estilo_tablas(doc) -> None:
@@ -378,6 +522,88 @@ def estilo_figuras(doc) -> None:
             p.Format.Alignment = WD_ALIGN_LEFT
             p.Format.LineSpacingRule = WD_LINE_SPACE_SINGLE
     print(f"[word] figuras: {figuras}, epigrafes: {epigrafes}")
+
+
+def estilo_indices(doc) -> None:
+    """Rediseña los tres indices: entradas compactas con puntos guia y la pagina
+    al margen derecho, jerarquia por sangria y encabezados en mayusculas.
+
+    Se ejecuta ANTES de numerar_indices: normaliza la lista (quita la numeracion
+    automatica y reescribe el numero del capitulo como texto) para que el sufijo
+    de pagina que agrega numerar_indices se inserte sobre un texto estable.
+    """
+    parrafos = _parrafos(doc)
+    activo, capitulos, tablas_figuras = None, 0, 0
+    for p in parrafos:
+        try:
+            nombre = p.Style.NameLocal
+            texto = p.Range.Text.strip()
+        except Exception:  # noqa: BLE001
+            continue
+        if nombre in ESTILOS_TITULO:
+            if ESTILOS_TITULO[nombre] == 2 and texto.lower() in INDICES_MIN:
+                activo = texto
+                _formato_entrada_indice(p, sangria=0, negrita=True, mayusculas=True)
+                p.Format.SpaceBefore = 16
+            else:
+                activo = None
+            continue
+        if activo is None or not texto:
+            continue
+        if activo.lower() == "índice general":
+            # Las entradas del indice general ya son parrafos planos, en orden de
+            # capitulo: se numeran 1..N por posicion y se escriben en negrita.
+            capitulos += 1
+            texto_plano = re.sub(r"^\d+\.\s*", "", texto)
+            p.Range.Font.Bold = True
+            _formato_entrada_indice(p, sangria=0, negrita=True, mayusculas=True)
+            _numerar_texto_parrafo(p, texto_plano, capitulos)
+        else:
+            tablas_figuras += 1
+            _formato_entrada_indice(p, sangria=12)
+    # el estilo Compact numeraba la lista dentro de numbering.xml: al quitar la
+    # numeracion, el glifo deja de dibujarse. Se comprueba documento a documento.
+    print(f"[word] indices: {capitulos} capitulos, {tablas_figuras} entradas de tablas/figuras")
+
+
+def _numerar_texto_parrafo(p, resto: str, numero: int) -> None:
+    """Escribe 'numero. resto' en un solo parrafo sin fusionar vecinos.
+
+    p.Range.Text = ... reemplaza el rango completo y, en parrafos de lista,
+    abarca los parrafos siguientes: hay que reemplazar solo el texto interno,
+    dejando afuera el fin de parrafo. Se borra el contenido y se inserta al
+    inicio del parrafo.
+    """
+    rango = p.Range
+    rango.End = rango.End - 1                      # no tocar el '\r' final
+    rango.Delete()
+    rango = p.Range
+    rango.SetRange(rango.Start, rango.Start)
+    rango.InsertAfter(f"{numero}. {resto}")
+
+
+def _formato_entrada_indice(p, sangria: int, negrita: bool = False,
+                            mayusculas: bool = False) -> None:
+    f = p.Format
+    f.LeftIndent = sangria
+    f.FirstLineIndent = 0
+    f.Alignment = WD_ALIGN_LEFT
+    f.LineSpacingRule = WD_LINE_SPACE_SINGLE
+    f.SpaceBefore = 0
+    f.SpaceAfter = 3
+    p.Range.Font.Name = FUENTE_CUERPO
+    p.Range.Font.Size = 11
+    p.Range.Font.Bold = negrita
+    if mayusculas:
+        try:
+            p.Range.Case = WD_UPPERCASE
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        f.TabStops.ClearAll()
+        f.TabStops.Add(Position=ANCHO_UTIL, Alignment=WD_TAB_RIGHT, Leader=WD_TAB_DOTS)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def numerar_paginas(doc) -> None:
@@ -467,7 +693,7 @@ def recolectar_entradas(doc):
         except Exception:  # noqa: BLE001
             continue
         if nombre in ESTILOS_TITULO:
-            seccion = texto if (ESTILOS_TITULO[nombre] == 2 and texto in INDICES) else None
+            seccion = texto if (ESTILOS_TITULO[nombre] == 2 and texto.lower() in INDICES_MIN) else None
             continue
         if not seccion or not texto:
             continue
@@ -479,13 +705,6 @@ def recolectar_entradas(doc):
         m = re.match(r"^(\d+)\.\s+\S", texto)
         if m:
             numero = int(m.group(1))
-        else:
-            try:
-                m = re.match(r"^(\d+)", p.Range.ListFormat.ListString.strip())
-                if m:
-                    numero = int(m.group(1))
-            except Exception:  # noqa: BLE001
-                numero = None
         if numero:
             entradas.append((i, texto, numero))
     return entradas
@@ -518,7 +737,7 @@ def numerar_indices(doc, intentos: int = 3) -> None:
             if not pagina:
                 continue
             resueltas += 1
-            sufijo = f"  —  {pagina}"
+            sufijo = f"\t{pagina}"
             previo = aplicados.get(indice)
             if previo and previo[0] == sufijo:
                 continue
@@ -576,6 +795,7 @@ def procesar_con_word(numerar: bool) -> None:
         estilo_tablas(doc)
         espaciado_bloques(doc)
         estilo_figuras(doc)
+        estilo_indices(doc)
         numerar_paginas(doc)
         print(f"[word] paginas tras el formateo: {doc.ComputeStatistics(2)}")
         if numerar:
@@ -659,6 +879,7 @@ def main() -> None:
     correr_pandoc()
     if args.sin_word:
         return
+    normalizar_indices(DOCX_BUILD)
     sin_guionado(DOCX_BUILD)
     procesar_con_word(numerar=not args.sin_numerar_indices)
     verificar(renderizar=args.renderizar)
