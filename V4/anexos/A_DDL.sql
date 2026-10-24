@@ -1,5 +1,5 @@
 -- =====================================================================
---  Anexo A (V4) — DDL REAL del sistema
+--  Anexo A (V5) — DDL REAL del sistema
 --  Motor: PostgreSQL (cluster propio del proyecto, puerto 5433)
 --  Base: tesi_osint  |  Rol: tesi_app
 --
@@ -14,6 +14,12 @@
 --           vía búsqueda de texto completo (no justificado)
 --   [H-01]  author_hash CHAR(64) con HMAC-SHA-256 (la V2 decía
 --           "SHA-256 + Salt" — se corrige terminología y mecanismo en la V4)
+--   [m-21]  alertas.estado DEFAULT 'PENDIENTE' (era 'ENVIADA': una inserción
+--           sin estado explícito quedaba registrada como enviada aunque el
+--           envío estuviera deshabilitado). Renombrados los comentarios.
+--          + anomalias: UNIQUE (categoria, ventana_inicio) para extender la
+--           idempotencia del nodo de análisis a la base (reejecutar el motor
+--           no duplica evaluaciones).
 --
 --  La latencia publicación→ingesta se obtiene de:
 --      ingested_at - created_utc  (no hace falta columna adicional)
@@ -72,17 +78,19 @@ CREATE TABLE IF NOT EXISTS anomalias (
     base_media     REAL        NOT NULL,          -- promedio histórico de la categoría
     umbral         REAL        NOT NULL,          -- umbral disparado (justificado en 4.5)
     disparo        BOOLEAN     NOT NULL DEFAULT FALSE,
-    created_at     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    -- [m-21] una evaluación por (categoría, ventana): reejecutar el motor no duplica
+    CONSTRAINT anomalias_categoria_ventana_uniq UNIQUE (categoria, ventana_inicio)
 );
 
--- 5. Alertas enviadas  [N-06]
+-- 5. Alertas registradas  [N-06]  [m-21]
 CREATE TABLE IF NOT EXISTS alertas (
     id           BIGSERIAL    PRIMARY KEY,
     anomalia_id  BIGINT       REFERENCES anomalias(id) ON DELETE CASCADE,
     canal        VARCHAR(50)  NOT NULL,           -- ej.: 'telegram'
     destinatario VARCHAR(200),
-    payload      JSONB,                           -- mensaje completo enviado
-    estado       VARCHAR(20)  DEFAULT 'ENVIADA',
+    payload      JSONB,                           -- carga útil del aviso (sin datos personales)
+    estado       VARCHAR(20)  DEFAULT 'PENDIENTE', -- [m-21] 'PENDIENTE' hasta confirmar el envío
     created_at   TIMESTAMPTZ  DEFAULT CURRENT_TIMESTAMP
 );
 

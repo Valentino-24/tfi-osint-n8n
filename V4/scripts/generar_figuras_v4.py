@@ -60,8 +60,7 @@ def figura_1():
     ax.set_ylim(0, 62)
     ax.axis("off")
 
-    ax.text(1, 59.6, "Figura 1. Arquitectura del sistema OSINT: capas, nodos y artefactos reales",
-            fontsize=10.5, fontweight="bold", color="#111111")
+    # [m-22] El título va solo en el epígrafe (APA); no se rotula dentro de la imagen.
 
     # Capa 1: fuentes
     caja(ax, 1.5, 44, 20, 11, "FUENTES PÚBLICAS\n\nReddit RSS/Atom\nnew/.rss?limit=100\n\nr/netsec · r/Malware\nr/devsarg", CELESTE, AZUL, 7.6, True)
@@ -87,7 +86,8 @@ def figura_1():
     detalle = [
         "Seudonimización: HMAC-SHA-256 con clave por despliegue",
         "(variable de entorno OSINT_HMAC_KEY); no se persiste el usuario.",
-        "Idempotencia: PRIMARY KEY (id) + ON CONFLICT … DO UPDATE sobre 13 columnas.",
+        "Idempotencia: PRIMARY KEY (id) + ON CONFLICT (id) DO UPDATE SET de 9 columnas",
+        "(no sobrescribe created_utc ni ingested_at; ver §4.3 y Anexo B).",
         "Rate limiting: espera fija de 60 s entre feeds y centinela `_skip`",
         "para cerrar el loop cuando un feed falla (HTTP 429).",
         "Clasificador: diccionario de 9 categorías y 201 términos; score",
@@ -128,8 +128,7 @@ def figura_2():
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 112)
     ax.axis("off")
-    ax.text(1, 109, "Figura 2. Modelo entidad-relación del esquema físico (V4/anexos/A_DDL.sql)",
-            fontsize=10.5, fontweight="bold")
+    # [m-22] El título va solo en el epígrafe (APA); no se rotula dentro de la imagen.
 
     cajas: list[dict] = []
 
@@ -255,24 +254,33 @@ def figura_3():
                 destinos.append((d["node"], d.get("index", 0)))
         conex[origen] = destinos
 
+    # [m-22] Rejilla sin solapamientos; dos carriles separados (ingesta / anomalías).
     pos = {
-        "Schedule Ingesta": (2, 46), "Prepare Subreddits": (20, 46), "Upsert Subreddits": (20, 36),
-        "Loop Over Items": (38, 46), "Espera Rate Limit": (38, 36), "Fetch Posts RSS": (38, 26),
-        "Parse Reddit Posts": (56, 26), "HMAC Anonymize": (74, 26), "Classify Dictionary": (74, 15),
-        "Extract Entities": (74, 4), "Prepare Upsert": (56, 4), "Upsert Posts": (36, 4),
-        "Schedule Anomalias": (2, 36), "Query Daily Counts": (2, 26), "Anomaly Engine": (2, 15),
-        "Registrar Anomalias y Alertas": (2, 4), "Send Telegram Alert": (20, 4),
+        # carril de ingestión
+        "Schedule Ingesta": (26, 60), "Prepare Subreddits": (48, 60), "Loop Over Items": (70, 60),
+        "Upsert Subreddits": (26, 49), "Espera Rate Limit": (70, 49), "Fetch Posts RSS": (70, 38),
+        "Parse Reddit Posts": (70, 27), "HMAC Anonymize": (92, 27), "Classify Dictionary": (92, 16),
+        "Extract Entities": (92, 5), "Prepare Upsert": (70, 5), "Upsert Posts": (48, 5),
+        # carril de anomalías
+        "Schedule Anomalias": (2, 60), "Query Daily Counts": (2, 49), "Anomaly Engine": (2, 38),
+        "Registrar Anomalias y Alertas": (2, 27), "Send Telegram Alert": (2, 16),
     }
     ancho, alto = 16, 7
-    fig, ax = plt.subplots(figsize=(11.0, 6.6))
-    ax.set_xlim(0, 94)
-    ax.set_ylim(0, 58)
+    fig, ax = plt.subplots(figsize=(12.8, 7.6))
+    ax.set_xlim(0, 112)
+    ax.set_ylim(0, 74)
     ax.axis("off")
-    ax.text(0.5, 56.2, f"Figura 3. Grafo de nodos y conexiones del workflow desplegado ({wf['name']})",
-            fontsize=10.5, fontweight="bold")
-    ax.text(0.5, 52.6, f"{len(wf['nodes'])} nodos · active = {str(wf.get('active')).lower()} · "
+    # [m-22] Sin título dentro de la imagen: el único título es el epígrafe (APA).
+    ax.text(0.5, 70.6, f"{len(wf['nodes'])} nodos · active = {str(wf.get('active')).lower()} · "
                        "generado desde el propio export JSON (las conexiones se leen del archivo).",
-            fontsize=7.4, color=GRIS)
+            fontsize=7.6, color=GRIS)
+    # separación visual de carriles
+    ax.plot([22, 22], [1, 68], color="#d9d9d9", lw=1.0, ls=(0, (4, 4)), zorder=0)
+    ax.text(2, 68.2, "CARRIL DE ANOMALÍAS (Schedule Anomalias, diario 12:05)", fontsize=6.8,
+            color="#6b3fa0", fontweight="bold")
+    ax.text(26, 68.2, "CARRIL DE INGESTIÓN (Schedule Ingesta, cada 15 min)", fontsize=6.8,
+            color=VERDE, fontweight="bold")
+
     for nombre, (x, y) in pos.items():
         tipo = nodos[nombre]["type"].split(".")[-1]
         color = CELESTE
@@ -288,6 +296,23 @@ def figura_3():
         elif tipo in ("wait", "splitInBatches"):
             color, borde = "#f2f2f2", GRIS
         caja(ax, x, y, ancho, alto, nombre + "\n" + tipo, color, borde, 6.0, True)
+
+    def anclas(x1, y1, x2, y2):
+        """Punto de salida y de entrada según la posición relativa de las cajas."""
+        if abs(y2 - y1) < 0.5:                    # misma fila → horizontal
+            if x2 > x1:
+                return (x1 + ancho, y1 + alto / 2), (x2, y2 + alto / 2)
+            return (x1, y1 + alto / 2), (x2 + ancho, y2 + alto / 2)
+        if abs(x2 - x1) < 0.5:                    # misma columna → vertical
+            if y2 > y1:
+                return (x1 + ancho / 2, y1 + alto), (x2 + ancho / 2, y2)
+            return (x1 + ancho / 2, y1), (x2 + ancho / 2, y2 + alto)
+        # diagonal: sale por el borde más cercano en horizontal y entra por el opuesto
+        if x2 > x1:
+            return (x1 + ancho, y1 + alto / 2), (x2, y2 + alto / 2)
+        return (x1, y1 + alto / 2), (x2 + ancho, y2 + alto / 2)
+
+    ARCO_CENTINELA = ("Extract Entities", "Loop Over Items")
     for origen, destinos in conex.items():
         if origen not in pos:
             continue
@@ -296,12 +321,19 @@ def figura_3():
             if destino not in pos:
                 continue
             x2, y2 = pos[destino]
-            p1 = (x1 + ancho / 2, y1 + (alto if y2 > y1 else 0))
-            p2 = (x2 + ancho / 2, y2 + (0 if y2 > y1 else alto))
-            estilo = "-|>" if idx == 0 else "-|>"
-            flecha(ax, p1, p2, "#666666", estilo, lw=1.0, rad=0.12)
-    ax.text(56, 0.4, "Rama principal (índice 0) en trazo continuo. El loop se cierra desde Extract Entities hacia Loop Over Items "
-                     "con el centinela `_skip`.", fontsize=6.6, color=GRIS)
+            if (origen, destino) == ARCO_CENTINELA:
+                # [m-22] Arco del centinela: discontinuo, con color y rótulo propios.
+                p1, p2 = (x1, y1 + alto / 2), (x2 + ancho, y2 + alto / 2)
+                flecha(ax, p1, p2, "#6b3fa0", "-|>", ls=(0, (4, 3)), lw=1.3, rad=-0.32)
+                ax.text(63, 33.5, "centinela `_skip`\n(cierra el loop)", fontsize=6.4,
+                        color="#6b3fa0", ha="center",
+                        bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
+                continue
+            p1, p2 = anclas(x1, y1, x2, y2)
+            flecha(ax, p1, p2, "#666666", "-|>", lw=1.0, rad=0.10)
+    ax.text(0.5, 2.0, "Trazo continuo: flujo principal. Trazo discontinuo violeta: cierre del lazo desde "
+                      "Extract Entities hacia Loop Over Items con el centinela `_skip`.",
+            fontsize=6.4, color=GRIS)
     fig.savefig(os.path.join(FIG, "Figura_3_workflow.png"), dpi=DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
@@ -309,29 +341,35 @@ def figura_3():
 # ---------------------------------------------------------------- Figura 4
 def figura_4():
     # Serie de ingesta (consultas Q4 y Q3 archivadas el 2026-10-19)
-    dias = ["10-01", "10-02", "10-04", "10-05", "10-06", "10-07", "10-08", "10-09", "10-10",
+    # [m-22] Eje continuo con 03/10 en cero (interrupción visible).
+    dias = ["10-01", "10-02", "10-03", "10-04", "10-05", "10-06", "10-07", "10-08", "10-09", "10-10",
             "10-11", "10-12", "10-13", "10-14", "10-15", "10-16", "10-17"]
-    posts = [307, 32, 37, 25, 39, 16, 35, 31, 26, 17, 31, 28, 28, 31, 33, 8]
-    eventos = [8, 10, 7, 9, 17, 10, 15, 13, 7, 9, 12, 14, 11, 11, 16, 3]
+    posts = [307, 32, 0, 37, 25, 39, 16, 35, 31, 26, 17, 31, 28, 28, 31, 33, 8]
+    eventos = [8, 10, 0, 7, 9, 17, 10, 15, 13, 7, 9, 12, 14, 11, 11, 16, 3]
     cats = ["Malware", "Vulnerabilidades", "Phishing", "Robo de Credenciales", "Filtración de Datos",
             "Ransomware", "Infraestructura y Ataques", "Hacktivismo"]
     n_cat = [79, 61, 12, 5, 4, 4, 3, 2]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.4, 4.3), gridspec_kw={"width_ratios": [1.55, 1]})
     x = range(len(dias))
-    ax1.bar(x, posts, color=AZUL, width=0.62, label="Posts ingresados")
+    # barra cero con borde distintivo para dejar visible la interrupción
+    bars = ax1.bar(x, posts, color=AZUL, width=0.62, label="Posts ingresados")
+    bars[2].set_color("#c9d6e6")
+    bars[2].set_edgecolor(ROJO)
+    bars[2].set_hatch("///")
     ax1.plot(x, eventos, color=NARANJA, marker="o", markersize=3.4, linewidth=1.3,
              label="Ciclos de ingesta con contenido")
     ax1.set_xticks(list(x))
     ax1.set_xticklabels(dias, rotation=60, fontsize=7)
     ax1.set_ylabel("Publicaciones", fontsize=8)
     ax1.tick_params(axis="y", labelsize=7)
-    ax1.set_title("(a) Ingesta diaria — ventana B5 (2026-10-01 a 2026-10-17)", fontsize=8.6)
+    ax1.set_title("(a) Ingesta diaria — ventana B5 (eje continuo; 03/10 sin recolección)", fontsize=8.4)
     ax1.legend(fontsize=7, frameon=False)
     ax1.grid(axis="y", alpha=0.25)
-    ax1.annotate("primer ciclo:\nbackfill del feed\n(287 posts previos)", xy=(0, 307), xytext=(1.1, 250),
+    ax1.set_xlim(-0.5, len(dias) - 0.5)
+    ax1.annotate("primer ciclo:\nbackfill del feed\n(287 posts previos)", xy=(0, 307), xytext=(0.9, 235),
                  fontsize=6.6, color=GRIS, arrowprops=dict(arrowstyle="->", color=GRIS, lw=0.8))
-    ax1.annotate("sin recolección\nel 10-03", xy=(2, 37), xytext=(2.4, 120), fontsize=6.6, color=ROJO,
+    ax1.annotate("SIN RECOLECCIÓN\n03/10 (equipo apagado)", xy=(2, 0), xytext=(2.8, 95), fontsize=6.2, color=ROJO,
                  arrowprops=dict(arrowstyle="->", color=ROJO, lw=0.8))
 
     ypos = range(len(cats))[::-1]
@@ -340,12 +378,13 @@ def figura_4():
     ax2.set_yticklabels(cats, fontsize=7)
     ax2.set_xlabel("Publicaciones clasificadas", fontsize=8)
     ax2.tick_params(axis="x", labelsize=7)
-    ax2.set_title("(b) Categorías detectadas (n = 170)", fontsize=8.6)
+    ax2.set_title("(b) Categorías detectadas (n = 170)", fontsize=8.4, pad=14)
     ax2.grid(axis="x", alpha=0.25)
     for y, v in zip(ypos, n_cat):
         ax2.text(v + 1.4, y, str(v), fontsize=7, va="center", color="#222222")
-    ax2.text(0, -1.55, "La categoría «Ingeniería Social» (20 términos) no registró coincidencias.\n"
-                       "El residual «No relevante» (554) no se grafica.", fontsize=6.4, color=GRIS)
+    # [m-22] Nota separada del título del eje para evitar solapamiento.
+    ax2.text(0, -2.25, "La categoría «Ingeniería Social» (20 términos) no registró coincidencias.\n"
+                        "El residual «No relevante» (554) no se grafica.", fontsize=6.3, color=GRIS)
     fig.tight_layout()
     fig.savefig(os.path.join(FIG, "Figura_4_serie_temporal.png"), dpi=DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
