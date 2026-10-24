@@ -115,4 +115,4 @@ Orden por prioridad del tribunal (Sección 9). Los ítems 1–5 son condición d
 - [x] 8.3 Completar `CHECKLIST_V5.md` con el estado ítem por ítem (16/16) y las 14 contradicciones - Actualizado con PDF V5
 - [x] 8.4 Verificar «definition of done» del diseño (cero «irreversible», cero IDs literales, anexos, kappa/N₀, etc.) - Verificado: solo negaciones de "irreversible", sin IDs literales, kappa/N₀ presentes.
 - [ ] 8.5 Commit(s) atómicos en español, sin atribución de IA; push
-- [ ] 8.6 Actualizar `CHANGES.md` (C-26 continuado / nuevo estado) si los autores lo confirman
+- [x] 8.6 Actualizar `CHANGES.md` (C-26 continuado / nuevo estado) si los autores lo confirman - Actualizado para reflejar V5.
