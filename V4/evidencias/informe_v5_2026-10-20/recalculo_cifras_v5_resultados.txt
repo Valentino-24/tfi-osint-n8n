@@ -1,0 +1,25 @@
+﻿ total_b5 
+----------
+      724
+(1 row)
+
+       nlp_category        | cnt 
+---------------------------+-----
+ No relevante              | 554
+ Malware                   |  79
+ Vulnerabilidades          |  61
+ Phishing                  |  12
+ Robo de Credenciales      |   5
+ Filtraci├│n de Datos       |   4
+ Ransomware                |   4
+ Infraestructura y Ataques |   3
+ Hacktivismo               |   2
+(9 rows)
+
+ display_name | cnt 
+--------------+-----
+ r/devsarg    | 428
+ r/netsec     | 150
+ r/Malware    | 146
+(3 rows)
+
