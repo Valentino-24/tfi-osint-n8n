@@ -1,0 +1,353 @@
+﻿codigo_interno,estrato_origen,id_plataforma,nlp_category,nlp_score
+C-001,1,1wws0wp,Malware,0.5
+C-002,2,1x5qqw3,No relevante,0
+C-003,1,1vxw6ym,Vulnerabilidades,0.25
+C-004,2,1wwodm7,No relevante,0
+C-005,1,1wn37be,Vulnerabilidades,0.5
+C-006,1,1x7n3e7,Vulnerabilidades,0.25
+C-007,1,1uln9oa,Malware,0.25
+C-008,2,1x407b8,No relevante,0
+C-009,2,1wtalmw,No relevante,0
+C-010,2,1wu77o2,No relevante,0
+C-011,2,1wtpv3j,No relevante,0
+C-012,1,1w6d88z,Malware,0.5
+C-013,2,1x1vf4e,No relevante,0
+C-014,2,1wtjr5v,No relevante,0
+C-015,2,1wqq4i4,No relevante,0
+C-016,1,1vxrqxb,Malware,0.5
+C-017,1,1ws80bi,Vulnerabilidades,0.25
+C-018,1,1uo1q8e,Malware,0.25
+C-019,1,1wuwxp8,Malware,0.25
+C-020,2,1wv3de8,No relevante,0
+C-021,2,1x13cde,No relevante,0
+C-022,1,1wdo45j,Vulnerabilidades,0.75
+C-023,2,1x3r3u8,No relevante,0
+C-024,1,1x8byog,Malware,0.25
+C-025,1,1wn2nxc,Vulnerabilidades,0.25
+C-026,2,1x4ekmi,No relevante,0
+C-027,1,1wnwy4b,Filtración de Datos,0.25
+C-028,2,1x1b34t,No relevante,0
+C-029,2,1v6jcus,No relevante,0
+C-030,2,1ww4wve,No relevante,0
+C-031,2,1wv5ga8,No relevante,0
+C-032,2,1wzeyzd,No relevante,0
+C-033,2,1wvs9ea,No relevante,0
+C-034,2,1x3nrsd,No relevante,0
+C-035,1,1upybtd,Malware,0.25
+C-036,2,1umkvjd,No relevante,0
+C-037,2,1x70g88,No relevante,0
+C-038,1,1vz6179,Malware,0.25
+C-039,1,1w46vwa,Vulnerabilidades,0.25
+C-040,2,1x0a051,No relevante,0
+C-041,1,1tsxdpm,Malware,0.25
+C-042,2,1wubqbr,No relevante,0
+C-043,2,1tp2tt4,No relevante,0
+C-044,2,1x7pb4g,No relevante,0
+C-045,2,1x1cwy7,No relevante,0
+C-046,1,1wvcl33,Vulnerabilidades,0.25
+C-047,1,1wavvo2,Malware,0.5
+C-048,2,1x4tc9q,No relevante,0
+C-049,1,1vvapze,Malware,0.25
+C-050,2,1x57th4,No relevante,0
+C-051,1,1wefzhl,Vulnerabilidades,0.25
+C-052,2,1x6frqy,No relevante,0
+C-053,1,1wd97n3,Malware,0.25
+C-054,2,1wuxjoh,No relevante,0
+C-055,2,1x7rc73,No relevante,0
+C-056,2,1wn4zku,No relevante,0
+C-057,2,1wg4r8v,No relevante,0
+C-058,2,1x5skqc,No relevante,0
+C-059,2,1wrknfd,No relevante,0
+C-060,1,1vzwjcv,Malware,0.25
+C-061,1,1wimrzt,Vulnerabilidades,0.25
+C-062,2,1x7xm8x,No relevante,0
+C-063,1,1v95kr8,Phishing,0.25
+C-064,1,1x0y0kd,Malware,0.25
+C-065,2,1wtq96r,No relevante,0
+C-066,1,1wcz9d7,Malware,0.25
+C-067,1,1uxuw11,Vulnerabilidades,0.5
+C-068,1,1wvucap,Phishing,0.25
+C-069,2,1x1vn7y,No relevante,0
+C-070,2,1w7605w,No relevante,0
+C-071,2,1wtg38l,No relevante,0
+C-072,1,1u7b12l,Malware,0.25
+C-073,2,1x1a2az,No relevante,0
+C-074,1,1wwgdom,Vulnerabilidades,0.25
+C-075,1,1x42omu,Hacktivismo,0.25
+C-076,2,1x80epy,No relevante,0
+C-077,1,1x5pk5e,Phishing,0.25
+C-078,2,1x16mb3,No relevante,0
+C-079,2,1wsmsja,No relevante,0
+C-080,1,1x3mtt3,Malware,0.25
+C-081,1,1wvyt5b,Vulnerabilidades,0.25
+C-082,1,1wtattu,Vulnerabilidades,0.25
+C-083,2,1wrqwnf,No relevante,0
+C-084,2,1ws00gl,No relevante,0
+C-085,1,1x7httc,Vulnerabilidades,0.25
+C-086,2,1x3otnj,No relevante,0
+C-087,2,1vt1dz3,No relevante,0
+C-088,2,1ugu9wj,No relevante,0
+C-089,2,1wqgrts,No relevante,0
+C-090,2,1wu9r3m,No relevante,0
+C-091,1,1wpyg75,Vulnerabilidades,0.25
+C-092,1,1x4s0yk,Vulnerabilidades,0.25
+C-093,1,1x6ortm,Vulnerabilidades,0.5
+C-094,2,1x0rjl7,No relevante,0
+C-095,2,1x2hxpj,No relevante,0
+C-096,1,1wn6m39,Vulnerabilidades,0.25
+C-097,2,1wzacql,No relevante,0
+C-098,2,1wzbbql,No relevante,0
+C-099,1,1wxa5t2,Malware,0.25
+C-100,1,1w704y3,Malware,0.25
+C-101,2,1x188s7,No relevante,0
+C-102,1,1u6lve6,Malware,0.25
+C-103,1,1wsgqxi,Hacktivismo,0.25
+C-104,1,1utzkiq,Malware,0.5
+C-105,2,1x165mn,No relevante,0
+C-106,1,1vyymhq,Vulnerabilidades,0.5
+C-107,2,1x1vl89,No relevante,0
+C-108,2,1wcdwoi,No relevante,0
+C-109,1,1wptgy3,Malware,0.25
+C-110,1,1x5acdz,Phishing,0.25
+C-111,1,1x5gjk9,Vulnerabilidades,0.25
+C-112,1,1umy56h,Malware,0.25
+C-113,2,1wjgti2,No relevante,0
+C-114,1,1x1iyvc,Malware,0.5
+C-115,2,1wu7lwi,No relevante,0
+C-116,1,1wyk09r,Robo de Credenciales,0.25
+C-117,1,1uuvw6i,Malware,0.25
+C-118,1,1wp5mdu,Phishing,0.25
+C-119,1,1w4agtv,Vulnerabilidades,0.5
+C-120,2,1x4vkso,No relevante,0
+C-121,2,1wswj5c,No relevante,0
+C-122,1,1wx4bq9,Malware,0.25
+C-123,2,1wu2el5,No relevante,0
+C-124,2,1wv505q,No relevante,0
+C-125,2,1wx1sv4,No relevante,0
+C-126,2,1wu8khf,No relevante,0
+C-127,1,1wp8r78,Malware,1
+C-128,2,1x26jon,No relevante,0
+C-129,2,1wspp0h,No relevante,0
+C-130,1,1x13vqz,Vulnerabilidades,0.25
+C-131,1,1x3v6od,Vulnerabilidades,0.25
+C-132,2,1x0vpiu,No relevante,0
+C-133,1,1x2vur9,Filtración de Datos,0.25
+C-134,2,1x7t0pw,No relevante,0
+C-135,1,1uxdndn,Malware,0.25
+C-136,2,1wxkwpb,No relevante,0
+C-137,2,1wy6ro0,No relevante,0
+C-138,1,1wi4zky,Malware,0.25
+C-139,2,1wr9sr7,No relevante,0
+C-140,2,1wy8t1h,No relevante,0
+C-141,1,1w4bnbt,Malware,0.25
+C-142,2,1x624q6,No relevante,0
+C-143,2,1x6n1ac,No relevante,0
+C-144,1,1x7cvh3,Vulnerabilidades,0.25
+C-145,2,1x0apth,No relevante,0
+C-146,2,1x4fg17,No relevante,0
+C-147,2,1x231yz,No relevante,0
+C-148,1,1tjtyed,Phishing,0.25
+C-149,2,1wvckog,No relevante,0
+C-150,2,1x6w5em,No relevante,0
+C-151,2,1wtjs98,No relevante,0
+C-152,1,1w4dvux,Vulnerabilidades,0.25
+C-153,2,1x555zq,No relevante,0
+C-154,2,1wzm99f,No relevante,0
+C-155,2,1wwr0is,No relevante,0
+C-156,2,1wwm19z,No relevante,0
+C-157,1,1vqoudv,Malware,1
+C-158,1,1x7fpdw,Malware,0.25
+C-159,2,1wae5zc,No relevante,0
+C-160,2,1x56ptk,No relevante,0
+C-161,1,1x3zwkc,Malware,0.25
+C-162,1,1tkmbf1,Robo de Credenciales,0.25
+C-163,2,1x6otqz,No relevante,0
+C-164,2,1x2dgsg,No relevante,0
+C-165,2,1x7xdt7,No relevante,0
+C-166,2,1vzx029,No relevante,0
+C-167,2,1wyl283,No relevante,0
+C-168,2,1x5f0hb,No relevante,0
+C-169,1,1wr4oql,Malware,0.5
+C-170,2,1ww4ks0,No relevante,0
+C-171,1,1vkt5f9,Vulnerabilidades,0.25
+C-172,2,1wy8wnf,No relevante,0
+C-173,2,1x1tllx,No relevante,0
+C-174,2,1wm96rj,No relevante,0
+C-175,2,1x0e5j0,No relevante,0
+C-176,1,1wpddil,Malware,0.25
+C-177,1,1wwmtnr,Malware,1
+C-178,1,1tvroif,Malware,0.25
+C-179,2,1wi08xx,No relevante,0
+C-180,1,1w4aj8x,Vulnerabilidades,0.25
+C-181,1,1wzw573,Vulnerabilidades,0.5
+C-182,2,1x8dyix,No relevante,0
+C-183,2,1wz7kgz,No relevante,0
+C-184,2,1x48lrh,No relevante,0
+C-185,2,1wtg4cm,No relevante,0
+C-186,2,1wt7um6,No relevante,0
+C-187,1,1x6o056,Robo de Credenciales,0.25
+C-188,2,1wsl75z,No relevante,0
+C-189,1,1v4a1bh,Malware,0.25
+C-190,1,1wyp8cz,Malware,0.25
+C-191,1,1x34tl9,Malware,0.5
+C-192,2,1x7lf5j,No relevante,0
+C-193,1,1wpcgf9,Vulnerabilidades,0.25
+C-194,2,1x4w7vl,No relevante,0
+C-195,1,1wavoo6,Malware,0.25
+C-196,1,1wsajyx,Vulnerabilidades,0.5
+C-197,1,1vbdorb,Ransomware,0.25
+C-198,2,1wm7krn,No relevante,0
+C-199,2,1x5rvmg,No relevante,0
+C-200,1,1x2kl6z,Filtración de Datos,0.25
+C-201,2,1wxtsss,No relevante,0
+C-202,1,1x7oaqe,Malware,0.25
+C-203,1,1wkeh8n,Vulnerabilidades,0.25
+C-204,2,1wsqlcx,No relevante,0
+C-205,1,1vdit0y,Malware,0.5
+C-206,1,1x3a65z,Malware,0.75
+C-207,2,1x3j9mc,No relevante,0
+C-208,1,1u0304j,Malware,0.25
+C-209,2,1x6kz25,No relevante,0
+C-210,2,1wzfqks,No relevante,0
+C-211,1,1wcqfzm,Ransomware,0.25
+C-212,2,1wvry72,No relevante,0
+C-213,2,1x20bjf,No relevante,0
+C-214,1,1x4xuvc,Vulnerabilidades,0.25
+C-215,1,1x4aiu6,Phishing,0.25
+C-216,2,1x0axan,No relevante,0
+C-217,1,1wsbh8j,Vulnerabilidades,0.25
+C-218,1,1wtcs22,Vulnerabilidades,0.75
+C-219,1,1x1squu,Vulnerabilidades,0.5
+C-220,1,1wtgfrw,Filtración de Datos,0.25
+C-221,1,1wz82op,Vulnerabilidades,0.25
+C-222,1,1woli59,Vulnerabilidades,0.5
+C-223,1,1wbi40d,Phishing,0.25
+C-224,2,1vikefx,No relevante,0
+C-225,1,1wy4edi,Vulnerabilidades,0.25
+C-226,1,1vf3niv,Malware,1
+C-227,1,1u9w4y1,Malware,0.25
+C-228,2,1wmkcg0,No relevante,0
+C-229,2,1wxmhzc,No relevante,0
+C-230,1,1x31u86,Phishing,0.25
+C-231,1,1todldg,Malware,0.75
+C-232,1,1u6t0lk,Malware,0.75
+C-233,2,1x6k086,No relevante,0
+C-234,1,1wbiss3,Vulnerabilidades,0.25
+C-235,1,1vyyh8z,Malware,0.25
+C-236,1,1wiv6jo,Malware,0.5
+C-237,2,1v1p6bv,No relevante,0
+C-238,2,1x5h4l5,No relevante,0
+C-239,1,1u0f2ft,Malware,0.25
+C-240,2,1x1gdgl,No relevante,0
+C-241,2,1wzy931,No relevante,0
+C-242,1,1wy0tqq,Malware,0.25
+C-243,1,1x5wiyi,Vulnerabilidades,0.25
+C-244,1,1wz2lr8,Ransomware,0.25
+C-245,2,1x2l1ii,No relevante,0
+C-246,2,1wqe5bv,No relevante,0
+C-247,1,1wwn0fa,Malware,0.25
+C-248,2,1wzfqba,No relevante,0
+C-249,1,1ui3ou8,Malware,0.25
+C-250,1,1wtnh31,Vulnerabilidades,0.25
+C-251,2,1x698bh,No relevante,0
+C-252,2,1wtidbs,No relevante,0
+C-253,2,1wux7s3,No relevante,0
+C-254,1,1tknefx,Malware,0.25
+C-255,2,1wvg8wv,No relevante,0
+C-256,2,1wu4hwd,No relevante,0
+C-257,1,1x69g91,Malware,0.25
+C-258,1,1w9h4ng,Vulnerabilidades,0.25
+C-259,1,1v81e03,Phishing,0.25
+C-260,2,1wumtbe,No relevante,0
+C-261,2,1wzg7ol,No relevante,0
+C-262,1,1wtn3cv,Vulnerabilidades,0.5
+C-263,1,1w05xwz,Vulnerabilidades,0.25
+C-264,2,1wwezti,No relevante,0
+C-265,1,1uiw6ut,Malware,0.25
+C-266,2,1x1vl3c,No relevante,0
+C-267,1,1x2i19l,Vulnerabilidades,0.25
+C-268,1,1tvsx98,Malware,0.25
+C-269,1,1wmhror,Robo de Credenciales,0.25
+C-270,2,1wz511s,No relevante,0
+C-271,1,1wxodh3,Phishing,0.25
+C-272,1,1vyxx41,Malware,0.25
+C-273,2,1x1yxhx,No relevante,0
+C-274,1,1w8w0ou,Infraestructura y Ataques,0.25
+C-275,2,1x0aeam,No relevante,0
+C-276,2,1x6pt2f,No relevante,0
+C-277,2,1w429pe,No relevante,0
+C-278,2,1x0cdcq,No relevante,0
+C-279,2,1wh4ffh,No relevante,0
+C-280,2,1wwdm2f,No relevante,0
+C-281,1,1wy4dpu,Malware,0.25
+C-282,1,1x02s7i,Malware,0.5
+C-283,1,1x3wv86,Vulnerabilidades,0.5
+C-284,2,1wrzq2r,No relevante,0
+C-285,2,1x2g7j7,No relevante,0
+C-286,1,1vy5zqu,Vulnerabilidades,0.25
+C-287,1,1vj4co9,Malware,0.25
+C-288,2,1x0zsh1,No relevante,0
+C-289,2,1x1s5rq,No relevante,0
+C-290,2,1wvzrks,No relevante,0
+C-291,2,1x4uj3q,No relevante,0
+C-292,2,1x3mgx6,No relevante,0
+C-293,1,1wvxp1p,Vulnerabilidades,0.5
+C-294,1,1wg39a3,Vulnerabilidades,0.25
+C-295,2,1x5gx3g,No relevante,0
+C-296,2,1wux63s,No relevante,0
+C-297,1,1x4qs74,Malware,0.5
+C-298,1,1wrwdn2,Malware,0.25
+C-299,2,1x7rp19,No relevante,0
+C-300,1,1u257x9,Malware,1
+C-301,2,1ww23ul,No relevante,0
+C-302,1,1wzo4ef,Malware,0.25
+C-303,2,1x3kzy5,No relevante,0
+C-304,1,1tp6fy4,Malware,0.25
+C-305,1,1wr6wxx,Vulnerabilidades,0.25
+C-306,1,1w36tcq,Vulnerabilidades,0.25
+C-307,2,1x4gqpb,No relevante,0
+C-308,1,1w6ynzn,Malware,0.25
+C-309,2,1x50nkp,No relevante,0
+C-310,2,1x2pnug,No relevante,0
+C-311,2,1x0r4c1,No relevante,0
+C-312,2,1wv12q9,No relevante,0
+C-313,2,1x657hf,No relevante,0
+C-314,2,1x4j70a,No relevante,0
+C-315,1,1wnvaik,Vulnerabilidades,0.25
+C-316,2,1x1kgcs,No relevante,0
+C-317,1,1wut76l,Vulnerabilidades,0.25
+C-318,2,1wsk3bc,No relevante,0
+C-319,2,1x26v8y,No relevante,0
+C-320,1,1x3xa8g,Vulnerabilidades,0.25
+C-321,1,1x5iauj,Malware,1
+C-322,2,1x3hykj,No relevante,0
+C-323,2,1wuvcwf,No relevante,0
+C-324,1,1wq3qzd,Vulnerabilidades,0.25
+C-325,1,1w9qvz3,Vulnerabilidades,0.25
+C-326,1,1ux7nmo,Infraestructura y Ataques,0.25
+C-327,1,1v7ueie,Malware,0.25
+C-328,1,1usu741,Malware,0.25
+C-329,1,1x858fe,Malware,0.75
+C-330,1,1vbhehl,Malware,1
+C-331,2,1x2takg,No relevante,0
+C-332,2,1wyqkor,No relevante,0
+C-333,1,1wop0x1,Phishing,0.25
+C-334,2,1x2ulm1,No relevante,0
+C-335,1,1wzchsp,Robo de Credenciales,0.25
+C-336,2,1wvdmav,No relevante,0
+C-337,1,1wp3kdy,Vulnerabilidades,0.25
+C-338,1,1ws7ih0,Malware,0.25
+C-339,1,1u1x4qj,Malware,0.25
+C-340,2,1x514k5,No relevante,0
+C-341,1,1vfhe03,Vulnerabilidades,0.25
+C-342,1,1wcwx07,Vulnerabilidades,0.25
+C-343,1,1wpkc7q,Vulnerabilidades,0.5
+C-344,1,1w4kdu0,Ransomware,0.25
+C-345,2,1vtgfcy,No relevante,0
+C-346,2,1wtg1nv,No relevante,0
+C-347,1,1uz6tiy,Malware,0.5
+C-348,2,1wsqyh2,No relevante,0
+C-349,1,1wypk3c,Malware,0.75
+C-350,1,1wr7qwo,Infraestructura y Ataques,0.25
+C-351,2,1wvoe2g,No relevante,0
+C-352,2,1x0v7sw,No relevante,0

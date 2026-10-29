@@ -1,0 +1,131 @@
+{
+  "n_total_etiquetado": 352,
+  "comunes": 50,
+  "comunes_completos": 50,
+  "desacuerdos": 20,
+  "desacuerdos_resueltos": 20,
+  "desacuerdos_pendientes": 0,
+  "kappa_fleiss": 0.5089480576167612,
+  "kappa_Po": 0.7,
+  "kappa_Pe": 0.38906666666666667,
+  "kappa_interpretacion": "moderado",
+  "estrato1_n": 170,
+  "estrato1_tp": 144,
+  "estrato1_fp": 26,
+  "estrato2_n": 182,
+  "estrato2_fn": 30,
+  "estrato2_tn": 152,
+  "peso_w": 3.043956043956044,
+  "precision": 0.8470588235294118,
+  "precision_ic": [
+    0.7839906095573628,
+    0.8975960091781574
+  ],
+  "sensibilidad": 0.6119361165592603,
+  "sensibilidad_ic": [
+    0.5339498664507503,
+    0.6950122089948277
+  ],
+  "f1": 0.710552000867585,
+  "f1_ic": [
+    0.6352512710433202,
+    0.783419522774424
+  ],
+  "omision_estrato2": 0.16483516483516483,
+  "omision_ic": [
+    0.11406246373263462,
+    0.22687408033061335
+  ],
+  "acierto_categoria": 0.8055555555555556,
+  "acierto_categoria_n": 116,
+  "acierto_categoria_base": 144,
+  "amenazas_estimadas_poblacion": 235.3186813186813,
+  "fdr": 0.15294117647058825,
+  "por_comunidad": {
+    "r/Malware": {
+      "censo_n": 97,
+      "censo_tp": 81,
+      "censo_fp": 16,
+      "precision": 0.8350515463917526,
+      "muestra_n": 18,
+      "muestra_omitidos": 13,
+      "omision": 0.7222222222222222
+    },
+    "r/devsarg": {
+      "censo_n": 7,
+      "censo_tp": 3,
+      "censo_fp": 4,
+      "precision": 0.42857142857142855,
+      "muestra_n": 135,
+      "muestra_omitidos": 2,
+      "omision": 0.014814814814814815
+    },
+    "r/netsec": {
+      "censo_n": 66,
+      "censo_tp": 60,
+      "censo_fp": 6,
+      "precision": 0.9090909090909091,
+      "muestra_n": 29,
+      "muestra_omitidos": 15,
+      "omision": 0.5172413793103449
+    }
+  },
+  "matriz_categoria": {
+    "Phishing": {
+      "Malware": 1,
+      "No relevante": 3,
+      "Phishing": 5
+    },
+    "No relevante": {
+      "No relevante": 152,
+      "Malware": 16,
+      "Vulnerabilidades": 5,
+      "Hacktivismo": 1,
+      "Filtración de Datos": 2,
+      "Robo de Credenciales": 1,
+      "Infraestructura y Ataques": 1
+    },
+    "Vulnerabilidades": {
+      "Vulnerabilidades": 49,
+      "No relevante": 12,
+      "Malware": 2,
+      "Phishing": 2,
+      "Filtración de Datos": 1,
+      "Robo de Credenciales": 1
+    },
+    "Malware": {
+      "Malware": 59,
+      "No relevante": 14,
+      "Phishing": 5,
+      "Vulnerabilidades": 7,
+      "Robo de Credenciales": 2,
+      "Ransomware": 2,
+      "Infraestructura y Ataques": 1
+    },
+    "Robo de Credenciales": {
+      "Filtración de Datos": 1
+    },
+    "Infraestructura y Ataques": {
+      "Malware": 1,
+      "Hacktivismo": 1,
+      "Infraestructura y Ataques": 1,
+      "Robo de Credenciales": 1
+    },
+    "Filtración de Datos": {
+      "No relevante": 1
+    },
+    "Ransomware": {
+      "Ransomware": 2
+    }
+  },
+  "dist_gold": {
+    "Phishing": 9,
+    "No relevante": 178,
+    "Vulnerabilidades": 67,
+    "Malware": 90,
+    "Robo de Credenciales": 1,
+    "Infraestructura y Ataques": 4,
+    "Filtración de Datos": 1,
+    "Ransomware": 2
+  }
+}
