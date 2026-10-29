@@ -65,3 +65,15 @@ No existe una API REST propia. Las consultas de evidencia se realizan directamen
 - B4: verificado con ingesta RSS real; en la última corrida registrada había 201 posts (`r/argentina`: 101, `r/devsarg`: 100, `r/derechogenial`: 0 por rate limit) y un post clasificado como phishing.
 - B5: la ventana de recolección real quedó **definida y CERRADA**: inicio nominal **2026-09-25** (recolección oficial de datos: **2026-10-01**, IN-09), corte **`2026-10-17`** — fijado el **2026-10-19** por decisión del autor (tarea 6.1 de C-05, **DD-08**). Cerrada con **15 días completos evaluados** (objetivo 15; piso 10 de RN-AN-02) y **724 posts** en el corpus. El corpus se define sobre `posts.ingested_at` con límite superior **fijo** `2026-10-18 00:00:00 -03:00`; los 201 posts de B4 (2026-09-24) quedan fuera del corpus. Bitácora diaria en `V4/evidencias/bitacora_b5/` generada por `V4/scripts/bitacora_b5.py` (solo lectura, con el corte fijo embebido). El `2026-10-18` quedó **sin recolección** (workflow inactivo, 0 ejecuciones de trigger) y se documentó como constancia del hueco; la recolección posterior corre como **track secundario** en el change `recoleccion-secundaria`, sin efecto sobre B5. **La ratificación con los directores no consta en el registro.**
 - B6: las evidencias E1–E15 se producirán a partir de la base y de las corridas reales.
+
+## Generación del informe (PDF)
+
+El informe se escribe en Markdown (`V4/devoluciones/tesis_v5.md`) y el PDF se genera desde ahí, sin edición manual del DOCX:
+
+```powershell
+python V4/scripts/convertir_pdf.py
+```
+
+El conversor arma un DOCX intermedio en `%TEMP%\tfi_tesis_build` (fuera de OneDrive, porque Word no abre un DOCX recién escrito en una carpeta sincronizada), numera los tres índices y exporta con Word a `V4/devoluciones/tesis_v5.pdf`. Al terminar corre `V4/scripts/verificar_pdf.py`, que aplica 10 compuertas —A4, páginas con texto, índices de contenido/tablas/figuras numerados en el DOCX y en el PDF, ausencia de marcadores `@@@`, Times New Roman sin Aptos, márgenes 25/25/30/20 mm, 28 rótulos de tabla y 4 de figura, portada en una página y similitud ≥ 0,97 con el PDF aprobado— y escribe el registro en `V4/devoluciones/build/verificacion_pdf.json`. El comando falla con código ≠ 0 si alguna compuerta no se cumple.
+
+La entrega vigente es la **V5** (2026-10-29): 113 páginas, A4, con los índices en 10/28/4. `V4/documentos/` conserva las versiones anteriores (v2, v3, v4, devoluciones del tribunal y prompts de conversión); `V4/devoluciones/` conserva solo la entrega vigente y la evidencia de recuperación del PDF aprobado del 2026-10-28.

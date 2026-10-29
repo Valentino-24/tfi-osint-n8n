@@ -89,3 +89,16 @@ Antes de cualquier `/opsx:propose`, leer `CHANGES.md`, respetar las dependencias
 ```
 
 Aplicar las reglas duras en cada paso. Ante conflicto entre la KB y este archivo, prevalecen las reglas duras.
+
+## Entrega del informe (PDF)
+
+El PDF se regenera desde el Markdown con **un solo comando**, que además lo valida:
+
+```powershell
+python V4/scripts/convertir_pdf.py
+```
+
+- Lee `V4/devoluciones/tesis_v5.md`, arma el DOCX intermedio en `%TEMP%\tfi_tesis_build` y exporta `V4/devoluciones/tesis_v5.pdf` con Word. El intermedio **nunca** va dentro de OneDrive: abrir con Word un DOCX recién escrito en la carpeta sincronizada deja `Documents.Open` colgado, sin error ni diálogo.
+- Numera los tres índices antes de exportar y después corre `V4/scripts/verificar_pdf.py` (`--sin-verificar` lo omite). Las 10 compuertas son: A4, páginas con texto, índices 10/28/4 numerados en el DOCX y en el PDF, sin marcadores `@@@`, Times New Roman sin Aptos, márgenes 25/25/30/20 mm, 28 rótulos de tabla y 4 de figura, portada en una página y similitud ≥ 0,97 con el PDF aprobado. El registro queda en `V4/devoluciones/build/verificacion_pdf.{json,txt}` y el comando sale con código ≠ 0 si alguna falla.
+- El registro se versiona con `git add -f`, porque `build/` está ignorado. Un PDF no está entregado hasta que el SHA-256 del registro coincide con el del blob commiteado.
+- `V4/documentos/` guarda las versiones anteriores (v2, v3, v4, devoluciones del tribunal y prompts); `V4/devoluciones/` guarda solo la entrega vigente.
