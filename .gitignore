@@ -62,3 +62,30 @@ env.txt
 # trabajo, DOCX intermedio y PNG de revision): no son entregables.
 V4/devoluciones/build/
 
+# =====================================================================
+# Agregados para este repo
+# =====================================================================
+
+# Orquestador runtime
+.jr-orchestrator-state.json
+
+# Prototipo landing page - dependencias y artefactos de build
+prototipo-landing-page/node_modules/
+prototipo-landing-page/.next/
+prototipo-landing-page/dist/
+prototipo-landing-page/build/
+prototipo-landing-page/out/
+prototipo-landing-page/.turbo/
+prototipo-landing-page/coverage/
+prototipo-landing-page/.vercel/
+prototipo-landing-page/*.log
+prototipo-landing-page/npm-debug.log*
+prototipo-landing-page/yarn-debug.log*
+prototipo-landing-page/yarn-error.log*
+prototipo-landing-page/pnpm-debug.log*
+
+# Basura Windows
+desktop.ini
+ehthumbs.db
+Thumbs.db
+

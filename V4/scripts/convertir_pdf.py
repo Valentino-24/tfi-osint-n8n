@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Convierte V4/devoluciones/tesis_v4.md a PDF con calidad de imprenta.
+Convierte el Markdown de la tesis a PDF con la estetica de `tesis_v4.pdf`.
 
 Ruta: Pandoc (Markdown -> DOCX) + Microsoft Word (estilos, saltos de pagina,
 numeracion, indices con pagina, exportacion a PDF). No modifica el Markdown
@@ -8,27 +8,43 @@ original: trabaja sobre una copia en V4/devoluciones/build/.
 
 Uso:
     python V4/scripts/convertir_pdf.py
+    python V4/scripts/convertir_pdf.py --md V4/devoluciones/tesis_v5.md \
+        --out V4/devoluciones/tesis_v5.pdf --fuente "Times New Roman"
     python V4/scripts/convertir_pdf.py --sin-word               (solo el DOCX)
     python V4/scripts/convertir_pdf.py --sin-numerar-indices    (indices tal cual el MD)
     python V4/scripts/convertir_pdf.py --renderizar             (exporta paginas a PNG)
+
+Salida: el PDF en `--out` y el registro de verificacion en
+`V4/devoluciones/build/verificacion_pdf.json`. Si una compuerta falla, termina
+con codigo distinto de cero.
 """
 
 from __future__ import annotations
 
 import argparse
 import io
+import os
 import re
 import shutil
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
-MD_ORIGEN = RAIZ / "V4" / "devoluciones" / "tesis_v4.md"
+MD_ORIGEN = RAIZ / "V4" / "devoluciones" / "tesis_v5.md"
 CARPETA_BUILD = RAIZ / "V4" / "devoluciones" / "build"
-MD_BUILD = CARPETA_BUILD / "tesis_v4.build.md"
-DOCX_BUILD = CARPETA_BUILD / "tesis_v4.docx"
-PDF_SALIDA = RAIZ / "V4" / "devoluciones" / "tesis_v4.pdf"
+# Los intermedios (MD de trabajo, DOCX) viven fuera de OneDrive: abrir Word sobre
+# un archivo recien reescrito dentro de una carpeta sincronizada se cuelga en
+# Documents.Open (el filtro de OneDrive no libera el handle). Solo quedan en el
+# repo los informes (diff, verificacion, capturas).
+CARPETA_TRABAJO = Path(os.environ.get("TEMP", "/tmp")) / "tfi_tesis_build"
+MD_BUILD = CARPETA_TRABAJO / "tesis_v5.build.md"
+DOCX_BUILD = CARPETA_TRABAJO / "tesis_v5.docx"
+PDF_SALIDA = RAIZ / "V4" / "devoluciones" / "tesis_v5.pdf"
+PDF_APROBADO = (RAIZ / "V4" / "devoluciones" / "recuperacion"
+                / "tesis_v5_aprobado_2026-10-28.pdf")
+REGISTRO = CARPETA_BUILD / "verificacion_pdf.json"
 
 # --- Constantes de Word (literales para no depender de la generacion COM) ---
 WD_ALIGN_LEFT = 0
@@ -72,7 +88,8 @@ INDICES = ("Índice general", "Índice de tablas", "Índice de figuras")
 INDICES_MIN = tuple(i.lower() for i in INDICES)
 PREFIJO_INDICE = "índice"
 
-ROTULO = re.compile(r"^(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)?)\.\s")
+ROTULO = re.compile(
+    r"^(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)*(?:\.[a-z])?)\.\s")
 SALTO_OPENXML = ["```{=openxml}", '<w:p><w:r><w:br w:type="page"/></w:r></w:p>', "```"]
 MARCA_SALTO = "\x0c"
 
@@ -132,7 +149,7 @@ def preparar_markdown() -> int:
             salida += [""] + SALTO_OPENXML + [""]
         salida.append(linea)
 
-    CARPETA_BUILD.mkdir(parents=True, exist_ok=True)
+    CARPETA_TRABAJO.mkdir(parents=True, exist_ok=True)
     io.open(MD_BUILD, "w", encoding="utf-8", newline="\n").write("\n".join(salida))
     print(f"[prep] reglas horizontales descartadas: {reglas}")
     return reemplazos
@@ -722,21 +739,26 @@ def numerar_indices(doc, intentos: int = 3) -> None:
         except Exception:  # noqa: BLE001
             continue
     if not pagina_resumen:
-        print("[indices] no se encontro el RESUMEN; se omite la numeracion")
-        return
+        raise SystemExit("[indices] no se encontro el RESUMEN: no se puede numerar")
 
     entradas = recolectar_entradas(doc)
     print(f"[indices] entradas detectadas: {len(entradas)}")
+    if not entradas:
+        raise SystemExit("[indices] no se detecto ninguna entrada de indice")
     aplicados: dict[int, tuple[str, int]] = {}   # indice -> (sufijo escrito, pagina)
+    etiquetas: dict[str, int] = {}
+    capitulos: dict[int, int] = {}
+    resueltas: dict[int, int] = {}
 
     for intento in range(1, intentos + 1):
         etiquetas, capitulos = mapa_cuerpo(doc, pagina_resumen)
-        cambios = resueltas = 0
+        cambios = 0
+        resueltas = {}
         for indice, texto_base, clave in entradas:
             pagina = etiquetas.get(clave) if isinstance(clave, str) else capitulos.get(clave)
             if not pagina:
                 continue
-            resueltas += 1
+            resueltas[indice] = pagina
             sufijo = f"\t{pagina}"
             previo = aplicados.get(indice)
             if previo and previo[0] == sufijo:
@@ -752,7 +774,7 @@ def numerar_indices(doc, intentos: int = 3) -> None:
                 cambios += 1
             except Exception as e:  # noqa: BLE001
                 print(f"[indices] fallo en '{texto_base[:38]}': {e}")
-        print(f"[indices] pasada {intento}: resueltas {resueltas}, escritas {cambios}, "
+        print(f"[indices] pasada {intento}: resueltas {len(resueltas)}, escritas {cambios}, "
               f"rotulos {len(etiquetas)}, capitulos {len(capitulos)}")
         if cambios == 0:
             break
@@ -760,6 +782,14 @@ def numerar_indices(doc, intentos: int = 3) -> None:
     print("[indices] paginas asignadas a los rotulos:")
     for etiqueta in sorted(etiquetas, key=lambda e: (e.split()[0], e.split()[1])):
         print(f"    {etiqueta:14} -> {etiquetas[etiqueta]:3}")
+
+    faltan = [(texto, clave) for indice, texto, clave in entradas
+              if indice not in resueltas]
+    print(f"[indices] cobertura: {len(entradas) - len(faltan)}/{len(entradas)} entradas")
+    if faltan:
+        for texto, clave in faltan[:30]:
+            print(f"    SIN PAGINA: {texto[:78]!r} (clave {clave!r})")
+        raise SystemExit(f"[indices] {len(faltan)} entradas sin pagina: se aborta el build")
 
 
 def exportar_pdf(doc, destino: Path) -> None:
@@ -775,9 +805,17 @@ def exportar_pdf(doc, destino: Path) -> None:
 
 
 def procesar_con_word(numerar: bool) -> None:
-    import win32com.client
+    try:
+        import win32com.client
+    except ImportError as e:
+        raise SystemExit("[word] falta pywin32: instalarlo o usar --sin-word") from e
 
-    word = win32com.client.DispatchEx("Word.Application")
+    try:
+        word = win32com.client.DispatchEx("Word.Application")
+    except Exception as e:  # noqa: BLE001
+        raise SystemExit(
+            "[word] Microsoft Word no esta disponible (COM): " + str(e)
+            + "\n        instalar Word o usar --sin-word para generar solo el DOCX") from e
     word.Visible = False
     word.DisplayAlerts = 0
     try:
@@ -786,20 +824,22 @@ def procesar_con_word(numerar: bool) -> None:
         pass
     doc = None
     try:
+        print("[word] abriendo el DOCX...", flush=True)
         doc = word.Documents.Open(str(DOCX_BUILD), ReadOnly=False, AddToRecentFiles=False)
-        preparar_pagina(doc)
-        arreglar_saltos(doc)
-        estilo_cuerpo(doc)
-        estilo_titulos(doc)
-        estilo_portada(doc)
-        estilo_tablas(doc)
-        espaciado_bloques(doc)
-        estilo_figuras(doc)
-        estilo_indices(doc)
-        numerar_paginas(doc)
-        print(f"[word] paginas tras el formateo: {doc.ComputeStatistics(2)}")
+        print(f"[word] abierto ({DOCX_BUILD.name})", flush=True)
+        pasos = (("pagina", preparar_pagina), ("saltos", arreglar_saltos),
+                 ("cuerpo", estilo_cuerpo), ("titulos", estilo_titulos),
+                 ("portada", estilo_portada), ("tablas", estilo_tablas),
+                 ("espaciado", espaciado_bloques), ("figuras", estilo_figuras),
+                 ("indices", estilo_indices), ("numeracion", numerar_paginas))
+        for nombre, paso in pasos:
+            print(f"[word] {nombre}...", flush=True)
+            paso(doc)
+        print(f"[word] paginas tras el formateo: {doc.ComputeStatistics(2)}", flush=True)
         if numerar:
+            print("[word] numerando indices...", flush=True)
             numerar_indices(doc)
+        print("[word] exportando PDF...", flush=True)
         exportar_pdf(doc, PDF_SALIDA)
         print("[word] DOCX intermedio: " + str(DOCX_BUILD))
         print("[word] PDF generado:    " + str(PDF_SALIDA))
@@ -820,38 +860,22 @@ def rotulos_markdown(texto_md: str) -> list[tuple[str, str]]:
     return patron.findall(texto_md)
 
 
-def verificar(renderizar: bool = False) -> None:
-    import pypdfium2 as pdfium
-
-    texto_md = io.open(MD_ORIGEN, encoding="utf-8").read()
-    rotulos = rotulos_markdown(texto_md)
-    etiquetas_md = {f"{t} {n}." for t, n in rotulos}
+def verificar(renderizar: bool = False) -> int:
+    """Corre las compuertas de verificar_pdf.py; devuelve el codigo de salida."""
+    import verificar_pdf
 
     with zipfile.ZipFile(DOCX_BUILD) as z:
         imagenes = [n for n in z.namelist() if n.startswith("word/media/")]
-
-    pdf = pdfium.PdfDocument(str(PDF_SALIDA))
-    paginas = len(pdf)
-    textos = [pdf[i].get_textpage().get_text_range() for i in range(paginas)]
-    todo = "\n".join(textos)
-    faltantes = sorted(e for e in etiquetas_md if e not in todo)
-
     print("\n=== VERIFICACION ===")
-    print(f"paginas del PDF              : {paginas}")
-    print(f"rotulos en el MD             : {sum(1 for r in rotulos if r[0] == 'Tabla')} tablas, "
-          f"{sum(1 for r in rotulos if r[0] == 'Figura')} figuras")
-    print(f"rotulos ausentes del PDF     : {len(faltantes)} {faltantes if faltantes else ''}")
     print(f"imagenes embebidas en el DOCX: {len(imagenes)}")
-    for marca in ("RESUMEN", "ABSTRACT", "REFERENCIAS BIBLIOGR", "ANEXOS",
-                  "KkotjSD5uO4CXI4D", "17/10/2026"):
-        print(f"contiene {marca:22}: {'si' if marca in todo else 'NO'}")
-    errores = [c for c in ("Error!", "image not found", "COMPLETAR", "TBD", "FIXME")
-               if c in todo]
-    print(f"marcadores de error          : {errores if errores else 'ninguno'}")
-    escasas = [(i + 1, len(t.strip())) for i, t in enumerate(textos) if len(t.strip()) < 250]
-    print(f"paginas casi vacias          : {escasas if escasas else 'ninguna'}")
+
+    codigo = verificar_pdf.ejecutar(PDF_SALIDA, MD_ORIGEN, DOCX_BUILD, PDF_APROBADO)
 
     if renderizar:
+        import pypdfium2 as pdfium
+
+        pdf = pdfium.PdfDocument(str(PDF_SALIDA))
+        textos = [pdf[i].get_textpage().get_text_range() for i in range(len(pdf))]
         carpeta = CARPETA_BUILD / "paginas"
         carpeta.mkdir(parents=True, exist_ok=True)
         elegidas = {0}
@@ -863,27 +887,45 @@ def verificar(renderizar: bool = False) -> None:
         for i in sorted(elegidas):
             pdf[i].render(scale=1.4).to_pil().save(carpeta / f"pagina_{i + 1:03}.png")
         print(f"paginas renderizadas: {[i + 1 for i in sorted(elegidas)]}")
-    pdf.close()
+        pdf.close()
+    return codigo
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Convierte tesis_v4.md a PDF")
-    ap.add_argument("--sin-word", action="store_true")
+def main() -> int:
+    global MD_ORIGEN, MD_BUILD, DOCX_BUILD, PDF_SALIDA, FUENTE_CUERPO
+
+    ap = argparse.ArgumentParser(
+        description="Convierte el Markdown de la tesis a PDF con la estetica de tesis_v4")
+    ap.add_argument("--md", type=Path, default=MD_ORIGEN, help="Markdown de origen")
+    ap.add_argument("--out", type=Path, default=PDF_SALIDA, help="PDF de salida")
+    ap.add_argument("--fuente", default=FUENTE_CUERPO, help="fuente del cuerpo")
+    ap.add_argument("--sin-word", action="store_true", help="solo genera el DOCX")
     ap.add_argument("--sin-numerar-indices", action="store_true")
+    ap.add_argument("--sin-verificar", action="store_true")
     ap.add_argument("--renderizar", action="store_true")
     args = ap.parse_args()
 
+    MD_ORIGEN = args.md if args.md.is_absolute() else RAIZ / args.md
+    PDF_SALIDA = args.out if args.out.is_absolute() else RAIZ / args.out
+    MD_BUILD = CARPETA_TRABAJO / f"{MD_ORIGEN.stem}.build.md"
+    DOCX_BUILD = CARPETA_TRABAJO / f"{MD_ORIGEN.stem}.docx"
+    FUENTE_CUERPO = args.fuente
+
     if not MD_ORIGEN.exists():
         raise SystemExit("no existe " + str(MD_ORIGEN))
+    print(f"[prep] fuente: {MD_ORIGEN}")
     print(f"[prep] rutas de figuras resueltas: {preparar_markdown()}")
     correr_pandoc()
     if args.sin_word:
-        return
+        print("[word] omitido (--sin-word): DOCX en " + str(DOCX_BUILD))
+        return 0
     normalizar_indices(DOCX_BUILD)
     sin_guionado(DOCX_BUILD)
     procesar_con_word(numerar=not args.sin_numerar_indices)
-    verificar(renderizar=args.renderizar)
+    if args.sin_verificar:
+        return 0
+    return verificar(renderizar=args.renderizar)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
