@@ -666,35 +666,31 @@ Tres propiedades del desarrollo se documentan para permitir la auditoría de lo 
 
 Las limitaciones de implementación que condicionan la interpretación de los resultados —ausencia de lematización, vocabulario de la fuente acotado al listado de novedades, ausencia de comentarios, umbral de coincidencia mínimo y saturación de la escala— se retoman de forma consolidada en la sección 6.3, junto con su efecto observable sobre el desempeño medido.
 
-## 4.7. Declaración de trazabilidad y firma
+## 4.7. Hoja de firmas
 
-Los autores declaran que toda la evidencia citada en el presente informe es verificable, reproducible y corresponde al sistema efectivamente implementado y a los datos realmente relevados. Las cifras provienen exclusivamente de consultas `SELECT` sobre la base `tesi_osint`, de archivos de evidencia fechados y de artefactos versionados en el repositorio, tal como se indica en las notas de trazabilidad de los capítulos correspondientes. La sustitución del corpus respecto de las versiones V2/V3 se documenta en la *Declaración de trazabilidad entre versiones* (`V4/evidencias/informe_v5_2026-10-20/Declaracion_trazabilidad_versiones.md`), firmada por los autores y con conocimiento de la dirección.
+Los autores declaran que toda la evidencia citada en el presente informe es verificable, reproducible y corresponde al sistema efectivamente implementado y a los datos realmente relevados. Las cifras provienen exclusivamente de consultas SELECT sobre la base 	esi_osint, de archivos de evidencia fechados y de artefactos versionados en el repositorio, tal como se indica en las notas de trazabilidad de los capítulos correspondientes. La sustitución del corpus respecto de las versiones V2/V3 se documenta en la *Declaración de trazabilidad entre versiones* (V4/evidencias/informe_v5_2026-10-20/Declaracion_trazabilidad_versiones.md).
 
-**Autores:**
+**Autores**
 
-------------------------------------------------------------------------
-
+_________________________  
 **Valentino Lorca**
 
-------------------------------------------------------------------------
-
+_________________________  
 **Jerónimo Zúñiga**
 
-------------------------------------------------------------------------
-
+_________________________  
 **Enzo Severino**
 
-**Directores / Profesores:**
+**Directores**
 
-------------------------------------------------------------------------
-
+_________________________  
 **Prof. Alberto Cortez**
 
-------------------------------------------------------------------------
-
+_________________________  
 **Prof. Ariel Enferrel**
 
-Mendoza, Argentina — 2026
+Mendoza, Argentina — octubre de 2026
+
 
 # CAPÍTULO 5: RESULTADOS
 
@@ -810,6 +806,8 @@ La lectura de esta tabla exige separar dos fenómenos que la cifra agregada mezc
 **La causa tiene dos componentes y la cifra agregada las confunde.** El registro de ejecuciones del motor conserva 382 corridas, de las cuales 361 caen dentro de la ventana y cubren del 05/10 al 18/10; las anteriores no quedaron retenidas. Sobre ese tramo, el intervalo entre corridas es de **15,0 minutos de mediana y 19,3 en el percentil 95, con el 100 % en estado** `success`: la cadencia declarada se cumple mientras el motor está en ejecución. Lo que no se cumple es la continuidad. Uniendo los intervalos entre corrida y corrida, el motor estuvo en ejecución **4.929 minutos de los 25.920 de la ventana, es decir el 19,0 %**, en jornadas que comienzan alrededor de las 12:00 y terminan entre las 19:00 y las 23:00 (hora local). Los `ingested_at` de la base confirman el patrón de manera independiente del registro del motor: en ninguno de los 17 días hubo ingesta entre las 19:00 y las 12:00.
 
 **Descompuesta por estado del motor, la latencia deja de ser un valor único.** De las 437 publicaciones creadas dentro de la ventana, **126 fueron creadas con el motor en ejecución** y **311 (71,2 %) con el motor detenido**. En el primer grupo la latencia es de **9,0 minutos de mediana, 15,7 en el percentil 95 y 16,9 en el máximo**: la firma de un ciclo de 15 minutos con la espera fija entre comunidades. En el segundo, la mediana es de 371,1 minutos y el máximo de 7.020,2, porque la publicación no esperó un ciclo sino el arranque siguiente del motor.
+
+**La cadencia fija la espera, la continuidad fija la latencia.** El motor estuvo en ejecución **4.929 minutos de los 25.920 de la ventana, es decir el 19,0 %**, por lo que la gran mayoría de las publicaciones debió aguardar al siguiente arranque. Con un período de 15 minutos y arribos uniformes, la espera esperada es de **7,5 minutos** —coherente con la mediana de **9,0** del grupo en ejecución—, mientras que la discontinuidad explica la cola larga observada. En consecuencia, la cadencia del ciclo hace inalcanzable el umbral de 5 minutos, pero **no explica un P95 de 1.376,2 minutos (22,9 horas)**: ese valor se debe, fundamentalmente, a la operación intermitente del sistema.
 
 **Por comunidad, el ciclo se comporta igual en las tres.** Entre las publicaciones creadas con el motor en ejecución, la mediana es de 9,3 minutos en `r/devsarg` (n = 105), 9,4 en `r/Malware` (n = 8) y 7,1 en `r/netsec` (n = 13), con máximos de 16,9, 15,8 y 13,8 minutos respectivamente. Las diferencias son de orden menor y no hay una comunidad sistemáticamente postergada: el ciclo de 15 minutos domina a las tres.
 

@@ -1,8 +1,8 @@
 {
-  "fecha": "2026-10-29T13:21:39",
+  "fecha": "2026-10-29T22:49:20",
   "pdf": "C:\\Users\\sever\\OneDrive\\Desktop\\tfi-osint-n8n\\V4\\devoluciones\\tesis_v5.pdf",
-  "sha256": "0ccf5ac3242bf8b691d28431c594357287d16a62465b857afaa5a9e378413e9b",
-  "paginas": 113,
+  "sha256": "ef41a961bd39c6fce24d087ff7fff6f9f7951396b43bbb0c3445ba2b527514a6",
+  "paginas": 114,
   "tamano_pagina_pt": [
     595.3,
     841.9
@@ -16,12 +16,12 @@
     {
       "compuerta": "tamano_a4",
       "ok": true,
-      "detalle": "113 paginas; fuera de A4: ninguna"
+      "detalle": "114 paginas; fuera de A4: ninguna"
     },
     {
       "compuerta": "paginas_con_texto",
       "ok": true,
-      "detalle": "113 paginas; con menos de 40 caracteres: ninguna"
+      "detalle": "114 paginas; con menos de 40 caracteres: ninguna"
     },
     {
       "compuerta": "indices_numerados",
@@ -41,7 +41,7 @@
     {
       "compuerta": "fuentes",
       "ok": true,
-      "detalle": "Times New Roman en 6970 definiciones; Aptos: 0"
+      "detalle": "Times New Roman en 6972 definiciones; Aptos: 0"
     },
     {
       "compuerta": "margenes",
@@ -61,7 +61,7 @@
     {
       "compuerta": "similitud_aprobado",
       "ok": true,
-      "detalle": "0.9815 (minimo 0.97)"
+      "detalle": "0.9798 (minimo 0.97)"
     }
   ],
   "ok": true

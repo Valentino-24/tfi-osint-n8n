@@ -1,13 +1,13 @@
-Verificacion del PDF — 2026-10-29T13:21:39
-PDF: C:\Users\sever\OneDrive\Desktop\tfi-osint-n8n\V4\devoluciones\tesis_v5.pdf (113 paginas) sha256 0ccf5ac3242bf8b691d28431c594357287d16a62465b857afaa5a9e378413e9b
-OK   tamano_a4: 113 paginas; fuera de A4: ninguna
-OK   paginas_con_texto: 113 paginas; con menos de 40 caracteres: ninguna
+Verificacion del PDF — 2026-10-29T22:49:20
+PDF: C:\Users\sever\OneDrive\Desktop\tfi-osint-n8n\V4\devoluciones\tesis_v5.pdf (114 paginas) sha256 ef41a961bd39c6fce24d087ff7fff6f9f7951396b43bbb0c3445ba2b527514a6
+OK   tamano_a4: 114 paginas; fuera de A4: ninguna
+OK   paginas_con_texto: 114 paginas; con menos de 40 caracteres: ninguna
 OK   indices_numerados: entradas {'Índice general': 10, 'Índice de tablas': 28, 'Índice de figuras': 4} (esperado {'Índice general': 10, 'Índice de tablas': 28, 'Índice de figuras': 4}); sin numero: ninguna
 OK   indices_en_pdf: entradas numeradas por indice: {'ÍNDICE GENERAL': '10/10', 'ÍNDICE DE TABLAS': '28/28', 'ÍNDICE DE FIGURAS': '4/4'}
 OK   sin_marcadores: sin '@@@'
-OK   fuentes: Times New Roman en 6970 definiciones; Aptos: 0
+OK   fuentes: Times New Roman en 6972 definiciones; Aptos: 0
 OK   margenes: {'top': 1418, 'right': 1134, 'bottom': 1418, 'left': 1700}; fuera de rango: ninguno
 OK   rotulos: 28 rotulos de tabla y 4 de figura; tablas en el DOCX: 32 (esperado 32); ausentes: ninguno
 OK   portada_una_pagina: portada en la pagina 1 y nota de version en la 2
-OK   similitud_aprobado: 0.9815 (minimo 0.97)
+OK   similitud_aprobado: 0.9798 (minimo 0.97)
 RESULTADO: OK
