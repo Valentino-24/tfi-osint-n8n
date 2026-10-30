@@ -670,24 +670,19 @@ Las limitaciones de implementación que condicionan la interpretación de los re
 
 Los autores declaran que toda la evidencia citada en el presente informe es verificable, reproducible y corresponde al sistema efectivamente implementado y a los datos realmente relevados. Las cifras provienen exclusivamente de consultas SELECT sobre la base 	esi_osint, de archivos de evidencia fechados y de artefactos versionados en el repositorio, tal como se indica en las notas de trazabilidad de los capítulos correspondientes. La sustitución del corpus respecto de las versiones V2/V3 se documenta en la *Declaración de trazabilidad entre versiones* (V4/evidencias/informe_v5_2026-10-20/Declaracion_trazabilidad_versiones.md).
 
-**Autores**
+Autores:
 
-_________________________  
-**Valentino Lorca**
+_________________________ Valentino Lorca
 
-_________________________  
-**Jerónimo Zúñiga**
+_________________________ Jerónimo Zúñiga
 
-_________________________  
-**Enzo Severino**
+_________________________ Enzo Severino
 
-**Directores**
+Directores:
 
-_________________________  
-**Prof. Alberto Cortez**
+_________________________ Prof. Alberto Cortez
 
-_________________________  
-**Prof. Ariel Enferrel**
+_________________________ Prof. Ariel Enferrel
 
 Mendoza, Argentina — octubre de 2026
 
