@@ -1,39 +1,49 @@
 # SISTEMA AUTOMATIZADO DE MONITOREO DE FOROS Y REDES SOCIALES PARA LA DETECCIÓN DE TENDENCIAS Y ALERTAS EN CIBERSEGURIDAD EN COMUNIDADES TÉCNICAS DE REDDIT MEDIANTE OSINT Y N8N
 
-**Universidad Tecnológica Nacional — Facultad Regional Mendoza**
+**Universidad Tecnológica Nacional — Facultad Regional Mendoza**  
 Tecnicatura Universitaria en Programación
 
-Trabajo Final de Carrera para optar al título de Técnico Universitario en Programación
+Trabajo Final de Inserción para optar al título de Técnico Universitario en Programación
 
-**Autores:** Valentino Lorca · Jerónimo Zúñiga · Enzo Severino
-**Directores / Profesores:** Prof. Alberto Cortez · Prof. Ariel Enferrel
+**Autores:** Valentino Lorca · Jerónimo Zúñiga · Enzo Severino  
+**Directores / Profesores:** Prof. Alberto Cortez · Prof. Ariel Enferrel  
 Mendoza, Argentina — 2026
 
 > **Versión del documento (V5).** Esta es la quinta versión del informe y la reentrega solicitada por el tribunal tras la evaluación de la V4, atendiendo las correcciones obligatorias de la devolución (6,9/10, APROBADO CON CORRECCIONES OBLIGATORIAS). Se reconstruye sobre la base textual de la V2 e incorpora el sistema efectivamente implementado y los datos realmente relevados. El corpus evaluado es el correspondiente a la ventana de recolección **B5**, con **último día de recolección 17/10/2026** y corte del corpus en el **inicio del 18/10/2026**, compuesto por **724 publicaciones** de **3 subreddits** relevadas en **16 fechas** (el 03/10/2026 no hubo recolección). Los datos que respaldan cada tabla y figura de este informe están archivados con su consulta, su fecha y su `n` en `docs/evidencias/informe_v5_2026-10-20/` y en las evidencias previas del repositorio del proyecto.
 >
-> **Declaración de autoría y de uso de herramientas de asistencia.** La concepción del problema, el diseño del sistema, la operación del pipeline, el etiquetado de la validación (n = 352: 50 con consenso de tres anotadores, 302 con etiqueta de un solo anotador) y la interpretación de los resultados son de los autores. Para la elaboración de este trabajo se utilizaron **herramientas generativas de gran modelo de lenguaje (LLM)** con fines de asistencia: **OpenCode** con el modelo **opencode/big-pickle** (versión utilizada en el entorno de desarrollo, octubre de 2026), **Anthropic Claude Sonnet 4.5** y **Anthropic Claude Opus 4.5** (mediante las interfaces correspondientes). Su uso fue el siguiente: redacción y refactorización de código JavaScript para los nodos de n8n, generación y revisión de scripts SQL y Python (`docs/scripts/`), redacción y corrección de documentación técnica, verificación de formato y estructura del informe, y **apoyo en la preparación y revisión del proceso de etiquetado** de la validación (guía de anotación, definición de criterios y verificación de coherencia entre casos). Las herramientas no decidieron etiquetas finales ni la adjudicación; cualquier ajuste derivado de esa verificación fue revisado por los autores. Ninguna cifra publicada fue generada por un asistente: todas provienen de consultas `SELECT` sobre la base `tesi_osint` o de archivos de evidencia fechados que se citan en el propio texto. El trabajo final y su contenido son responsabilidad exclusiva de los autores.
+> **Declaración de autoría y de uso de herramientas de asistencia.** La concepción del problema, el diseño del sistema, la operación del pipeline, el etiquetado de la validación (n = 352, con tres anotadores) y la interpretación de los resultados son de los autores. Para la elaboración de este trabajo se utilizaron **herramientas generativas de gran modelo de lenguaje (LLM)** con fines de asistencia: **OpenCode** con el modelo **opencode/big-pickle** (versión utilizada en el entorno de desarrollo, octubre de 2026), **Anthropic Claude Sonnet 4.5** y **Anthropic Claude Opus 4.5** (mediante las interfaces correspondientes). Su uso fue el siguiente: redacción y refactorización de código JavaScript para los nodos de n8n, generación y revisión de scripts SQL y Python (`docs/scripts/`), redacción y corrección de documentación técnica, verificación de formato y estructura del informe, y **apoyo en la preparación y revisión del proceso de etiquetado** de la validación (guía de anotación, definición de criterios y verificación de coherencia entre casos), sin delegar la decisión final de etiqueta ni la adjudicación de desacuerdos. Ninguna cifra publicada fue generada por un asistente: todas provienen de consultas `SELECT` sobre la base `tesi_osint` o de archivos de evidencia fechados que se citan en el propio texto. El trabajo final y su contenido son responsabilidad exclusiva de los autores.
 
 ## Índice general
 
-1. Introducción
 
-2. Marco teórico y estado del arte
+Introducción
 
-3. Marco metodológico
 
-4. Desarrollo del sistema
+Marco teórico y estado del arte
 
-5. Resultados
 
-6. Discusión
+Marco metodológico
 
-7. Conclusiones
 
-8. Recomendaciones y trabajos futuros
+Desarrollo del sistema
 
-9. Referencias bibliográficas
 
-10. Anexos A–E
+Resultados
+
+
+Discusión
+
+
+Conclusiones
+
+
+Recomendaciones y trabajos futuros
+
+
+Referencias bibliográficas
+
+
+Anexos A–E
 
 ## Índice de tablas
 
@@ -107,19 +117,29 @@ Figura 4. Serie temporal de la ingesta y categorías detectadas
 
 **B5**: ventana de recolección. **DDL**: *Data Definition Language*. **DSR**: *Design Science Research*. **ETL**: *Extract, Transform, Load*. **FN/FP**: falso negativo/positivo. **HMAC**: *Hash-based Message Authentication Code*. **NLP**: *Natural Language Processing*. **OE**: objetivo específico. **OSINT**: *Open Source Intelligence*. **PI**: pregunta de investigación. **P50/P95**: percentiles. **RSS/Atom**: formatos de sindicación. **SOCMINT**: *Social Media Intelligence*. **TTP**: tácticas, técnicas y procedimientos. **TN/TP**: verdadero negativo/positivo.
 
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
 # RESUMEN
 
 El presente Trabajo Final de Inserción detalla el diseño, desarrollo, implementación y evaluación de un sistema automatizado de monitoreo de comunidades digitales, concebido para recolectar, procesar, almacenar y analizar información pública relevante en el ámbito de la ciberseguridad en comunidades técnicas de Reddit, con atención al léxico rioplatense, enmarcado en el paradigma de la Inteligencia de Fuentes Abiertas (OSINT). El proyecto aborda la problemática de la dispersión, heterogeneidad y falta de estructuración de los datos disponibles en internet, que dificultan la detección oportuna de amenazas y vulnerabilidades. La solución implementada integra herramientas de código abierto: n8n 2.40.6 para la orquestación de un pipeline ETL, PostgreSQL 18 para el almacenamiento relacional estructurado y un clasificador heurístico bilingüe, ejecutado dentro del propio orquestador, para la categorización de incidentes.
 
-La recolección se realizó sobre la fuente pública de Reddit en jornadas operadas por el equipo en formato RSS/Atom (`new/.rss`) de tres comunidades con monitoreo activo: r/netsec, r/Malware y r/devsarg. El corpus analizado corresponde a la ventana de recolección cerrada el 17/10/2026 y está compuesto por **724 publicaciones** persistidas entre el 01/10/2026 y el 17/10/2026, con **15 fechas de evaluación** registradas por el motor de anomalías. El flujo se ejecutó en jornadas diurnas operadas manualmente —4.929 minutos de 24.480 minutos de la ventana de 17 días, el 20,1 % aproximado tras normalizar el intervalo—; la instancia de n8n fue operada intermitentemente, no en modo continuo., con una espera fija entre comunidades para respetar los límites de la plataforma, y aplicó una seudonimización de los autores mediante HMAC-SHA-256 con clave por despliegue antes de persistir cada registro.
+La recolección se realizó sobre la fuente pública de Reddit en formato RSS/Atom (`new/.rss`) de tres comunidades con monitoreo activo: r/netsec, r/Malware y r/devsarg. El corpus analizado corresponde a la ventana de recolección cerrada el 17/10/2026 y está compuesto por **724 publicaciones** persistidas entre el 01/10/2026 y el 17/10/2026, con **15 fechas de evaluación** registradas por el motor de anomalías. El flujo se ejecutó cada 15 minutos durante jornadas diurnas —4.929 minutos de los 25.920 de la ventana, el 19,0 %—, con una espera fija entre comunidades para respetar los límites de la plataforma, y aplicó una seudonimización de los autores mediante HMAC-SHA-256 con clave por despliegue antes de persistir cada registro.
 
 Sobre ese corpus, el clasificador —9 categorías y 201 términos, con una puntuación saturante `min(1, hits/4)` y umbral mínimo de una coincidencia— determinó que el 76,52 % de las publicaciones no era relevante y asignó las 170 restantes a 8 categorías de amenaza, con predominio de Malware (79) y Vulnerabilidades (61). El motor de detección evaluó 8 categorías en 15 fechas mediante un umbral de Poisson calibrado sobre una ventana móvil de 11 días, con un piso absoluto de 3 eventos, y registró 6 disparos.
 
-La validación se hizo sobre el corte exacto del corpus: se etiquetaron **352 publicaciones** —el censo de las 170 que el clasificador marcó como amenaza y una muestra aleatoria de 182 de las 554 marcadas como «No relevante»— con **50 casos** etiquetados por **tres anotadores** con adjudicación por consenso y **302 casos** etiquetados por **un solo anotador**. La evidencia de muestreo detalla el anotador y la coincidencia con el consenso en los 50 casos comunes. La precisión fue de **0,847** (IC 95 % [0,784; 0,898]), la sensibilidad ponderada por el muestreo de **0,612** ([0,534; 0,695]) y el F1-score de **0,711** ([0,635; 0,783]); la tasa de falsos descubrimientos fue del **15,3 %** y la estimación de amenazas en el corpus, de **235 publicaciones (32,5 %)**, frente a las 170 que marcó el clasificador. **Solo el criterio de precisión se cumple**: la sensibilidad y el F1 quedan por debajo del 80 % comprometido, y el acuerdo entre anotadores (κ de Fleiss = 0,509) también queda por debajo del 0,61 comprometido. Las tres brechas se informan como resultados y no se atenúan.
+La validación se hizo sobre el corte exacto del corpus: se etiquetaron **352 publicaciones** —el censo de las 170 que el clasificador marcó como amenaza y una muestra aleatoria de 182 de las 554 marcadas como «No relevante»— con un protocolo de **tres anotadores** y adjudicación por consenso. La precisión fue de **0,847** (IC 95 % [0,784; 0,898]), la sensibilidad ponderada por el muestreo de **0,612** ([0,534; 0,695]) y el F1-score de **0,711** ([0,635; 0,783]); la tasa de falsos descubrimientos fue del **15,3 %** y la estimación de amenazas en el corpus, de **235 publicaciones (32,5 %)**, frente a las 170 que marcó el clasificador. **Solo el criterio de precisión se cumple**: la sensibilidad y el F1 quedan por debajo del 80 % comprometido, y el acuerdo entre anotadores (κ de Fleiss = 0,509) también queda por debajo del 0,61 comprometido. Las tres brechas se informan como resultados y no se atenúan.
 
 Los resultados son deliberadamente presentados con su alcance: el criterio de cobertura se retira por no ser verificable con una única fuente y una única captura; el criterio de latencia extremo a extremo (≤ 5 minutos) **no se cumple** (P95 medido de 1.376 minutos sobre las publicaciones creadas dentro de la ventana), y el criterio de throughput (≥ 1.000 posts/hora) se declara **no evaluado**, porque no se midió la capacidad del artefacto: el ritmo observado (alrededor de 45 publicaciones por día) describe la demanda de la fuente, no la capacidad del sistema. El módulo de alertas quedó implementado y deshabilitado por defecto, sin evidencia de envío real. El motor de anomalías está implementado, pero **su eficacia no está demostrada**: recalculado sobre la fecha de creación de las publicaciones y con una línea base libre de la carga inicial, no emite ningún aviso en quince días. El informe documenta el marco legal de protección de datos personales bajo la Ley Nacional 25.326 y el Decreto 1558/2001, los principios de minimización y seudonimización aplicados y el riesgo residual que persiste sobre datos potencialmente reidentificables.
 
 **Palabras clave:** OSINT, ciberseguridad, n8n, Reddit, NLP, automatización, léxico rioplatense.
+
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
 
 # ABSTRACT
 
@@ -134,6 +154,11 @@ Validation was performed on the exact corpus cut: **352 posts** were labeled —
 Results are deliberately reported with their scope: the coverage criterion is withdrawn because it is not verifiable with a single source and a single capture; the end-to-end latency criterion (≤ 5 minutes) is **not met** (measured P95 of 1,376 minutes for posts created within the window), and the throughput criterion (≥ 1,000 posts/hour) is declared **not evaluated**, because the artifact’s capacity was not measured: the observed rate (about 45 posts per day) describes the source’s demand, not the system’s capacity. The alerting module is implemented but disabled by default, with no evidence of real delivery. The anomaly engine is likewise implemented, but its efficacy is not demonstrated: recalculated on post creation time with a baseline free of the initial load, it raises no alerts across fifteen days. The report documents the personal data protection legal framework under Argentina’s National Law 25.326 and Decree 1558/2001, the minimization and pseudonymization principles applied, and the residual risk that persists over potentially re-identifiable data.
 
 **Keywords:** OSINT, cybersecurity, n8n, Reddit, NLP, automation, Rioplatense Spanish.
+
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
 
 # CAPÍTULO 1: INTRODUCCIÓN
 
@@ -230,6 +255,11 @@ De acuerdo con la metodología *Design Science Research* (DSR) adoptada, se esta
 
 **PI-4.** ¿De qué manera se puede proteger la privacidad de los usuarios en un sistema de monitoreo público persistente, en cumplimiento de la normativa argentina?
 
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
 # CAPÍTULO 2: MARCO TEÓRICO Y ESTADO DEL ARTE
 
 ## 2.1. Marco conceptual
@@ -309,6 +339,11 @@ En el plano académico, Liao et al. (2016) abordan la extracción automática de
 **Brecha de conocimiento.** La brecha que este trabajo aborda no es la ausencia de herramientas OSINT, sino la ausencia de un **sistema de monitoreo continuo y de bajo costo, con clasificación temática auditable y un mecanismo de detección temporal sobre comunidades técnicas de Reddit**, allí donde las herramientas relevadas se orientan al reconocimiento puntual de infraestructura y no al seguimiento sostenido de contenido social. La reformulación del alcance se declara con precisión, porque la versión previa la sostenía sobre un objeto distinto: **el objeto de este trabajo son comunidades técnicas de Reddit, no la cobertura territorial de un país ni las comunidades de habla hispana en general**. Una de las tres comunidades relevadas (r/devsarg) publica en español rioplatense; las otras dos (r/netsec y r/Malware), incorporadas por su densidad de reportes verificables, publican en inglés y **concentran la mayoría de las detecciones**. El componente local de este trabajo es, por lo tanto, **exploratorio**, y así debe leerse.
 
 Lo que la brecha retiene como aporte es acotado y verificable. Las herramientas relevadas asumen el inglés como idioma estándar y no contemplan los modismos con los que los usuarios locales discuten estafas o incidentes: una caída de servicio se narra como «tiraron el sitio» o «se cayeron los servidores», una apropiación de cuenta como «me robaron la contraseña» o «me tomaron el control de la cuenta», y una extorsión como «me piden rescate» o «me bloquearon los archivos». Esos giros no aparecen en los vocabularios técnicos en inglés, y un analista local necesita leerlos. El diccionario de este trabajo los incorpora de forma explícita (`tiraron el sitio`, `caeron los servidores`, `robaron mi contrasena`, `tomaron control de la cuenta`, `piden rescate`, `bloquearon mis archivos`, entre otros; Anexo C), y la contrapartida de esa decisión —comparar cadenas sin lematizar— es la causa de la mayoría de los falsos positivos declarados en 6.3. Ese aporte de vocabulario **se ilustra con los dos casos locales** documentados en 6.2, no se verifica como propiedad poblacional del sistema. Los trabajos académicos disponibles o bien se centran en indicadores técnicos (Liao et al., 2016), o bien analizan el lenguaje de las amenazas sobre plataformas globales en inglés, sin anclaje local (Zong et al., 2019). El antecedente de Dengra y Rivas (2026) cubre el análisis del discurso en otra plataforma y con otro método. Este trabajo aporta, sobre esa base, un artefacto que además de recolectar y clasificar incorpora un motor de detección de anomalías con umbral estadístico explícito (Capítulo 4, sección 4.5) y un corpus fechado, auditable y con trazabilidad por consulta.
+
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
 
 # CAPÍTULO 3: MARCO METODOLÓGICO
 
@@ -449,6 +484,11 @@ Las medidas aplicadas son las siguientes:
 
 **Marco de gestión de la seguridad.** El diseño de los controles de acceso a la base, de la custodia de la clave de seudonimización y de la separación entre artefactos versionados y valores secretos se alineó con las buenas prácticas de gestión de la seguridad de la información (ISO/IEC, 2022). La referencia es de criterio de diseño, no de certificación: no hubo auditoría de conformidad.
 
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
 # CAPÍTULO 4: DESARROLLO DEL SISTEMA
 
 ## 4.1. Arquitectura general
@@ -465,7 +505,7 @@ El artefacto se organiza en cinco capas funcionales, tal como se representa en l
 
 **Capa de difusión.** El módulo de alertas hacia un canal externo, con el mecanismo de notificación deshabilitado por defecto.
 
-![Figura 1. Arquitectura del sistema](../figuras/Figura_1_arquitectura.png){width=5.83333in}
+![Figura 1. Arquitectura del sistema](C:/Users/sever/OneDrive/Desktop/tfi-osint-n8n/docs/figuras/Figura_1_arquitectura.png){width=5.83333in}
 
 > **Sobre los códigos de incidente de la Figura 1.** Las etiquetas `IN-06` e `IN-08` que aparecen junto a dos componentes remiten al registro de incidentes de implementación del proyecto, no a conceptos del dominio: `IN-06` es la coincidencia por subcadena del extractor de entidades —que puede reconocer una entidad dentro de otra palabra— y `IN-08` es el aborto del ciclo de ingesta ante un `HTTP 429` que quedaba registrado como corrida exitosa. Ambos se declaran como límites conocidos y su corrección es posterior a la ventana (Tabla 8.1).
 
@@ -505,7 +545,7 @@ Además del lazo principal, el flujo de ingesta incorpora un **centinela** que g
 
 El esquema físico reside en una base de datos PostgreSQL 18 desplegada en un clúster propio en el puerto 5433, bajo el rol de aplicación `tesi_app`. La Figura 2 presenta el diagrama entidad-relación. El modelo consta de **cinco tablas** (`subreddits`, `posts`, `comments`, `anomalias` y `alertas`), **cinco índices** y dos restricciones de integridad referencial de comportamiento distinto, elegidas deliberadamente. La Tabla 4.2 reproduce los atributos de cada tabla tal como están definidos en el DDL vigente.
 
-![Figura 2. Modelo entidad-relación](../figuras/Figura_2_der.png){width=5.83333in}
+![Figura 2. Modelo entidad-relación](C:/Users/sever/OneDrive/Desktop/tfi-osint-n8n/docs/figuras/Figura_2_der.png){width=5.83333in}
 
 **Tabla 4.2. Atributos del esquema físico (espejo de** `A_DDL.sql`**)**
 
@@ -660,51 +700,50 @@ Tres propiedades del desarrollo se documentan para permitir la auditoría de lo 
 
 **Las figuras se generan desde los artefactos.** Las figuras 1 a 4 se producen con el script `docs/scripts/generar_figuras_v4.py`; la Figura 3, en particular, lee el grafo de nodos y conexiones directamente del archivo exportado del workflow, de modo que no puede divergir del sistema descrito.
 
-![Figura 3. Grafo de nodos y conexiones del workflow desplegado](../figuras/Figura_3_workflow.png){width=5.83333in}
+![Figura 3. Grafo de nodos y conexiones del workflow desplegado](C:/Users/sever/OneDrive/Desktop/tfi-osint-n8n/docs/figuras/Figura_3_workflow.png){width=5.83333in}
 
 > **Nota sobre el atributo** `active` **de la Figura 3.** La figura se genera leyendo el archivo exportado, que declara `active: false` por diseño: el artefacto se versiona desactivado y la publicación se realiza manualmente desde la interfaz. El estado operativo de la instancia durante la ventana —activa, con **382 corridas** registradas— se informa en 4.1 y en 6.1; la diferencia entre ambos valores es un control de seguridad, no una inconsistencia.
 
 Las limitaciones de implementación que condicionan la interpretación de los resultados —ausencia de lematización, vocabulario de la fuente acotado al listado de novedades, ausencia de comentarios, umbral de coincidencia mínimo y saturación de la escala— se retoman de forma consolidada en la sección 6.3, junto con su efecto observable sobre el desempeño medido.
 
-## 4.7. Hoja de firmas
+## 4.7. Declaración de trazabilidad y firma
 
-Los autores declaran que toda la evidencia citada en el presente informe es verificable, reproducible y corresponde al sistema efectivamente implementado y a los datos realmente relevados. Las cifras provienen exclusivamente de consultas SELECT sobre la base 	esi_osint, de archivos de evidencia fechados y de artefactos versionados en el repositorio, tal como se indica en las notas de trazabilidad de los capítulos correspondientes. La sustitución del corpus respecto de las versiones V2/V3 se documenta en la *Declaración de trazabilidad entre versiones* (docs/evidencias/informe_v5_2026-10-20/Declaracion_trazabilidad_versiones.md).
+Los autores declaran que toda la evidencia citada en el presente informe es verificable, reproducible y corresponde al sistema efectivamente implementado y a los datos realmente relevados. Las cifras provienen exclusivamente de consultas `SELECT` sobre la base `tesi_osint`, de archivos de evidencia fechados y de artefactos versionados en el repositorio, tal como se indica en las notas de trazabilidad de los capítulos correspondientes. La sustitución del corpus respecto de las versiones V2/V3 se documenta en la *Declaración de trazabilidad entre versiones* (`docs/evidencias/informe_v5_2026-10-20/Declaracion_trazabilidad_versiones.md`), firmada por los autores y con conocimiento de la dirección.
 
-Autores:
+**Autores:**
 
-_________________________ Valentino Lorca
+------------------------------------------------------------------------
 
-_________________________ Jerónimo Zúñiga
+**Valentino Lorca**
 
-_________________________ Enzo Severino
+------------------------------------------------------------------------
 
-Directores:
+**Jerónimo Zúñiga**
 
-_________________________ Prof. Alberto Cortez
+------------------------------------------------------------------------
 
-_________________________ Prof. Ariel Enferrel
+**Enzo Severino**
 
-Mendoza, Argentina — octubre de 2026
+**Directores / Profesores:**
 
+------------------------------------------------------------------------
+
+**Prof. Alberto Cortez**
+
+------------------------------------------------------------------------
+
+**Prof. Ariel Enferrel**
+
+Mendoza, Argentina — 2026
+
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
 
 # CAPÍTULO 5: RESULTADOS
 
 > **Nota de trazabilidad de este capítulo.** Todas las cifras de este capítulo provienen de consultas de solo lectura ejecutadas sobre la base `tesi_osint` el **19/10/2026**, con el corte del corpus fijado en el inicio del **18/10/2026**. La salida literal de las consultas se conserva en `docs/evidencias/informe_v4_2026-10-19/consultas_corpus_b5.txt`, de modo que cualquier cifra puede reconstruirse. Las excepciones son las métricas de la validación (sección 5.5), cuya fuente es `docs/evidencias/informe_v5_2026-10-20/` (`resultados_v5.json`, `resultados_v5.md` y la correspondencia de la muestra), y las cifras de la evaluación previa del 30/09/2026 (sección 5.5.1), que provienen de `docs/evidencias/evaluacion_muestra_control_2026-09-30.md` y sus archivos asociados.
-
-
-
-**Tabla 5.1a. Régimen de operación por día**
-
-| Fecha | Jornada | Corridas automáticas | Corridas manuales | Estado ingesta | Estado análisis |
-|---|---|---|---|---|---|
-| 01/10/2026 | Parcial (arranque) | s/d | s/d | Parcial | s/d |
-| 02/10/2026 | Interrumpida | s/d | s/d | Interrumpida | s/d |
-| 03/10/2026 | Sin operación | 0 | 0 | Sin recolección | s/d |
-| 04/10/2026 | Parcial/recuperación | s/d | s/d | Parcial | s/d |
-| 05/10-16/10/2026 | Jornadas diurnas | Según registro | Según registro | Operativo por jornadas | Según registro |
-| 17/10/2026 | Jornada parcial (cierre) | Según registro | Según registro | Parcial/cierre | Ejecutado (12:05 18/10) |
-
-*Nota:* Las evaluaciones del motor del 16/10 y 17/10 corresponden a las corridas de las 12:05 de los días siguientes; el fraccionamiento de operación se recalcula con numerador y denominador sobre el mismo intervalo (5.3).
 
 ## 5.1. El corpus B5
 
@@ -756,7 +795,7 @@ Tres hechos de esta serie requieren explicación:
 
 La Figura 4 sintetiza la ventana: su panel (a) presenta la serie de ingesta diaria junto con la cantidad de ciclos que efectivamente aportaron publicaciones y su panel (b) el volumen por categoría detectada. El panel (a) no incluye el 03/10, por no haberse registrado recolección alguna ese día.
 
-![Figura 4. Serie temporal de la ingesta y categorías detectadas](../figuras/Figura_4_serie_temporal.png){width=5.83333in}
+![Figura 4. Serie temporal de la ingesta y categorías detectadas](C:/Users/sever/OneDrive/Desktop/tfi-osint-n8n/docs/figuras/Figura_4_serie_temporal.png){width=5.83333in}
 
 ## 5.2. Clasificación temática del corpus
 
@@ -816,8 +855,6 @@ La lectura de esta tabla exige separar dos fenómenos que la cifra agregada mezc
 **La causa tiene dos componentes y la cifra agregada las confunde.** El registro de ejecuciones del motor conserva 382 corridas, de las cuales 361 caen dentro de la ventana y cubren del 05/10 al 18/10; las anteriores no quedaron retenidas. Sobre ese tramo, el intervalo entre corridas es de **15,0 minutos de mediana y 19,3 en el percentil 95, con el 100 % en estado** `success`: la cadencia declarada se cumple mientras el motor está en ejecución. Lo que no se cumple es la continuidad. Uniendo los intervalos entre corrida y corrida, el motor estuvo en ejecución **4.929 minutos de los 25.920 de la ventana, es decir el 19,0 %**, en jornadas que comienzan alrededor de las 12:00 y terminan entre las 19:00 y las 23:00 (hora local). Los `ingested_at` de la base confirman el patrón de manera independiente del registro del motor: en ninguno de los 17 días hubo ingesta entre las 19:00 y las 12:00.
 
 **Descompuesta por estado del motor, la latencia deja de ser un valor único.** De las 437 publicaciones creadas dentro de la ventana, **126 fueron creadas con el motor en ejecución** y **311 (71,2 %) con el motor detenido**. En el primer grupo la latencia es de **9,0 minutos de mediana, 15,7 en el percentil 95 y 16,9 en el máximo**: la firma de un ciclo de 15 minutos con la espera fija entre comunidades. En el segundo, la mediana es de 371,1 minutos y el máximo de 7.020,2, porque la publicación no esperó un ciclo sino el arranque siguiente del motor.
-
-**La cadencia fija la espera, la continuidad fija la latencia.** El motor estuvo en ejecución **4.929 minutos de los 25.920 de la ventana, es decir el 19,0 %**, por lo que la gran mayoría de las publicaciones debió aguardar al siguiente arranque. Con un período de 15 minutos y arribos uniformes, la espera esperada es de **7,5 minutos** —coherente con la mediana de **9,0** del grupo en ejecución—, mientras que la discontinuidad explica la cola larga observada. En consecuencia, la cadencia del ciclo hace inalcanzable el umbral de 5 minutos, pero **no explica un P95 de 1.376,2 minutos (22,9 horas)**: ese valor se debe, fundamentalmente, a la operación intermitente del sistema.
 
 **Por comunidad, el ciclo se comporta igual en las tres.** Entre las publicaciones creadas con el motor en ejecución, la mediana es de 9,3 minutos en `r/devsarg` (n = 105), 9,4 en `r/Malware` (n = 8) y 7,1 en `r/netsec` (n = 13), con máximos de 16,9, 15,8 y 13,8 minutos respectivamente. Las diferencias son de orden menor y no hay una comunidad sistemáticamente postergada: el ciclo de 15 minutos domina a las tres.
 
@@ -1100,6 +1137,11 @@ La Tabla 5.15 concentra el estado de cada criterio comprometido en 1.6, con la e
 
 **OE4 (categorización)**: cumplido en su dimensión funcional, no en la de rendimiento. El clasificador categorizó el 100 % del corpus en nueve categorías posibles, con 8 de ellas observadas, y su salida es auditable; pero **no alcanza los umbrales comprometidos**: la precisión se cumple (84,7 %), mientras que la sensibilidad (61,2 %) y el F1 (0,711) no, y el acuerdo entre anotadores (κ = 0,509) tampoco llega al 0,61 comprometido. El objetivo se declara cumplido con limitaciones y esas limitaciones se informan en 5.5 y 6.3.
 
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
 # CAPÍTULO 6: DISCUSIÓN
 
 ## 6.1. Interpretación de los resultados
@@ -1184,6 +1226,11 @@ Las limitaciones se agrupan según su origen, porque no todas se corrigen de la 
 
 **Trabajo futuro.** Las seis líneas de trabajo que se desprenden de estos hallazgos —repetir la validación con anotadores externos y una guía más fina, incorporar desambiguación por contexto, instrumentar un centinela de latidos, probar la entrega de alertas, registrar la retroalimentación operativa y reformular los criterios temporales— se desarrollan con su criterio de verificación en el Capítulo 8, junto con la línea de trabajo del proyecto. Se enuncian aquí en orden de prioridad: la fiabilidad del etiquetado es el primer límite que conviene cerrar. La V5 ya resolvió el tamaño de la muestra —182 casos sorteados, con un intervalo de omisión de [11,4 %; 22,7 %]—, de modo que lo que resta no es ampliar el `n` sino elevar el acuerdo: con κ = 0,509, el límite está en la definición operativa de amenaza y no en la cantidad de casos etiquetados.
 
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
 # CAPÍTULO 7: CONCLUSIONES
 
 ## 7.1. Trazabilidad de los criterios y de los objetivos específicos
@@ -1254,6 +1301,11 @@ El supuesto de trabajo planteado en 1.6 sostenía que un sistema OSINT de códig
 
 El aporte concreto de este trabajo es un artefacto funcional y auditable, un diccionario bilingüe con doscientos un términos verificables, un motor de anomalías con umbral estadístico explícito y un cuerpo documental que permite reconstruir cada cifra. Su principal valor metodológico no está en las cifras que alcanza, sino en el conjunto de defectos que detectó, documentó y no ocultó: un lazo de control que perdía publicaciones en silencio, una distribución de probabilidad mal implementada que impedía toda detección en las categorías activas, una carga inicial que el motor reportó como anomalía, una interrupción de servicio de cuarenta y cuatro horas y una validación cuyo acuerdo entre anotadores no alcanza el umbral que el propio trabajo fijó. **Un sistema de monitoreo que no documenta sus propios límites produce una falsa sensación de cobertura**, y ese es el resultado que este trabajo busca dejar en claro.
 
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
 # CAPÍTULO 8: RECOMENDACIONES Y TRABAJOS FUTUROS
 
 Las recomendaciones se ordenan según quién debe ejecutarlas, y cada una se acompaña de su criterio de verificación, para que puedan comprobarse en lugar de quedar como declaraciones de intención.
@@ -1302,6 +1354,11 @@ Los resultados de este informe fijan las condiciones de las etapas siguientes de
 
 Para organizaciones que evalúen implementar un sistema semejante, la experiencia de este trabajo sugiere cuatro precauciones: no comprometer un criterio de cobertura sin un diseño de captura-recaptura que lo sustente; instrumentar los silencios del pipeline antes que sus resultados; separar en la evaluación el desempeño del clasificador de la composición del corpus, porque un buen clasificador sobre un corpus mayoritariamente no relevante produce pocas detecciones y eso no es un defecto; y documentar los límites de acceso de la fuente como parte del producto, ya que determinan qué afirmaciones son sostenibles.
 
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
 # REFERENCIAS BIBLIOGRÁFICAS
 
 Dengra, E., y Rivas, M. (2026). *Observatorio OSINT: Diseño e implementación de un sistema de recolección y análisis del discurso público sobre ciberseguridad en Bluesky en América Latina y el Caribe* (Trabajo Final de Carrera inédito, versión consultada de octubre de 2026). Universidad Tecnológica Nacional, Facultad Regional Mendoza. Cifras citadas según la versión consultada el 15/10/2026; por tratarse de un trabajo inédito, pueden variar en versiones posteriores.
@@ -1337,6 +1394,11 @@ Reddit Inc. (2026). *Reddit API terms of service and developer documentation: OA
 Russell, M. A., y Klassen, M. (2019). *Mining the social web: Data mining Facebook, Twitter, LinkedIn, Instagram, GitHub, and more* (3.ª ed.). O’Reilly Media.
 
 Zong, S., Ritter, A., Mueller, G., y Wright, E. (2019). Analyzing the perceived severity of cybersecurity threats reported on social media. En *Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT 2019)* (pp. 1380-1390). Association for Computational Linguistics. https://doi.org/10.18653/v1/N19-1140
+
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
 
 # ANEXOS
 
@@ -2138,7 +2200,7 @@ La V2 y la V3 describieron componentes que el sistema entregado no tiene. Se dec
 
 Los autores ratifican el contenido de este anexo como declaración jurada, toman conocimiento de que el tribunal valorará su contenido conforme al reglamento vigente y dejan constancia de que la entrega de la V5 no habría sido posible sin esta rectificación expresa.
 
-La dirección del trabajo toma conocimiento de la presente declaración.
+La dirección de la carrera toma conocimiento de la presente declaración.
 
 Autores:
 
@@ -2148,10 +2210,8 @@ _________________________ Jerónimo Zúñiga
 
 _________________________ Enzo Severino
 
-Directores:
+Dirección:
 
 _________________________ Prof. Alberto Cortez
 
-_________________________ Prof. Ariel Enferrel
-
-Mendoza, Argentina — octubre de 2026
+_________________________ Prof. Ariel Enferrel Mendoza, Argentina — octubre de 2026

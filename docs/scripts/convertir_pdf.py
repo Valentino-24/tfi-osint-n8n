@@ -4,18 +4,18 @@ Convierte el Markdown de la tesis a PDF con la estetica de `tesis_v4.pdf`.
 
 Ruta: Pandoc (Markdown -> DOCX) + Microsoft Word (estilos, saltos de pagina,
 numeracion, indices con pagina, exportacion a PDF). No modifica el Markdown
-original: trabaja sobre una copia en docs/devoluciones/build/.
+original: trabaja sobre una copia en docs/informe/build/.
 
 Uso:
     python docs/scripts/convertir_pdf.py
-    python docs/scripts/convertir_pdf.py --md docs/devoluciones/tesis_v5.md \
-        --out docs/devoluciones/tesis_v5.pdf --fuente "Times New Roman"
+    python docs/scripts/convertir_pdf.py --md docs/informe/tesis_v5.md \
+        --out docs/informe/tesis_v5.pdf --fuente "Times New Roman"
     python docs/scripts/convertir_pdf.py --sin-word               (solo el DOCX)
     python docs/scripts/convertir_pdf.py --sin-numerar-indices    (indices tal cual el MD)
     python docs/scripts/convertir_pdf.py --renderizar             (exporta paginas a PNG)
 
 Salida: el PDF en `--out` y el registro de verificacion en
-`docs/devoluciones/build/verificacion_pdf.json`. Si una compuerta falla, termina
+`docs/informe/build/verificacion_pdf.json`. Si una compuerta falla, termina
 con codigo distinto de cero.
 """
 
@@ -32,8 +32,8 @@ import zipfile
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
-MD_ORIGEN = RAIZ / "V4" / "devoluciones" / "tesis_v5.md"
-CARPETA_BUILD = RAIZ / "V4" / "devoluciones" / "build"
+MD_ORIGEN = RAIZ / "docs" / "informe" / "tesis_v5.md"
+CARPETA_BUILD = RAIZ / "docs" / "informe" / "build"
 # Los intermedios (MD de trabajo, DOCX) viven fuera de OneDrive: abrir Word sobre
 # un archivo recien reescrito dentro de una carpeta sincronizada se cuelga en
 # Documents.Open (el filtro de OneDrive no libera el handle). Solo quedan en el
@@ -41,8 +41,8 @@ CARPETA_BUILD = RAIZ / "V4" / "devoluciones" / "build"
 CARPETA_TRABAJO = Path(os.environ.get("TEMP", "/tmp")) / "tfi_tesis_build"
 MD_BUILD = CARPETA_TRABAJO / "tesis_v5.build.md"
 DOCX_BUILD = CARPETA_TRABAJO / "tesis_v5.docx"
-PDF_SALIDA = RAIZ / "V4" / "devoluciones" / "tesis_v5.pdf"
-PDF_APROBADO = (RAIZ / "V4" / "devoluciones" / "recuperacion"
+PDF_SALIDA = RAIZ / "docs" / "informe" / "tesis_v5.pdf"
+PDF_APROBADO = (RAIZ / "docs" / "informe" / "recuperacion"
                 / "tesis_v5_aprobado_2026-10-28.pdf")
 REGISTRO = CARPETA_BUILD / "verificacion_pdf.json"
 
@@ -109,7 +109,7 @@ def preparar_markdown() -> int:
     texto = io.open(MD_ORIGEN, encoding="utf-8").read().replace("\r\n", "\n")
 
     reemplazos = 0
-    for ruta in sorted((RAIZ / "V4" / "figuras").glob("*.png")):
+    for ruta in sorted((RAIZ / "docs" / "figuras").glob("*.png")):
         relativa = "../figuras/" + ruta.name
         if relativa in texto:
             texto = texto.replace(relativa, ruta.as_posix())

@@ -13,7 +13,7 @@ Comprueba sobre el PDF final y el DOCX intermedio:
 - portada en una sola pagina;
 - similitud de tokens contra el PDF aprobado (>= 0,97).
 
-Escribe `docs/devoluciones/build/verificacion_pdf.json` y un resumen de texto.
+Escribe `docs/informe/build/verificacion_pdf.json` y un resumen de texto.
 Termina con codigo distinto de cero si alguna compuerta falla.
 
 Uso:
@@ -38,12 +38,12 @@ from pathlib import Path
 import pypdfium2 as pdfium
 
 RAIZ = Path(__file__).resolve().parents[2]
-MD_POR_DEFECTO = RAIZ / "V4" / "devoluciones" / "tesis_v5.md"
-PDF_POR_DEFECTO = RAIZ / "V4" / "devoluciones" / "tesis_v5.pdf"
+MD_POR_DEFECTO = RAIZ / "docs" / "informe" / "tesis_v5.md"
+PDF_POR_DEFECTO = RAIZ / "docs" / "informe" / "tesis_v5.pdf"
 DOCX_POR_DEFECTO = Path(os.environ.get("TEMP", "/tmp")) / "tfi_tesis_build" / "tesis_v5.docx"
-APROBADO_POR_DEFECTO = (RAIZ / "V4" / "devoluciones" / "recuperacion"
+APROBADO_POR_DEFECTO = (RAIZ / "docs" / "build" / "recuperacion"
                         / "tesis_v5_aprobado_2026-10-28.pdf")
-REGISTRO = RAIZ / "V4" / "devoluciones" / "build" / "verificacion_pdf.json"
+REGISTRO = RAIZ / "docs" / "informe" / "build" / "verificacion_pdf.json"
 
 A4 = (595.3, 841.9)
 TOLERANCIA_PT = 2.0
@@ -207,7 +207,7 @@ def compuerta_portada(paginas: list[str]) -> tuple[bool, str]:
 
 def similitud(texto_final: str, texto_aprobado: str) -> float:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    sys.path.insert(0, str(RAIZ / "V4" / "devoluciones" / "recuperacion"))
+    sys.path.insert(0, str(RAIZ / "docs" / "informe" / "recuperacion"))
     import comparar_md_pdf as cmp  # noqa: PLC0415
 
     a = cmp.normalizar(texto_aprobado).split()

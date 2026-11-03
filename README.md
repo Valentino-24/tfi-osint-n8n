@@ -17,18 +17,19 @@ Sistema de monitoreo OSINT sobre comunidades técnicas de Reddit, construido con
 ├── knowledge-base/              # Base de conocimiento del dominio (fuente de verdad)
 ├── openspec/                    # Changes y specs (OpenSpec)
 ├── docs/                        # Documentación del informe
-│   ├── informe/                 # Informe vigente (tesis_v6.md)
-│   ├── devoluciones/            # PDF final + verificación
+│   ├── devoluciones/            # Informe vigente (tesis_v6.md + tesis_v6.pdf) + verificación
 │   ├── anexos/                  # DDL (A) y workflow (B)
 │   ├── evidencias/              # Evidencia reproducible por fecha
-│   ├── figuras/                 # Figuras del informe
+│   ├── figuras/                 # Figuras del informe (4)
 │   ├── scripts/                 # Scripts de generación y verificación
+│   │   └── legacy/              # Scripts de un solo uso (histórico)
 │   ├── guias/                   # Guías de instalación y ejecución
-│   ├── historico/               # Versiones anteriores del informe
+│   ├── historico/               # Versiones anteriores del informe (v2, v3, v4)
 │   ├── prompts/                 # Prompts utilizados
+│   ├── devoluciones/tribunal/   # Devoluciones del tribunal (V2-V5)
 │   └── build/                   # Artefactos temporales de build
 ├── prototipo-landing-page/      # Prototipo de landing page
-├── .opencode/                   # Configuración de OpenCode (skills, node_modules)
+├── .opencode/                   # Configuración de OpenCode (skills)
 ├── .claude/                     # Skills de Claude
 └── .gitignore                   # Archivos excluidos del repositorio
 ```

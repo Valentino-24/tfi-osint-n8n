@@ -1,0 +1,13 @@
+Verificacion del PDF — 2026-11-03T19:19:33
+PDF: docs\informe\tesis_v6.pdf (126 paginas) sha256 7b33042f6ea9265c2204b1e8a0c60742d4a6872c5a25df5f0b0f02e2f3bc04d2
+OK   tamano_a4: 126 paginas; fuera de A4: ninguna
+OK   paginas_con_texto: 126 paginas; con menos de 40 caracteres: ninguna
+OK   indices_numerados: entradas {'Índice general': 61, 'Índice de tablas': 29, 'Índice de figuras': 4} (esperado {'Índice general': 61, 'Índice de tablas': 29, 'Índice de figuras': 4}); sin numero: ninguna
+OK   indices_en_pdf: entradas numeradas por indice: {'ÍNDICE GENERAL': '61/61', 'ÍNDICE DE TABLAS': '29/29', 'ÍNDICE DE FIGURAS': '4/4'}
+OK   sin_marcadores: sin '@@@'
+OK   fuentes: Times New Roman en 7962 definiciones; Aptos: 0
+OK   margenes: {'top': 1418, 'right': 1134, 'bottom': 1418, 'left': 1700}; fuera de rango: ninguno
+OK   rotulos: 29 rotulos de tabla y 4 de figura; tablas en el DOCX: 34 (esperado 34); ausentes: ninguno
+OK   portada_una_pagina: portada en la pagina 1 y nota de version en la 2
+FALLA  similitud_aprobado: 0.8992 (minimo 0.97)
+RESULTADO: 1 fallas
