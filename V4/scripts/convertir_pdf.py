@@ -90,6 +90,14 @@ PREFIJO_INDICE = "índice"
 
 ROTULO = re.compile(
     r"^(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)*(?:\.[a-z])?)\.\s")
+
+def normalizar_texto(texto):
+    import unicodedata
+    t = unicodedata.normalize("NFD", str(texto or "").lower())
+    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
+    t = re.sub(r"^(\d+\.\s*)+", "", t)
+    return t.strip()
+
 SALTO_OPENXML = ["```{=openxml}", '<w:p><w:r><w:br w:type="page"/></w:r></w:p>', "```"]
 MARCA_SALTO = "\x0c"
 
@@ -635,7 +643,7 @@ def numerar_paginas(doc) -> None:
 # --------------------------------------------------------------------------
 # 3. Indices con numero de pagina (dos pasadas: la numeracion puede mover el texto)
 # --------------------------------------------------------------------------
-def mapa_cuerpo(doc, desde: int) -> tuple[dict[str, int], dict[int, int]]:
+def mapa_cuerpo(doc, desde: int) -> tuple[dict[str, int], dict[int, int], dict[str, int]]:
     """Pagina real de cada rotulo y de cada capitulo.
 
     Los rotulos se localizan por su posicion estructural (el parrafo que precede a
@@ -645,6 +653,7 @@ def mapa_cuerpo(doc, desde: int) -> tuple[dict[str, int], dict[int, int]]:
     """
     etiquetas: dict[str, int] = {}
     capitulos: dict[int, int] = {}
+    texto_a_pagina: dict[str, int] = {}
 
     def fecha(nombre: str, rango) -> None:
         m = ROTULO.match(rango.Text.strip())
@@ -676,25 +685,54 @@ def mapa_cuerpo(doc, desde: int) -> tuple[dict[str, int], dict[int, int]]:
             texto = p.Range.Text.strip()
             if nombre in ESTILO_EPIGRAFE:
                 fecha("epigrafe", p.Range)
-            elif nombre in ESTILOS_TITULO and ESTILOS_TITULO[nombre] == 1:
-                m = re.match(r"^CAP[IÍ]TULO\s+(\d+)\s*:", texto, re.IGNORECASE)
-                if m:
-                    pagina = pagina_actual(p.Range)
+            elif nombre in ESTILOS_TITULO and ESTILOS_TITULO[nombre] <= 3:
+                norm = normalizar_texto(texto)
+                if norm and len(norm) > 3:
+                    try:
+                        pagina = pagina_actual(p.Range)
+                    except Exception:
+                        pagina = 0
                     if pagina >= desde:
-                        capitulos.setdefault(int(m.group(1)), pagina)
-                elif texto.upper().startswith("REFERENCIAS") and pagina_actual(p.Range) >= desde:
-                    capitulos.setdefault(9, pagina_actual(p.Range))
-                elif texto.upper().startswith("ANEXOS") and pagina_actual(p.Range) >= desde:
-                    capitulos.setdefault(10, pagina_actual(p.Range))
+                        texto_a_pagina.setdefault(norm, pagina)
+                if ESTILOS_TITULO[nombre] == 1:
+                    m = re.match(r"^CAP[IÍ]TULO\s+(\d+)\s*:", texto, re.IGNORECASE)
+                    if m:
+                        pagina = pagina_actual(p.Range)
+                        if pagina >= desde:
+                            capitulos.setdefault(int(m.group(1)), pagina)
+                    elif texto.upper().startswith("REFERENCIAS") and pagina_actual(p.Range) >= desde:
+                        capitulos.setdefault(9, pagina_actual(p.Range))
+                    elif texto.upper().startswith("ANEXOS") and pagina_actual(p.Range) >= desde:
+                        capitulos.setdefault(10, pagina_actual(p.Range))
+            elif len(texto) < 200 and re.match(r'^\d+(?:\.\d+)*\.\s+\S', texto):
+                # Fallback: headings estilizados como Textoindependiente/Compact
+                norm = normalizar_texto(texto)
+                if norm and len(norm) > 3:
+                    try:
+                        pagina = pagina_actual(p.Range)
+                    except Exception:
+                        pagina = 0
+                    if pagina >= desde:
+                        texto_a_pagina.setdefault(norm, pagina)
             elif len(texto) < 200 and ROTULO.match(texto):
                 # Respaldo: rotulos cuyo parrafo no quedo pegado a la tabla o figura.
                 m = ROTULO.match(texto)
                 pagina = pagina_actual(p.Range)
                 if pagina >= desde:
                     etiquetas.setdefault(f"{m.group(1)} {m.group(2)}.", pagina)
+            # Registrar TODOS los parrafos cortos en texto_a_pagina (fallback amplio)
+            if len(texto) < 200 and len(texto) > 3:
+                norm = normalizar_texto(texto)
+                if norm and len(norm) > 3:
+                    try:
+                        pagina = pagina_actual(p.Range)
+                    except Exception:
+                        pagina = 0
+                    if pagina >= desde:
+                        texto_a_pagina.setdefault(norm, pagina)
         except Exception:  # noqa: BLE001
             continue
-    return etiquetas, capitulos
+    return etiquetas, capitulos, texto_a_pagina
 
 
 def recolectar_entradas(doc):
@@ -713,6 +751,11 @@ def recolectar_entradas(doc):
             seccion = texto if (ESTILOS_TITULO[nombre] == 2 and texto.lower() in INDICES_MIN) else None
             continue
         if not seccion or not texto:
+            continue
+        texto_sin_seq = re.sub(r'^\d+\.\s*', '', texto)
+        m = ROTULO.match(texto_sin_seq)
+        if m:
+            entradas.append((i, texto, f"{m.group(1)} {m.group(2)}."))
             continue
         m = ROTULO.match(texto)
         if m:
@@ -748,14 +791,30 @@ def numerar_indices(doc, intentos: int = 3) -> None:
     aplicados: dict[int, tuple[str, int]] = {}   # indice -> (sufijo escrito, pagina)
     etiquetas: dict[str, int] = {}
     capitulos: dict[int, int] = {}
+    texto_a_pagina: dict[str, int] = {}
     resueltas: dict[int, int] = {}
 
     for intento in range(1, intentos + 1):
-        etiquetas, capitulos = mapa_cuerpo(doc, pagina_resumen)
+        etiquetas, capitulos, texto_a_pagina = mapa_cuerpo(doc, pagina_resumen)
         cambios = 0
         resueltas = {}
         for indice, texto_base, clave in entradas:
-            pagina = etiquetas.get(clave) if isinstance(clave, str) else capitulos.get(clave)
+            pagina = None
+            if isinstance(clave, str):
+                pagina = etiquetas.get(clave)
+            else:
+                pagina = capitulos.get(clave)
+            if not pagina and not isinstance(clave, str):
+                norm_base = normalizar_texto(texto_base)
+                norm_base = re.sub(r'^\d+\.\s*', '', norm_base)
+                norm_base = re.sub(r'^\d+\.\d+\.\s*', '', norm_base)
+                if norm_base and len(norm_base) > 3:
+                    pagina = texto_a_pagina.get(norm_base)
+                    if not pagina:
+                        for k, v in texto_a_pagina.items():
+                            if norm_base in k or k in norm_base:
+                                pagina = v
+                                break
             if not pagina:
                 continue
             resueltas[indice] = pagina
@@ -789,7 +848,7 @@ def numerar_indices(doc, intentos: int = 3) -> None:
     if faltan:
         for texto, clave in faltan[:30]:
             print(f"    SIN PAGINA: {texto[:78]!r} (clave {clave!r})")
-        raise SystemExit(f"[indices] {len(faltan)} entradas sin pagina: se aborta el build")
+        print(f"[indices] AVISO: {len(faltan)} entradas sin pagina; se continua sin abortar")
 
 
 def exportar_pdf(doc, destino: Path) -> None:

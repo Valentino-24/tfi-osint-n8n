@@ -1,0 +1,106 @@
+﻿==============================================================================
+REGIMEN DE OPERACION - recalculo N-17
+Ventana: 2026-10-01 00:00 -> 2026-10-18 00:00 (hora local, UTC-3)
+==============================================================================
+
+[1] REGISTRO DE EJECUCIONES (execution_entity, workflow KkotjSD5uO4CXI4D)
+    corridas conservadas: 382
+    rango UTC: 2026-10-05 20:18:35.097 -> 2026-10-19 21:45:12.023
+    estados: {'success': 382}
+    dentro de la ventana: 360 (automaticas=336, manuales=24)
+    posteriores al corte: 22 (automaticas=20, manuales=2)
+    intervalos consecutivos: 359 | mediana=15.0 min | P95=18.2 min | max=1393.3 min | <20 min=342
+
+[2] UNION DE INTERVALOS (huecos < 20 min fusionados)
+    tramos: 17 | minutos en ejecucion: 4928.7
+    primer tramo: 05/10 17:18:35 | ultimo tramo: 17/10 16:33:18 (hora local)
+
+[3] COBERTURA
+    (a) mismo intervalo [primera corrida, corte]: 17681 min -> 27.9 %
+    (b) ventana completa 17 dias: 24480 min -> 20.1 % (cota inferior: el registro no cubre el 01/10-05/10)
+    (c) referencia V5: 4.929 / 25.920 min (18 dias) = 19,0 % -> denominador inconsistente
+
+[4] REGIMEN POR DIA (hora local)
+    fecha       auto manual  primera   ultima    minutos
+    2026-10-05     8      0  17:18   19:03       25
+    2026-10-06    26      2  13:36   21:18       85
+    2026-10-07    28      2  12:05   19:03       91
+    2026-10-08    29      2  12:39   21:03       98
+    2026-10-09    28      2  12:08   19:03       91
+    2026-10-10    22      2  18:13   23:48       72
+    2026-10-11    28      2  12:57   20:03       90
+    2026-10-12    30      2  14:55   23:03       96
+    2026-10-13    32      2  12:58   21:03      103
+    2026-10-14    28      2  12:10   19:03       91
+    2026-10-15    29      2  12:24   19:33       94
+    2026-10-16    31      2  11:54   19:18       97
+    2026-10-17    17      2  12:12   16:33       56
+
+[5] PUBLICACIONES (posts, solo lectura)
+    persistidas entre el 01/10 y el 18/10: 724
+    ingesta por dia (posts con created_utc en la ventana):
+      2026-10-01  n=307  13:15-19:02
+      2026-10-02  n= 32  12:16-18:47
+      2026-10-04  n= 37  14:54-18:03
+      2026-10-05  n= 25  12:45-18:48
+      2026-10-06  n= 39  13:37-21:17
+      2026-10-07  n= 16  12:06-18:48
+      2026-10-08  n= 35  12:40-21:03
+      2026-10-09  n= 31  12:10-18:48
+      2026-10-10  n= 26  18:14-22:47
+      2026-10-11  n= 17  12:59-19:47
+      2026-10-12  n= 31  14:56-22:03
+      2026-10-13  n= 28  13:00-19:47
+      2026-10-14  n= 28  12:11-19:02
+      2026-10-15  n= 31  12:25-18:31
+      2026-10-16  n= 33  11:55-19:02
+      2026-10-17  n=  8  12:14-13:16
+    creadas dentro de la ventana: 437
+
+[6] LATENCIA POR ESTADO DE LA INSTANCIA (minutos)
+    grupo            n    P50      P95      max    >5min        >60min
+    en ejecucion    126     9.0      15.7     16.9    97 (77.0%)     0
+    detenida        199   426.5    1033.1   3031.2   197 (99.0%)   178
+    sin registro    112   275.6    2230.1   7020.2   104 (92.9%)    76
+    creadas antes de la primera corrida conservada: 112
+    clasificables: 325 | detenida = 61.2 % de las clasificables
+
+[7] HUECOS ENTRE TRAMOS
+    huecos entre jornadas (cruzan la medianoche):
+      05/10 19:03 -> 06/10 13:36  18.6 h
+      06/10 21:18 -> 07/10 12:05  14.8 h
+      07/10 19:03 -> 08/10 12:39  17.6 h
+      08/10 21:03 -> 09/10 12:08  15.1 h
+      09/10 19:03 -> 10/10 18:13  23.2 h
+      10/10 23:48 -> 11/10 12:57  13.1 h
+      11/10 20:03 -> 12/10 14:55  18.9 h
+      12/10 23:03 -> 13/10 12:58  13.9 h
+      13/10 21:03 -> 14/10 12:10  15.1 h
+      14/10 19:03 -> 15/10 12:24  17.3 h
+      15/10 19:33 -> 16/10 11:54  16.3 h
+      16/10 19:18 -> 17/10 12:12  16.9 h
+    minimo=13.1 h | maximo=23.2 h | n=12
+    reinicios dentro del mismo dia (no son huecos de jornada):
+      06/10 15:19 -> 06/10 16:45  1.4 h
+      07/10 15:03 -> 07/10 15:29  0.4 h
+      08/10 15:18 -> 08/10 16:45  1.4 h
+      12/10 20:33 -> 12/10 21:30  0.9 h
+
+[8] INSERCION DE LAS EVALUACIONES DEL MOTOR (anomalias.created_at)
+    ventana_fin=02/10  insertada=02/10 12:23:39  filas=7
+    ventana_fin=05/10  insertada=05/10 12:47:58  filas=8
+    ventana_fin=06/10  insertada=06/10 13:36:24  filas=8
+    ventana_fin=07/10  insertada=07/10 12:05:35  filas=8
+    ventana_fin=08/10  insertada=08/10 12:39:16  filas=8
+    ventana_fin=09/10  insertada=09/10 12:08:29  filas=8
+    ventana_fin=10/10  insertada=10/10 18:13:32  filas=8
+    ventana_fin=11/10  insertada=11/10 12:57:06  filas=8
+    ventana_fin=12/10  insertada=12/10 14:55:04  filas=8
+    ventana_fin=13/10  insertada=13/10 12:58:52  filas=7
+    ventana_fin=14/10  insertada=14/10 12:10:34  filas=7
+    ventana_fin=15/10  insertada=15/10 12:24:03  filas=7
+    ventana_fin=16/10  insertada=16/10 11:54:16  filas=7
+    ventana_fin=17/10  insertada=17/10 12:12:01  filas=7
+    ventana_fin=18/10  insertada=18/10 23:08:25  filas=6
+
+fin.

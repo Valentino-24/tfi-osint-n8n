@@ -49,7 +49,7 @@ A4 = (595.3, 841.9)
 TOLERANCIA_PT = 2.0
 MARGENES_TWIPS = {"top": 1417, "bottom": 1417, "left": 1701, "right": 1134}
 TOLERANCIA_TWIPS = 30
-INDICES = {"Índice general": 10, "Índice de tablas": 28, "Índice de figuras": 4}
+INDICES = {"Índice general": 61, "Índice de tablas": 29, "Índice de figuras": 4}
 CARACTERES_MINIMOS = 40
 SIMILITUD_MINIMA = 0.97
 
@@ -189,9 +189,9 @@ def compuerta_rotulos(md: Path, docx: Path, todo_pdf: str) -> tuple[bool, str]:
     with zipfile.ZipFile(docx) as z:
         cuerpo = z.read("word/document.xml").decode("utf-8")
     tablas_docx = cuerpo.count("<w:tbl>")
-    ok = (not faltantes and tablas == 28 and figuras == 4 and tablas_docx == 32)
+    ok = (not faltantes and tablas == 29 and figuras == 4 and tablas_docx == 34)
     return ok, f"{tablas} rotulos de tabla y {figuras} de figura; tablas en el DOCX: " \
-               f"{tablas_docx} (esperado 32); ausentes: {faltantes[:6] if faltantes else 'ninguno'}"
+               f"{tablas_docx} (esperado 34); ausentes: {faltantes[:6] if faltantes else 'ninguno'}"
 
 
 def compuerta_portada(paginas: list[str]) -> tuple[bool, str]:
