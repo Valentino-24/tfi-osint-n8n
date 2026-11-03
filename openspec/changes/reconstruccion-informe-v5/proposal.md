@@ -29,7 +29,7 @@ Ninguna. `openspec/specs/` está vacío: no existen specs previos cuyos requisit
 
 ## Impact
 
-- **Artefactos nuevos/modificados**: este change (`proposal.md`, `design.md`, `tasks.md`) y `docs/devoluciones/tesis_v4.md` → `tesis_v5.md` (o el mismo archivo renombrado), más su PDF y evidencias asociadas.
+- **Artefactos nuevos/modificados**: este change (`proposal.md`, `design.md`, `tasks.md`) y `docs/informe/tesis_v4.md` → `tesis_v5.md` (o el mismo archivo renombrado), más su PDF y evidencias asociadas.
 - **Nuevo anexo no derivable de consultas**: la Declaración de trazabilidad entre versiones (documento firmado; el agente redacta el borrador, la firma la aportan los autores).
 - **Lecturas de solo lectura**: consultas `SELECT` sobre `tesi_osint` para el censo de las 170 detecciones, la muestra nueva y la recomputación del motor. No se escribe en la base.
 - **Sin impacto en el sistema**: no se modifica `A_DDL.sql`, `B_workflow.json`, `generar_workflow.py`, nodos ni credenciales; **no se publica ni activa ningún workflow** (regla dura). El diccionario (N-12) puede requerir cambios en `generar_workflow.py` para corregir erratas y guiones, pero eso se decide en `design.md` y no toca datos de producción.

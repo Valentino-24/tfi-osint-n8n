@@ -98,7 +98,7 @@ Restricciones que gobiernan el diseño:
 
 ### D-8 — Las actualizaciones documentales se limitan a sustituir la ventana ficticia por la real
 
-**Qué**: `docs/GUIA_EJECUCION.md`, `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 se editan solo en lo relativo a la ventana. El resto de las correcciones documentales de esos archivos son C-06.
+**Qué**: `docs/guias/GUIA_EJECUCION.md`, `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 se editan solo en lo relativo a la ventana. El resto de las correcciones documentales de esos archivos son C-06.
 
 **Por qué**: C-06 ya es el responsable de IN-01, IN-02 e IN-05 sobre los mismos archivos. Tocar de más genera conflictos entre changes paralelos de la Fase 1.
 

@@ -6,9 +6,9 @@ Método: `git show <blob> > archivo` con redirección binaria de `cmd`.
 
 | Archivo | Blob de origen | SHA-256 | Bytes |
 |---|---|---|---|
-| `tesis_v5_aprobado_2026-10-28.pdf` | `:docs/devoluciones/tesis_v5.pdf` (`41f9d74b`) | `ad6094e65a4da9ca09693688442c06a0feb4ceb4e2f516bdc3dc78fea5b33280` | 1.496.015 |
-| `tesis_v5_2026-10-28.docx` | `:docs/devoluciones/build/tesis_v5.docx` (`d1c8416a`) | `dff5276643d5f84294c99a33d447ab622206d998a4a37133146cad376de10ac9` | 1.018.163 |
-| `tesis_v5_head.md` | `HEAD:docs/devoluciones/tesis_v5.md` (`bb28d503`) | `e092e42663e6e9115b1a8c820c0971de687acf2a4669dd0c872765fbf3a83bbe` | 253.534 |
+| `tesis_v5_aprobado_2026-10-28.pdf` | `:docs/informe/tesis_v5.pdf` (`41f9d74b`) | `ad6094e65a4da9ca09693688442c06a0feb4ceb4e2f516bdc3dc78fea5b33280` | 1.496.015 |
+| `tesis_v5_2026-10-28.docx` | `:docs/informe/build/tesis_v5.docx` (`d1c8416a`) | `dff5276643d5f84294c99a33d447ab622206d998a4a37133146cad376de10ac9` | 1.018.163 |
+| `tesis_v5_head.md` | `HEAD:docs/informe/tesis_v5.md` (`bb28d503`) | `e092e42663e6e9115b1a8c820c0971de687acf2a4669dd0c872765fbf3a83bbe` | 253.534 |
 
 ## Estado de cada artefacto
 
@@ -39,5 +39,5 @@ por SHA-256 a `docs/figuras/Figura_1_arquitectura.png`, `Figura_2_der.png`, `Fig
 ## Advertencia operativa
 
 Este directorio es la única copia del PDF aprobado y del DOCX con el contenido nuevo. No ejecutar
-`git restore`, `git checkout` ni `git rm --cached` sobre `docs/devoluciones/` hasta que estos archivos
+`git restore`, `git checkout` ni `git rm --cached` sobre `docs/informe/` hasta que estos archivos
 estén copiados fuera del repositorio o commiteados. `recuperacion/` no se versiona.

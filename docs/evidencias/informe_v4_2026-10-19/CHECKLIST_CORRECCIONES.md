@@ -2,7 +2,7 @@
 
 **Qué es este documento.** Registra, ítem por ítem, los **45 hallazgos** de las dos instancias de evaluación (identificados como `H-01…H-17`, `M-01…M-12`, `N-01…N-06`, `m-13…m-20` en `PLAN_V4.md`) y el lugar exacto del informe donde cada uno se resuelve. Cierra las tareas **1.2** y **5.2** del change `reconstruccion-informe-v4`.
 
-**Insumos.** `PLAN_V4.md` (lista de hallazgos y fases), `CHANGES.md`, las dos devoluciones del tribunal, y el informe `docs/devoluciones/tesis_v4.md`.
+**Insumos.** `PLAN_V4.md` (lista de hallazgos y fases), `CHANGES.md`, las dos devoluciones del tribunal, y el informe `docs/informe/tesis_v4.md`.
 
 **Convención de estados.**
 
@@ -98,12 +98,12 @@
 ## 6. Cierre y pendientes
 
 - **Tarea 5.8 — cumplida el 2026-10-19.** Los autores ratificaron que latencia y throughput **no se cumplieron** y que eso queda publicado así (§1.6, §5.7, Tabla 7.1 y Resumen). Con esa confirmación se registró el change en `CHANGES.md` como **`[C-26] reconstruccion-informe-v4`** (`[~]` parcial), que **absorbe** `C-16`, `C-17` y `C-18`…`C-23` — los ocho compartían entregable y se ejecutaron en una sola sesión. Queda un único paso administrativo: archivarlo con `/opsx:archive`.
-- **Efecto sobre el roadmap que conviene revisar antes de retomar los changes de evidencia.** Las evidencias consolidadas que `C-08`, `C-09`, `C-10` y `C-13` iban a producir ya existen dentro de `docs/devoluciones/tesis_v4.md` (Capítulo 5) y de esta carpeta de evidencias. Antes de ejecutarlos hay que comprobar qué falta realmente: es posible que queden sin objeto o reducidos a formalizar lo ya hecho.
+- **Efecto sobre el roadmap que conviene revisar antes de retomar los changes de evidencia.** Las evidencias consolidadas que `C-08`, `C-09`, `C-10` y `C-13` iban a producir ya existen dentro de `docs/informe/tesis_v4.md` (Capítulo 5) y de esta carpeta de evidencias. Antes de ejecutarlos hay que comprobar qué falta realmente: es posible que queden sin objeto o reducidos a formalizar lo ya hecho.
 - **Decisiones que no dependen del equipo:** ninguna. Las tres decisiones abiertas del informe quedaron resueltas (cobertura retirada, OE6 parcial declarado, incumplimiento de latencia y throughput publicado).
 
 ## 7. Conversión a PDF y verificación de los índices
 
-El PDF de entrega (`docs/devoluciones/tesis_v4.pdf`, **74 páginas A4**) se generó el **2026-10-19** con `docs/scripts/convertir_pdf.py` a partir de `docs/devoluciones/tesis_v4.md` (pandoc 3.8 → DOCX intermedio → Word 16.0 por COM → PDF). **El Markdown entregable no se modificó**: los ajustes se aplican sobre una copia de trabajo en `docs/devoluciones/build/`.
+El PDF de entrega (`docs/informe/tesis_v4.pdf`, **74 páginas A4**) se generó el **2026-10-19** con `docs/scripts/convertir_pdf.py` a partir de `docs/informe/tesis_v4.md` (pandoc 3.8 → DOCX intermedio → Word 16.0 por COM → PDF). **El Markdown entregable no se modificó**: los ajustes se aplican sobre una copia de trabajo en `docs/informe/build/`.
 
 - **Índices:** **36 entradas** (10 del índice general, 22 de tablas, 4 de figuras) con número de página. Cada número se verificó de forma independiente contra el PDF (`valida_indices_final2.py`): **36 correctas, 0 desfases**. La numeración converge en **dos pasadas** (la segunda no introdujo cambios).
 - **Rótulos:** **0 rótulos ausentes** del PDF (22 tablas y 4 figuras declaradas en el Markdown), **4 imágenes embebidas** y **0 páginas en blanco**.
@@ -116,7 +116,7 @@ El PDF de entrega (`docs/devoluciones/tesis_v4.pdf`, **74 páginas A4**) se gene
 - **Espaciado entre bloques (ajuste del 2026-10-19, posterior a la primera verificación).** En el primer PDF el primer renglón posterior a cada tabla arrancaba a **1–3 pt** del borde inferior, medido con el perfil de tinta del PDF renderizado a 1 px = 1 pt (`diag_tabla_texto.py`, método reproducible: una regla de tabla es una fila con ≥ 350 px oscuros). Word **no admite** espacio después de una tabla, así que el aire se aplica en el párrafo siguiente (`SpaceBefore = 12`) y en el anterior (`SpaceAfter = 4` si es rótulo, `10` si es texto): función `espaciado_bloques`, **22 tablas**, borde final ahora a **14–15 pt**. Se normalizaron además las brechas entre bloques: cuerpo **8 pt** (antes 6), listas e índices **6 pt**, rótulo→tabla **4 pt**, títulos 18/14/12 pt antes y 12/8/6 después (antes 18/12/10 y 12/6/4), lo que elimina la mezcla de 6/16/18/24 pt de la versión previa.
 - **Figura 2 (ajuste del 2026-10-19).** El layout del diagrama entidad-relación se recalculó (`docs/scripts/generar_figuras_v4.py`, `figura_2`): con `ylim=(0,112)` y geometría fija (`ALTO_CABECERA=6.0`, `ALTO_FILA=4.4`), columnas A (`subreddits`/`comments`), B (`posts`/`anomalias`) y C (`alertas`), 3 flechas 1:N y notas al pie. Se verificó con las cajas reales del renderer de matplotlib (`verif_fig2.py`): **5 tablas, 76 textos, 0 solapamientos**. El título interno se conserva porque duplica el epígrafe del PDF (característica del documento).
 
-*Documento generado el 2026-10-19 para el change `reconstruccion-informe-v4`. Las referencias `§` corresponden a `docs/devoluciones/tesis_v4.md`.*
+*Documento generado el 2026-10-19 para el change `reconstruccion-informe-v4`. Las referencias `§` corresponden a `docs/informe/tesis_v4.md`.*
 
 ---
 

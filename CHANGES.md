@@ -17,9 +17,9 @@
 
 > **`C-24` `rediseno-diccionario-evaluacion` es `[~] parcial`.** Está implementado (55 de 65 tareas) pero **no archivado**: su `tasks.md` conserva tareas abiertas, así que no puede marcarse `[x]`. Se registra acá porque **el clasificador vigente del proyecto es el de nueve categorías**, no el de cinco, y porque es la precondición de `C-10` y `C-13`, que se construyen contra ese diccionario.
 
-> **`C-26` `reconstruccion-informe-v4` es `[~] parcial` y absorbe la rama documento.** Ejecutado el 2026-10-19: produce el informe completo (`docs/devoluciones/tesis_v4.md`) y con ello cubre `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22` y `C-23` en un solo change, porque los ocho compartían el mismo entregable y la misma sesión de trabajo. No se archiva todavía: su `tasks.md` deja abierta sólo la tarea 5.8, que era el registro de este roadmap y ya está cumplida con esta entrada; el cierre se hace con `/opsx:archive`. Como efecto colateral, las evidencias consolidadas que `C-08`, `C-09`, `C-10` y `C-13` iban a producir existen **dentro del propio informe y su carpeta de evidencias** (`docs/evidencias/informe_v4_2026-10-19/`), no como changes separados: quien retome esos cambios debe revisar primero qué falta de verdad, porque pueden quedar sin objeto.
+> **`C-26` `reconstruccion-informe-v4` es `[~] parcial` y absorbe la rama documento.** Ejecutado el 2026-10-19: produce el informe completo (`docs/informe/tesis_v4.md`) y con ello cubre `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22` y `C-23` en un solo change, porque los ocho compartían el mismo entregable y la misma sesión de trabajo. No se archiva todavía: su `tasks.md` deja abierta sólo la tarea 5.8, que era el registro de este roadmap y ya está cumplida con esta entrada; el cierre se hace con `/opsx:archive`. Como efecto colateral, las evidencias consolidadas que `C-08`, `C-09`, `C-10` y `C-13` iban a producir existen **dentro del propio informe y su carpeta de evidencias** (`docs/evidencias/informe_v4_2026-10-19/`), no como changes separados: quien retome esos cambios debe revisar primero qué falta de verdad, porque pueden quedar sin objeto.
 
-> **`C-XX` `regeneracion-pdf-tesis-v5`** (`openspec/changes/regeneracion-pdf-tesis-v5/`) es `[~] parcial`. Regenera el PDF V5 desde `docs/devoluciones/tesis_v5.md` con conversor basado en Word/COM (`docs/scripts/convertir_pdf.py`) y verificador de 10 compuertas (`docs/scripts/verificar_pdf.py`). Entregable `docs/devoluciones/tesis_v5.pdf` (113 pp, A4) con índices 10/28/4, registro en `docs/devoluciones/build/verificacion_pdf.json`. Históricos reorganizados a `docs/documentos/`; `docs/devoluciones/recuperacion/` versionado con evidencia del PDF aprobado. Pendientes: 6.1–6.5 y aprobación visual/final.
+> **`C-XX` `regeneracion-pdf-tesis-v5`** (`openspec/changes/regeneracion-pdf-tesis-v5/`) es `[~] parcial`. Regenera el PDF V5 desde `docs/informe/tesis_v5.md` con conversor basado en Word/COM (`docs/scripts/convertir_pdf.py`) y verificador de 10 compuertas (`docs/scripts/verificar_pdf.py`). Entregable `docs/informe/tesis_v5.pdf` (113 pp, A4) con índices 10/28/4, registro en `docs/informe/build/verificacion_pdf.json`. Históricos reorganizados a `docs/documentos/`; `docs/informe/recuperacion/` versionado con evidencia del PDF aprobado. Pendientes: 6.1–6.5 y aprobación visual/final.
 
 ---
 
@@ -174,7 +174,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
     - Scripts nativos `arrancar_postgres.bat` / `parar_postgres.bat`: **obsoletos**, el cluster vive en el contenedor
     - n8n 2.40.6 en Docker (contenedor `tfi-n8n`) y accesible en `http://localhost:5678` con cuenta local del operador
     - Rol `postgres` con acceso a `tesi_osint` (credencial en el contenedor; nunca versionada). No existe un rol `tesi_app`
-  - Variables de entorno documentadas en `docs/GUIA_EJECUCION.md` §1: `OSINT_HMAC_KEY`, `NODE_FUNCTION_ALLOW_BUILTIN=crypto`, `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `PGPASSWORD`
+  - Variables de entorno documentadas en `docs/guias/GUIA_EJECUCION.md` §1: `OSINT_HMAC_KEY`, `NODE_FUNCTION_ALLOW_BUILTIN=crypto`, `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `PGPASSWORD`
   - Verificación: cluster arriba + n8n responde + `psql` conecta a `tesi_osint` en `localhost:5433`
 - **Dependencias**: ninguna
 - **Governance**: BAJO
@@ -281,8 +281,8 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-06] `sincronizacion-documental-v4`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - **IN-01**: regenerar `docs/anexos/B_workflow.json` desde `docs/scripts/generar_workflow.py`, contar los nodos de esa versión final y corregir la cifra en `docs/GUIA_EJECUCION.md` y en la Figura 3 (la discrepancia 15 vs 14 es un bloqueante de trazabilidad del Anexo B)
-  - **IN-02**: actualizar la tabla de estado de `docs/GUIA_EJECUCION.md` con B4 marcado como ejecutado, la fecha de la corrida y la limitación de `r/derechogenial`
+  - **IN-01**: regenerar `docs/anexos/B_workflow.json` desde `docs/scripts/generar_workflow.py`, contar los nodos de esa versión final y corregir la cifra en `docs/guias/GUIA_EJECUCION.md` y en la Figura 3 (la discrepancia 15 vs 14 es un bloqueante de trazabilidad del Anexo B)
+  - **IN-02**: actualizar la tabla de estado de `docs/guias/GUIA_EJECUCION.md` con B4 marcado como ejecutado, la fecha de la corrida y la limitación de `r/derechogenial`
   - **IN-05**: revisión editorial de los 10 archivos de `knowledge-base/` — español técnico, sin términos en inglés ni errores de tipeo, antes de que la KB se use como fuente del documento final
   - Congelar la versión del workflow que se usa como Anexo B y registrar su hash, para que E1 y la Figura 3 sean el mismo artefacto
   - Actualizar `knowledge-base/02_descripcion_general.md` §Estado de implementación si la corrida más reciente difiere de la registrada
@@ -293,7 +293,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - `knowledge-base/10_preguntas_abiertas.md` §Inconsistencias detectadas
   - `knowledge-base/08_arquitectura_propuesta.md` §Estructura de directorios
   - `knowledge-base/02_descripcion_general.md` §Estado de implementación
-  - `docs/GUIA_EJECUCION.md` §Estado actual
+  - `docs/guias/GUIA_EJECUCION.md` §Estado actual
 
 ---
 
@@ -527,7 +527,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-16] `normalizacion-base-textual-v2`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - `docs/devoluciones/tesis_v2.txt` ya existe (extracción hecha); falta **normalizar**: acentos rotos, saltos de línea de la extracción, caracteres de viñeta, comillas
+  - `docs/informe/tesis_v2.txt` ya existe (extracción hecha); falta **normalizar**: acentos rotos, saltos de línea de la extracción, caracteres de viñeta, comillas
   - Seccionar el texto normalizado **un archivo por capítulo** en `docs/capitulos/`, respetando la numeración original de V2 para que las restituciones sean verificables contra la fuente
   - Marcar en cada capítulo los **tramos que V3 eliminó** y que deben restituirse: entorno de benchmarking 5.2, tabla de atributos 4.2, diseño muestral y regla de resolución de discrepancias 3.3, priorización del Cap. 8, citas del marco conceptual 2.1.3, nodos del Anexo B, ejemplos de modismos ("caer", "pescar", "cangrejo")
   - Entregable: corpus base limpio del cual los capítulos se reescriben sin copiar-pegar a ciegas
@@ -676,7 +676,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-26] `reconstruccion-informe-v4`
 - **Estado**: `[~]` parcial — ejecutado el **2026-10-19**, no archivado (tarea 5.8 abierta por diseño: se cierra con la entrada de este roadmap, y el archivo se hace con `/opsx:archive`)
 - **Absorbe**: `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22`, `C-23` (misma rama documento, mismo entregable)
-- **Entregable**: `docs/devoluciones/tesis_v4.md` — informe único en Markdown (UTF-8 sin BOM): portada, declaración de autoría y uso de herramientas, índices de contenido/tablas/figuras, siglas, Resumen, Abstract, Capítulos 1–8, Referencias (15 entradas APA 7) y Anexos A–D. **22 tablas** numeradas y citadas, **4 figuras** embebidas, sin marcadores pendientes.
+- **Entregable**: `docs/informe/tesis_v4.md` — informe único en Markdown (UTF-8 sin BOM): portada, declaración de autoría y uso de herramientas, índices de contenido/tablas/figuras, siglas, Resumen, Abstract, Capítulos 1–8, Referencias (15 entradas APA 7) y Anexos A–D. **22 tablas** numeradas y citadas, **4 figuras** embebidas, sin marcadores pendientes.
 - **Trazabilidad**: `docs/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` recorre los **45 hallazgos** de las dos instancias (`H-01…H-17`, `M-01…M-12`, `N-01…N-06`, `m-13…m-20`) con la sección que resuelve cada uno y su estado.
 - **Evidencia de datos**: `docs/evidencias/informe_v4_2026-10-19/consultas_corpus_b5.txt` (consultas Q1–Q15 con fecha y `n`), `DICCIONARIO_REAL.md|.json`, `docs/scripts/generar_figuras_v4.py`, y los archivos de la muestra de control del 2026-09-30. Todas las consultas a `tesi_osint` fueron `SELECT`.
 - **Decisiones que el informe declara en lugar de maquillar**:
@@ -738,4 +738,4 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 /opsx:propose C-05-ventana-recoleccion-b5
 ```
 
-> **Estado real al 2026-10-19 (posterior a `C-26`).** `C-05` pasó a `[~] parcial`: la ventana B5 se cerró con **corte 2026-10-17** (15 días completos evaluados, 724 publicaciones, decisión DD-08) y no se archiva hasta resolver la pregunta 6.3 sobre los posts previos; la recolección posterior al corte corre como track paralelo en `C-25` (31 publicaciones iniciales). `C-26` ejecutó y absorbió la rama documento completa (`C-16`…`C-23`), de modo que los pendientes reales son: `C-07` (prerrequisito de latencia, IN-03), `C-08` a `C-15` (revisar antes de ejecutar: parte de sus evidencias ya existe dentro de `docs/evidencias/informe_v4_2026-10-19/`), y el cierre de `C-05` y `C-24`. El informe de la reentrega está en `docs/devoluciones/tesis_v4.md`.
+> **Estado real al 2026-10-19 (posterior a `C-26`).** `C-05` pasó a `[~] parcial`: la ventana B5 se cerró con **corte 2026-10-17** (15 días completos evaluados, 724 publicaciones, decisión DD-08) y no se archiva hasta resolver la pregunta 6.3 sobre los posts previos; la recolección posterior al corte corre como track paralelo en `C-25` (31 publicaciones iniciales). `C-26` ejecutó y absorbió la rama documento completa (`C-16`…`C-23`), de modo que los pendientes reales son: `C-07` (prerrequisito de latencia, IN-03), `C-08` a `C-15` (revisar antes de ejecutar: parte de sus evidencias ya existe dentro de `docs/evidencias/informe_v4_2026-10-19/`), y el cierre de `C-05` y `C-24`. El informe de la reentrega está en `docs/informe/tesis_v4.md`.

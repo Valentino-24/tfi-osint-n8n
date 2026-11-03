@@ -2,7 +2,7 @@
 
 ## 1. Preparación y trazabilidad
 - [x] 1.1 Crear checklist item-por-item desde comparación V5 vs tesis_v5.md (basado en análisis previo) y verificar en V6. **Verificación:** checklist guardado en cambio con referencias sección/página/lógica.
-- [x] 1.2 Copiar `docs/devoluciones/tesis_v5.md` a `docs/informe/tesis_v6.md` como base. **Verificación:** archivo existe en `docs/informe/tesis_v6.md`.
+- [x] 1.2 Copiar `docs/informe/tesis_v5.md` a `docs/informe/tesis_v6.md` como base. **Verificación:** archivo existe en `docs/informe/tesis_v6.md`.
 
 ## 2. Correcciones mayores N-15, N-16, N-17, N-18, N-19
 - [x] 2.1 N-15: Agregar sensibilidad por comunidad/idioma con pesos e IC, renombrar columna, reescribir 5.5/6.1/6.2/6.4/PI-2. **Verificación:** Tablas 5.9/5.9.b actualizadas, texto corregido.
@@ -26,7 +26,7 @@
 - [x] 5.3 Revisar Resumen/Abstract/Conclusiones coherentes con correcciones. **Verificación:** Coherentes.
 
 ## 6. Generación de PDF V6
-- [x] 6.1 Ejecutar `python docs/scripts/convertir_pdf.py` para generar `docs/devoluciones/tesis_v6.pdf`. **Verificación:** Archivo generado.
+- [x] 6.1 Ejecutar `python docs/scripts/convertir_pdf.py` para generar `docs/informe/tesis_v6.pdf`. **Verificación:** Archivo generado.
 - [x] 6.2 Ejecutar/verificar con `docs/scripts/verificar_pdf.py`. **Verificación:** Revisar resultado (10 compuertas).
 - [x] 6.3 Commit atómico de cambios. **Verificación:** Commit con mensaje descriptivo.
 

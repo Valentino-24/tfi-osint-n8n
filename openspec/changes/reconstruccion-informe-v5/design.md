@@ -4,7 +4,7 @@ Este documento es el **plan de ejecución** de los 16 ítems del plan de correcc
 
 ## Contexto de partida
 
-- **Documento base**: `docs/devoluciones/tesis_v4.md` (1.152 líneas, 13 H1, 46 H2, 22 tablas, 4 figuras). Se convierte a PDF con `docs/scripts/convertir_pdf.py` (pandoc → DOCX → Word COM → PDF).
+- **Documento base**: `docs/informe/tesis_v4.md` (1.152 líneas, 13 H1, 46 H2, 22 tablas, 4 figuras). Se convierte a PDF con `docs/scripts/convertir_pdf.py` (pandoc → DOCX → Word COM → PDF).
 - **Correcciones previas**: R-01…R-05 (commit `b77964c`) responden al prompt de autorevisión, no a esta devolución. Cubren parcialmente H-01 (ítem 4) y N-05 (ítem 12); **ninguna cierra un bloqueante**.
 - **Datos reales**: corpus B5 con corte `2026-10-17`. La base `tesi_osint` hoy contiene 765 posts (incluye el track secundario C-25 y datos hasta el 19/10); el subconjunto del corte tiene 724 posts y 170 detecciones declaradas. Toda cifra nueva se recalcula con su consulta, fecha y `n`.
 - **Verificaciones ya hechas contra el repo/base** (confirman al tribunal): erratas del diccionario (`caeron`, `sequestro`) presentes en `generar_workflow.py`; `1x4xuvc` con `nlp_score = 0.25` (el guion no matchea); IDs de r/devsarg (1x5acdz, 1x2vur9, 1wr7qwo) reales en la base; `B_workflow.json` con `active = False` (contradice la Figura 1); devsarg = 59,1 % del corpus con 7 detecciones (4,1 %); «irreversible» ×5; «alertas tempranas» ×2.

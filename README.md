@@ -17,16 +17,15 @@ Sistema de monitoreo OSINT sobre comunidades técnicas de Reddit, construido con
 ├── knowledge-base/              # Base de conocimiento del dominio (fuente de verdad)
 ├── openspec/                    # Changes y specs (OpenSpec)
 ├── docs/                        # Documentación del informe
-│   ├── devoluciones/            # Informe vigente (tesis_v6.md + tesis_v6.pdf) + verificación
+│   ├── informe/                 # Informe vigente (tesis_v6.md + tesis_v6.pdf)
+│   │   └── tribunal/            # Devoluciones del tribunal (V4, V5)
 │   ├── anexos/                  # DDL (A) y workflow (B)
 │   ├── evidencias/              # Evidencia reproducible por fecha
 │   ├── figuras/                 # Figuras del informe (4)
 │   ├── scripts/                 # Scripts de generación y verificación
 │   │   └── legacy/              # Scripts de un solo uso (histórico)
-│   ├── guias/                   # Guías de instalación y ejecución
-│   ├── historico/               # Versiones anteriores del informe (v2, v3, v4)
-│   ├── prompts/                 # Prompts utilizados
-│   ├── devoluciones/tribunal/   # Devoluciones del tribunal (V2-V5)
+│   ├── guias/                   # Guías de instalación, ejecución y conceptos
+│   ├── historico/               # Versiones anteriores del informe (v2, v3, v4, v5)
 │   └── build/                   # Artefactos temporales de build
 ├── prototipo-landing-page/      # Prototipo de landing page
 ├── .opencode/                   # Configuración de OpenCode (skills)
@@ -36,21 +35,21 @@ Sistema de monitoreo OSINT sobre comunidades técnicas de Reddit, construido con
 
 ## Documentación principal
 
-- **Informe vigente:** `docs/devoluciones/tesis_v6.pdf`
-- **Informe en Markdown:** `docs/devoluciones/tesis_v6.md`
+- **Informe vigente:** `docs/informe/tesis_v6.pdf`
+- **Informe en Markdown:** `docs/informe/tesis_v6.md`
 - **Base de conocimiento:** `knowledge-base/README.md`
 - **Roadmap:** `CHANGES.md`
 
 ## Generación del PDF
 
 ```powershell
-python docs/scripts/convertir_pdf.py --md docs/devoluciones/tesis_v6.md --out docs/devoluciones/tesis_v6.pdf
+python docs/scripts/convertir_pdf.py --md docs/informe/tesis_v6.md --out docs/informe/tesis_v6.pdf
 ```
 
 ## Verificación del PDF
 
 ```powershell
-python docs/scripts/verificar_pdf.py --pdf docs/devoluciones/tesis_v6.pdf --md docs/devoluciones/tesis_v6.md --docx "%TEMP%\tfi_tesis_build\tesis_v6.docx"
+python docs/scripts/verificar_pdf.py --pdf docs/informe/tesis_v6.pdf --md docs/informe/tesis_v6.md --docx "%TEMP%\tfi_tesis_build\tesis_v6.docx"
 ```
 
 ## Stack tecnológico

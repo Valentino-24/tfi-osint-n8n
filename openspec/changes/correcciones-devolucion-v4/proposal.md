@@ -23,7 +23,7 @@ La devolución del tribunal sobre la tesis V4 (calificación 6,9/10, APROBADO CO
 <!-- None -->
 
 ## Impact
-- `docs/devoluciones/tesis_v5.md` (capítulos/4, 5, 7, 8, anexos)
+- `docs/informe/tesis_v5.md` (capítulos/4, 5, 7, 8, anexos)
 - `docs/evidencias/informe_v5_2026-10-20/` (declaración/validación)
-- `docs/devoluciones/build/` (regenerar PDF/verificación tras cambios sustanciales)
+- `docs/informe/build/` (regenerar PDF/verificación tras cambios sustanciales)
 - `openspec/changes/correcciones-devolucion-v4/`

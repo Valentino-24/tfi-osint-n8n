@@ -32,4 +32,4 @@ El TFI OSINT/n8n es un pipeline de recolección y análisis de publicaciones pú
 
 ## Fuente principal
 
-La KB se contrastó con `PLAN_V4.md`, `docs/GUIA_EJECUCION.md`, `docs/GUIA_CONCEPTOS.md`, `docs/GUIA_INSTALACION.md`, `docs/anexos/A_DDL.sql`, `docs/anexos/B_workflow.json` y `docs/scripts/generar_workflow.py`. Las cifras y afirmaciones de estado deben volver a verificarse contra la base y la corrida más reciente antes de publicarse.
+La KB se contrastó con `PLAN_V4.md`, `docs/guias/GUIA_EJECUCION.md`, `docs/guias/GUIA_CONCEPTOS.md`, `docs/guias/GUIA_INSTALACION.md`, `docs/anexos/A_DDL.sql`, `docs/anexos/B_workflow.json` y `docs/scripts/generar_workflow.py`. Las cifras y afirmaciones de estado deben volver a verificarse contra la base y la corrida más reciente antes de publicarse.

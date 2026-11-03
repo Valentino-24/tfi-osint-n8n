@@ -44,7 +44,7 @@ unidad de tiempo que dispara el 429 desde esta IP.
 | La mitigación reduce el impacto pero no elimina el síntoma | Si el límite es por request, por ventana temporal o por subreddit |
 | La guía de ejecución menciona un rate limit público de referencia de ~10/min | Si ese valor de referencia es el que aplica a esta IP (no fue aislado empíricamente en este proyecto) |
 
-El valor de referencia `~10/min` que aparece en `docs/GUIA_EJECUCION.md` es una **nota de
+El valor de referencia `~10/min` que aparece en `docs/guias/GUIA_EJECUCION.md` es una **nota de
 referencia documentada, no una medición de este proyecto**, y por eso no se adopta como umbral.
 Expermentar de más para aislarlo generaría más 429, es decir más sesgo de cobertura, y eso
 contradice RN-GL-02. La caracterización crece con la observación de las corridas, no con
@@ -153,4 +153,4 @@ Este documento es **descriptivo**. No se modificó ninguna configuración:
 | [`bitacora_b5/`](bitacora_b5/) | Conteo diario con su consulta, fecha, ventana y `n` |
 | `knowledge-base/05_reglas_de_negocio.md` | RN-FU-03 (reintentos), RN-AN-02, RN-GL-02, RN-GL-03 |
 | `knowledge-base/06_funcionalidades.md` | US-002, criterio pendiente que este documento cierra |
-| `docs/GUIA_EJECUCION.md` | Plan C, reintentos configurados y nota de referencia del límite público |
+| `docs/guias/GUIA_EJECUCION.md` | Plan C, reintentos configurados y nota de referencia del límite público |

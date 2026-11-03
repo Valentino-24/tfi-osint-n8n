@@ -7,10 +7,10 @@
 
 ## 1. Preparación de fuentes y reglas
 
-- [x] 1.1 Normalizar la base textual de V2 desde `docs/devoluciones/tesis_v2.txt` (cuerpo real, l. 2614–3442): acentos, saltos de línea de la extracción, viñetas y comillas. Guardar la copia de trabajo en `%TEMP%\opencode\tesis_v2_normalizada.md` (fuera del repo) y verificar que conserva la numeración de secciones.
+- [x] 1.1 Normalizar la base textual de V2 desde `docs/informe/tesis_v2.txt` (cuerpo real, l. 2614–3442): acentos, saltos de línea de la extracción, viñetas y comillas. Guardar la copia de trabajo en `%TEMP%\opencode\tesis_v2_normalizada.md` (fuera del repo) y verificar que conserva la numeración de secciones.
 - [x] 1.2 Construir el checklist de correcciones con IDs y capítulo destino: H-01…H-17, M-01…M-12, N-01…N-06, m-13…m-20. Archivar en `docs/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` con estado inicial y la evidencia que lo cerraría.
 - [x] 1.3 Extraer de V2 la lista de referencias (l. 3336–3381) y verificar cuáles están citadas en el cuerpo; marcar las huérfanas (H-10) y las que requieren URL/fecha (CABASE, Fortinet, n8n, PostgreSQL, Reddit).
-- [x] 1.4 Leer `docs/devoluciones/Tesis_Rivas_Dengra.md` (UTF-16, 4.761 líneas; convertir a UTF-8 en `%TEMP%\opencode\`) y extraer 5–8 puntos de contraste concretos (alcance, fuente, método, resultados) para §2.2.
+- [x] 1.4 Leer `docs/informe/Tesis_Rivas_Dengra.md` (UTF-16, 4.761 líneas; convertir a UTF-8 en `%TEMP%\opencode\`) y extraer 5–8 puntos de contraste concretos (alcance, fuente, método, resultados) para §2.2.
 - [x] 1.5 Fijar en el checklist la tabla de cifras prohibidas del `design.md` §«Tabla de cifras prohibidas» y usarla como lista de verificación en 5.1.
 
 ## 2. Lecturas de datos reales (solo `SELECT`) y archivado
@@ -37,7 +37,7 @@
 - [x] 3.9 Resumen y Abstract (2 pp): escritos al final; espejo exacto; métricas reales; sin «superó todos los umbrales»; OE6 parcial y cobertura retirada declarados.
 - [x] 3.10 Referencias (2,5 pp): APA 7, 17+ entradas, todas citadas, con URL y fecha en fuentes institucionales; Rivas y Dengra incluida; sin «et al.» en la lista. **Desviación declarada:** la lista cierra con **15 entradas**, todas citadas en el cuerpo. Se descartaron Honnibal et al. (spaCy) y Stallings por quedar sin cita tras la reescritura; el criterio aplicado fue no dejar referencias huérfanas ni citas sin referencia.
 - [x] 3.11 Anexos (4 pp): A DDL real; B export importable sin secretos; C diccionario de 9 categorías y 201 términos desde `generar_workflow.py`; D repositorio y estructura.
-- [x] 3.12 Ensamblar todo en `docs/devoluciones/tesis_v4.md` con jerarquía de títulos consistente (H1 título, H2 capítulos, H3 secciones), sin HTML embebido y sin bloques de metadatos internos.
+- [x] 3.12 Ensamblar todo en `docs/informe/tesis_v4.md` con jerarquía de títulos consistente (H1 título, H2 capítulos, H3 secciones), sin HTML embebido y sin bloques de metadatos internos.
 
 ## 4. Figuras e índices
 
@@ -55,14 +55,14 @@
 - [x] 5.4 Verificación APA 7: cada cita en el cuerpo tiene su referencia y cada referencia está citada; URL y fecha en fuentes institucionales.
 - [x] 5.5 Verificación de forma: coma decimal en todo el documento, tablas y figuras numeradas y referenciadas, títulos de sección coherentes con el índice.
 - [x] 5.6 Verificar que no quedan marcadores `[COMPLETAR]` sin dueño, evidencia y fecha; cada limitación declarada es legible sin el dato faltante.
-- [x] 5.7 Verificar que `docs/devoluciones/tesis_v4.md` existe, es UTF-8 válido, abre sin caracteres corruptos y contiene todos los capítulos y anexos.
+- [x] 5.7 Verificar que `docs/informe/tesis_v4.md` existe, es UTF-8 válido, abre sin caracteres corruptos y contiene todos los capítulos y anexos.
 - [x] 5.8 Registrar este change en `CHANGES.md` **solo si los autores confirman** cómo convive con C-16 y C-18…C-21; hasta entonces no se toca el roadmap. **Hecho el 2026-10-19**, con confirmación de los autores sobre la declaración pública de latencia y throughput no cumplidos. Registrado como **`[C-26] reconstruccion-informe-v4`** (`[~]` parcial), que **absorbe** `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22` y `C-23`: los ocho compartían entregable y se ejecutaron en un solo change. También se alineó el estado de `C-05` a `[~]` parcial y se agregó la nota de estado real al 2026-10-19.
 - [x] 5.9 Declarar en el registro del change que no hubo escrituras en la base, ni cambios en DDL/workflow/nodos/credenciales, ni publicación desde el agente.
 
 ## 6. Cierre del apply
 
 - **Fecha de cierre:** 2026-10-19.
-- **Entregable:** `docs/devoluciones/tesis_v4.md` (UTF-8 sin BOM): portada, declaración de autoría, índices de contenido/tablas/figuras, siglas, Resumen, Abstract, Cap. 1–8, Referencias y Anexos A–D. **22 tablas** numeradas y citadas, **4 figuras** embebidas (`docs/figuras/`), sin marcadores pendientes.
+- **Entregable:** `docs/informe/tesis_v4.md` (UTF-8 sin BOM): portada, declaración de autoría, índices de contenido/tablas/figuras, siglas, Resumen, Abstract, Cap. 1–8, Referencias y Anexos A–D. **22 tablas** numeradas y citadas, **4 figuras** embebidas (`docs/figuras/`), sin marcadores pendientes.
 - **Trazabilidad de hallazgos:** `docs/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` (45 IDs de las dos instancias, con la sección que resuelve cada uno y su estado).
 - **Sin escrituras en el sistema:** todas las consultas a `tesi_osint` fueron `SELECT`. No se modificaron `A_DDL.sql`, `B_workflow.json`, `generar_workflow.py`, nodos, credenciales ni la base. El workflow no se publicó ni se activó desde el agente.
 - **Tarea abierta:** 5.8 (registro en `CHANGES.md`), bloqueada hasta la confirmación de los tres autores sobre C-16 y C-18…C-21.

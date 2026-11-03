@@ -68,12 +68,12 @@ No existe una API REST propia. Las consultas de evidencia se realizan directamen
 
 ## Generación del informe (PDF)
 
-El informe se escribe en Markdown (`docs/devoluciones/tesis_v5.md`) y el PDF se genera desde ahí, sin edición manual del DOCX:
+El informe se escribe en Markdown (`docs/informe/tesis_v5.md`) y el PDF se genera desde ahí, sin edición manual del DOCX:
 
 ```powershell
 python docs/scripts/convertir_pdf.py
 ```
 
-El conversor arma un DOCX intermedio en `%TEMP%\tfi_tesis_build` (fuera de OneDrive, porque Word no abre un DOCX recién escrito en una carpeta sincronizada), numera los tres índices y exporta con Word a `docs/devoluciones/tesis_v5.pdf`. Al terminar corre `docs/scripts/verificar_pdf.py`, que aplica 10 compuertas —A4, páginas con texto, índices de contenido/tablas/figuras numerados en el DOCX y en el PDF, ausencia de marcadores `@@@`, Times New Roman sin Aptos, márgenes 25/25/30/20 mm, 28 rótulos de tabla y 4 de figura, portada en una página y similitud ≥ 0,97 con el PDF aprobado— y escribe el registro en `docs/devoluciones/build/verificacion_pdf.json`. El comando falla con código ≠ 0 si alguna compuerta no se cumple.
+El conversor arma un DOCX intermedio en `%TEMP%\tfi_tesis_build` (fuera de OneDrive, porque Word no abre un DOCX recién escrito en una carpeta sincronizada), numera los tres índices y exporta con Word a `docs/informe/tesis_v5.pdf`. Al terminar corre `docs/scripts/verificar_pdf.py`, que aplica 10 compuertas —A4, páginas con texto, índices de contenido/tablas/figuras numerados en el DOCX y en el PDF, ausencia de marcadores `@@@`, Times New Roman sin Aptos, márgenes 25/25/30/20 mm, 28 rótulos de tabla y 4 de figura, portada en una página y similitud ≥ 0,97 con el PDF aprobado— y escribe el registro en `docs/informe/build/verificacion_pdf.json`. El comando falla con código ≠ 0 si alguna compuerta no se cumple.
 
-La entrega vigente es la **V5** (2026-10-29): 113 páginas, A4, con los índices en 10/28/4. `docs/documentos/` conserva las versiones anteriores (v2, v3, v4, devoluciones del tribunal y prompts de conversión); `docs/devoluciones/` conserva solo la entrega vigente y la evidencia de recuperación del PDF aprobado del 2026-10-28.
+La entrega vigente es la **V5** (2026-10-29): 113 páginas, A4, con los índices en 10/28/4. `docs/documentos/` conserva las versiones anteriores (v2, v3, v4, devoluciones del tribunal y prompts de conversión); `docs/informe/` conserva solo la entrega vigente y la evidencia de recuperación del PDF aprobado del 2026-10-28.

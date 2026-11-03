@@ -8,7 +8,7 @@ El sistema real difiere de lo que describen V2 y V3 en puntos estructurales: la 
 
 **Goals**
 
-- Producir `docs/devoluciones/tesis_v4.md`: el informe completo, autocontenido, en Markdown, con la estructura de capítulos que el proyecto viene usando.
+- Producir `docs/informe/tesis_v4.md`: el informe completo, autocontenido, en Markdown, con la estructura de capítulos que el proyecto viene usando.
 - Fijar un presupuesto de extensión por capítulo (42–48 páginas equivalentes) para que la V4 no repita ni la condensación de 24 páginas de V3 ni las 125 páginas del borrador descartado.
 - Restituir el contenido que la V3 eliminó y que el tribunal valoró (protocolo 3.3, entorno de pruebas, tabla 4.2, modismos, priorización del Cap. 8, citas 2.1.3, Anexo B).
 - Sostener cada cifra con su consulta, su fecha y su `n`; retirar toda cifra heredada.
@@ -27,7 +27,7 @@ El sistema real difiere de lo que describen V2 y V3 en puntos estructurales: la 
 
 ### D-1 — Base V2, una sola pieza, sin plan embebido
 
-El texto se reconstruye desde `docs/devoluciones/tesis_v2.txt` (cuerpo real, líneas 2614–3442), no desde `tesis_v3.md`. La V3 aporta únicamente correcciones puntuales que el tribunal validó. El entregable es **un solo archivo** `docs/devoluciones/tesis_v4.md`; el plan capítulo por capítulo vive en este `design.md`, no dentro del informe.
+El texto se reconstruye desde `docs/informe/tesis_v2.txt` (cuerpo real, líneas 2614–3442), no desde `tesis_v3.md`. La V3 aporta únicamente correcciones puntuales que el tribunal validó. El entregable es **un solo archivo** `docs/informe/tesis_v4.md`; el plan capítulo por capítulo vive en este `design.md`, no dentro del informe.
 
 - **Alternativa**: un archivo por capítulo en `docs/capitulos/` (lo que preveía C-16). **Descartada**: el usuario necesita una pieza única para pasarla a otra herramienta y generar el PDF.
 - **Consecuencia**: C-16 no produce los archivos por capítulo; cuando se archive, deberá referenciar este change. La normalización de la V2 sigue siendo un paso interno (tarea 1.1).
@@ -117,7 +117,7 @@ Cada tabla del Cap. 5 y cada cifra del Resumen lleva, en el texto o en una nota,
 
 ## Plan capítulo por capítulo
 
-> Las referencias `l.xxxx` son al cuerpo real de `docs/devoluciones/tesis_v2.txt`.
+> Las referencias `l.xxxx` son al cuerpo real de `docs/informe/tesis_v2.txt`.
 
 ### Resumen + Abstract (2 pp) — l. 2615–2660
 
@@ -136,7 +136,7 @@ Cada tabla del Cap. 5 y cada cifra del Resumen lleva, en el texto o en una nota,
 ### Cap. 2 — Marco teórico y estado del arte (4,5 pp) — l. 2813–2896
 
 - **Restituir**: 2.1.1 OSINT (ciclo de 5 fases, Russell y Klassen; Pastor-Galindo), 2.1.2 Reddit como fuente, 2.1.3 NLP, 2.1.4 ETL/n8n, 2.2 estado del arte (SpiderFoot, Maltego CE, theHarvester, Recon-ng; Liao et al. correctamente usado; Zong).
-- **Corregir**: 2.1.2 describe la **fuente pública** y sus restricciones reales, no OAuth2/100 rpm como si fuera el mecanismo del sistema; H-08 fuentes con URL y fecha; H-09 conservar los ejemplos de modismos («caer», «pescar», «cangrejo») **sin** el «>30 %» contrafáctico; H-10 completar las 8 referencias huérfanas y **contrastar explícitamente con Rivas y Dengra (2026)** — el texto del antecedente está disponible en `docs/devoluciones/Tesis_Rivas_Dengra.md`; m-14 APA 7 sin «et al.» en la lista de referencias.
+- **Corregir**: 2.1.2 describe la **fuente pública** y sus restricciones reales, no OAuth2/100 rpm como si fuera el mecanismo del sistema; H-08 fuentes con URL y fecha; H-09 conservar los ejemplos de modismos («caer», «pescar», «cangrejo») **sin** el «>30 %» contrafáctico; H-10 completar las 8 referencias huérfanas y **contrastar explícitamente con Rivas y Dengra (2026)** — el texto del antecedente está disponible en `docs/informe/Tesis_Rivas_Dengra.md`; m-14 APA 7 sin «et al.» en la lista de referencias.
 - **No entra**: CABASE/Fortinet como cifras duras sin URL verificable; si no se verifica la fuente, se reformula cualitativamente.
 
 ### Cap. 3 — Marco metodológico (5,5 pp) — l. 2897–2979

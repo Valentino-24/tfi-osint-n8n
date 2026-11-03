@@ -100,7 +100,7 @@
 - [x] 9.6 `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (fuera del repo): registrar el estado real de los cinco criterios de aceptación. Solo se rehabilitan si las tareas del grupo 7 se completaron
   **Hecho 2026-10-01.** Los cinco criterios quedan con su estado real. Kappa se declara **no calculable** (un solo anotador) en lugar de la cifra inventada de 0,78 que figuraba en la seccion 3.3. Cada metrica lleva `n=50` y fecha 2026-09-30.
 - [x] 9.7 `[hecho-dev]` `docs/evidencias/CARACTERIZACION_RATE_LIMIT.md`: actualizar la mitigación documentada, que hoy dice «reintento hasta tres veces con 30 segundos», a la mitigación real de espaciado por loop (D-7)
-- [x] 9.8 `[hecho-dev]` `docs/GUIA_EJECUCION.md`: corregir la misma afirmación de reintentos y documentar el ciclo de ~2 minutos
+- [x] 9.8 `[hecho-dev]` `docs/guias/GUIA_EJECUCION.md`: corregir la misma afirmación de reintentos y documentar el ciclo de ~2 minutos
 - [x] 9.9 `CHANGES.md`: registrar el change `rediseno-diccionario-evaluacion` en el roadmap y desbloquear C-10 y C-13. La tabla de skills y el resto del roadmap se sincronizaron el 2026-09-30, pero el change todavia no figura en `CHANGES.md`
   **Hecho 2026-10-01.** Registrado en `CHANGES.md` como **C-24** en estado `[~] parcial`. C-10 y C-13 quedan **desbloqueados** por C-24, no cumplidos: siguen en `[ ]`.
 - [x] 9.10 `AGENTS.md` y `CLAUDE.md`: confirmar que la tabla de skills sigue vigente para este trabajo

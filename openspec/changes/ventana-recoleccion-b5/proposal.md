@@ -40,7 +40,7 @@ Ninguna. `openspec/specs/` está vacío: no existen specs previos cuyas REQUISIT
 ## Impact
 
 - **Artefactos nuevos**: `docs/evidencias/bitacora_b5/` con una entrada diaria versionable, y el registro de caracterización de rate limiting.
-- **Documentación a actualizar**: `docs/GUIA_EJECUCION.md` (tabla de estado de B5), `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02.
+- **Documentación a actualizar**: `docs/guias/GUIA_EJECUCION.md` (tabla de estado de B5), `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02.
 - **Sin impacto en**: `docs/anexos/A_DDL.sql` (Anexo A), `docs/anexos/B_workflow.json` (Anexo B), `docs/scripts/generar_workflow.py` y la lógica de nodos. Ninguna tabla, columna, índice o sentencia del pipeline cambia.
 - **Sin impacto destructivo**: este change no ejecuta operaciones sobre `tesi_osint` más allá de consultas `SELECT` de conteo. No borra, no altera `active_monitoring`, no reinicia la recolección.
 - **Dependencias**: requiere solo C-04 (verificada). No bloquea ni desbloquea DDL.

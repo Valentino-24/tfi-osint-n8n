@@ -2,8 +2,8 @@
 
 ## 1. Recuperación de las fuentes (no destructiva)
 
-- [x] 1.1 Crear `docs/devoluciones/recuperacion/` y extraer allí `:docs/devoluciones/tesis_v5.pdf`,
-      `:docs/devoluciones/build/tesis_v5.docx` y `HEAD:docs/devoluciones/tesis_v5.md`.
+- [x] 1.1 Crear `docs/informe/recuperacion/` y extraer allí `:docs/informe/tesis_v5.pdf`,
+      `:docs/informe/build/tesis_v5.docx` y `HEAD:docs/informe/tesis_v5.md`.
       Verificación: los tres archivos existen y sus tamaños coinciden con `git cat-file -s`
       (1.496.015 / 1.018.163 / ~250 KB). **No ejecutar `git restore`, `git checkout` ni `git rm
       --cached` antes de este paso: el índice es la única copia del PDF aprobado.**
@@ -35,7 +35,7 @@
 - [ ] 2.6 Revisar el diff con el usuario y dejar constancia de la aprobación (pendiente explícita
       en el change). Verificación: el usuario confirma que no hay cambios de cifras ni de prosa, o
       indica cuáles aceptar.
-- [x] 2.7 Instalar el Markdown definitivo en `docs/devoluciones/tesis_v5.md`.
+- [x] 2.7 Instalar el Markdown definitivo en `docs/informe/tesis_v5.md`.
       Verificación: `git diff --stat` muestra solo ese archivo y las rutas de imágenes resuelven.
 
 ## 3. Conversor único y versionado
@@ -45,7 +45,7 @@
       conserva las funciones de estilo y numeración.
 - [x] 3.2 Agregar los argumentos `--md`, `--out`, `--fuente` y `--verificar`, con valores por
       defecto para la V5. Verificación: `--help` lista los cuatro y una corrida sin argumentos usa
-      `docs/devoluciones/tesis_v5.md`.
+      `docs/informe/tesis_v5.md`.
 - [x] 3.3 Portar el mapeo estructural de índices (capítulos por estilo, tablas por el párrafo
       anterior, figuras por epígrafe) y la numeración en hasta 3 pasadas.
       Verificación: una corrida de prueba informa `10 capítulos, 32 entradas de tablas/figuras`
@@ -69,7 +69,7 @@
       fuentes, páginas vacías, tres índices, `@@@`, inventario de tablas/figuras, similitud).
       Verificación: ejecutarlo contra el PDF aprobado reporta los defectos conocidos (índices sin
       página, página 36 vacía) sin falsos negativos.
-- [x] 4.2 Emitir `docs/devoluciones/build/verificacion_pdf.json` y un resumen legible con fecha,
+- [x] 4.2 Emitir `docs/informe/build/verificacion_pdf.json` y un resumen legible con fecha,
       fuente, SHA-256 del PDF, cantidad de páginas y resultado por compuerta.
       Verificación: ambos archivos existen y contienen los siete campos.
 - [x] 4.3 Devolver código distinto de cero cuando una compuerta falla.
@@ -80,7 +80,7 @@
 
 ## 5. Composición y revisión
 
-- [x] 5.1 Ejecutar el build completo y generar `docs/devoluciones/tesis_v5.pdf`.
+- [x] 5.1 Ejecutar el build completo y generar `docs/informe/tesis_v5.pdf`.
       Verificación: el PDF existe, `verificacion_pdf.json` marca todas las compuertas en verde.
 - [x] 5.2 Comprobar los tres índices: 10 + 28 + 4 entradas, todas con número, sin `@@@`.
       Verificación: el verificador informa `entradas_sin_pagina=0`.
@@ -112,7 +112,7 @@
 
 ## Notas de ejecución (2026-10-29)
 
-- **PDF final**: `docs/devoluciones/tesis_v5.pdf`, 113 páginas, sha256
+- **PDF final**: `docs/informe/tesis_v5.pdf`, 113 páginas, sha256
   `0ccf5ac3242bf8b691d28431c594357287d16a62465b857afaa5a9e378413e9b`; las 10 compuertas de
   `build/verificacion_pdf.json` en verde.
 - **Índices**: 10/28/4 entradas, todas con página, verificado sobre el DOCX y sobre el texto del
@@ -122,7 +122,7 @@
 - **Intermedios fuera de OneDrive**: Word se colgaba en `Documents.Open` cuando el DOCX se abría
   inmediatamente después de reescribirse dentro de la carpeta sincronizada (bloqueo del filtro de
   OneDrive, sin diálogo ni error). El MD de trabajo y el DOCX van a `%TEMP%\tfi_tesis_build`; en
-  `docs/devoluciones/build/` quedan solo los informes.
+  `docs/informe/build/` quedan solo los informes.
 - **Artefacto de la capa de texto**: 806 glifos sin mapear (U+FFFE) en la extracción del PDF nuevo;
   el PDF aprobado tiene 15 y `tesis_v4.pdf` 508. El glifo se dibuja bien y el defecto es del
   exportador de Word: se informa, no se usa como compuerta.

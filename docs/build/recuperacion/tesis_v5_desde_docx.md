@@ -468,7 +468,7 @@ El artefacto se organiza en cinco capas funcionales, tal como se representa en l
 **Capa de difusión.** El módulo de alertas hacia un canal externo, con el mecanismo de notificación deshabilitado por defecto.
 
 <figure>
-<img src="docs/devoluciones/recuperacion/media/media/image1.png" style="width:5.83333in;height:3.38188in" alt="Figura 1. Arquitectura del sistema" />
+<img src="docs/informe/recuperacion/media/media/image1.png" style="width:5.83333in;height:3.38188in" alt="Figura 1. Arquitectura del sistema" />
 <figcaption aria-hidden="true"><p>Figura 1. Arquitectura del sistema</p></figcaption>
 </figure>
 
@@ -511,7 +511,7 @@ Además del lazo principal, el flujo de ingesta incorpora un **centinela** que g
 El esquema físico reside en una base de datos PostgreSQL 18 desplegada en un clúster propio en el puerto 5433, bajo el rol de aplicación `tesi_app`. La Figura 2 presenta el diagrama entidad-relación. El modelo consta de **cinco tablas** (`subreddits`, `posts`, `comments`, `anomalias` y `alertas`), **cinco índices** y dos restricciones de integridad referencial de comportamiento distinto, elegidas deliberadamente. La Tabla 4.2 reproduce los atributos de cada tabla tal como están definidos en el DDL vigente.
 
 <figure>
-<img src="docs/devoluciones/recuperacion/media/media/image2.png" style="width:5.83333in;height:3.40395in" alt="Figura 2. Modelo entidad-relación" />
+<img src="docs/informe/recuperacion/media/media/image2.png" style="width:5.83333in;height:3.40395in" alt="Figura 2. Modelo entidad-relación" />
 <figcaption aria-hidden="true"><p>Figura 2. Modelo entidad-relación</p></figcaption>
 </figure>
 
@@ -669,7 +669,7 @@ Tres propiedades del desarrollo se documentan para permitir la auditoría de lo 
 **Las figuras se generan desde los artefactos.** Las figuras 1 a 4 se producen con el script `docs/scripts/generar_figuras_v4.py`; la Figura 3, en particular, lee el grafo de nodos y conexiones directamente del archivo exportado del workflow, de modo que no puede divergir del sistema descrito.
 
 <figure>
-<img src="docs/devoluciones/recuperacion/media/media/image3.png" style="width:5.83333in;height:3.48904in" alt="Figura 3. Grafo de nodos y conexiones del workflow desplegado" />
+<img src="docs/informe/recuperacion/media/media/image3.png" style="width:5.83333in;height:3.48904in" alt="Figura 3. Grafo de nodos y conexiones del workflow desplegado" />
 <figcaption aria-hidden="true"><p>Figura 3. Grafo de nodos y conexiones del workflow desplegado</p></figcaption>
 </figure>
 
@@ -762,7 +762,7 @@ Tres hechos de esta serie requieren explicación:
 La Figura 4 sintetiza la ventana: su panel (a) presenta la serie de ingesta diaria junto con la cantidad de ciclos que efectivamente aportaron publicaciones y su panel (b) el volumen por categoría detectada. El panel (a) no incluye el 03/10, por no haberse registrado recolección alguna ese día.
 
 <figure>
-<img src="docs/devoluciones/recuperacion/media/media/image4.png" style="width:5.83333in;height:2.13811in" alt="Figura 4. Serie temporal de la ingesta y categorías detectadas" />
+<img src="docs/informe/recuperacion/media/media/image4.png" style="width:5.83333in;height:2.13811in" alt="Figura 4. Serie temporal de la ingesta y categorías detectadas" />
 <figcaption aria-hidden="true"><p>Figura 4. Serie temporal de la ingesta y categorías detectadas</p></figcaption>
 </figure>
 

@@ -40,8 +40,8 @@ vuelve a producir un artefacto distinto del aprobado.
 
 ## Impact
 
-- **Documentos**: `docs/devoluciones/tesis_v5.md` (restituido), `docs/devoluciones/tesis_v5.pdf`
-  (regenerado), `docs/devoluciones/build/` (intermedios), `docs/documentos/` (organización).
+- **Documentos**: `docs/informe/tesis_v5.md` (restituido), `docs/informe/tesis_v5.pdf`
+  (regenerado), `docs/informe/build/` (intermedios), `docs/documentos/` (organización).
 - **Código**: `docs/scripts/convertir_pdf.py` (reescritura), nuevos verificadores en
   `docs/scripts/` si hacen falta.
 - **Dependencias**: Pandoc (`miniconda3/Library/bin/pandoc.exe`), Microsoft Word 365 vía

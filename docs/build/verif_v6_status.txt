@@ -6,7 +6,7 @@ En línea: 1 Carácter: 51
     + FullyQualifiedErrorId : NativeCommandError
  
   File "<string>", line 1, in <module>
-    import json; d=json.load(open('docs/devoluciones/build/verificacion_pdf.json')); print('OK_GLOBAL:',d['ok']); 
+    import json; d=json.load(open('docs/informe/build/verificacion_pdf.json')); print('OK_GLOBAL:',d['ok']); 
 [print(' -',c['compuerta'], c['ok']) for c in d['compuertas']]
                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "C:\Users\sever\miniconda3\Lib\json\__init__.py", line 298, in load

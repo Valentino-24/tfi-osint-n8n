@@ -57,4 +57,4 @@ Tesis/
 | `TELEGRAM_CHAT_ID` | Destinatario de la alerta | id numérico del chat | Sí |
 | `PGPASSWORD` | Password del rol PostgreSQL en consultas locales | Se pide por prompt o se lee de una variable de entorno; nunca se escribe en el repo | Sí |
 
-La configuración completa por etapas está en `docs/GUIA_EJECUCION.md` y `docs/GUIA_INSTALACION.md`.
+La configuración completa por etapas está en `docs/guias/GUIA_EJECUCION.md` y `docs/guias/GUIA_INSTALACION.md`.
