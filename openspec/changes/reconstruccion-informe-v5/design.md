@@ -4,7 +4,7 @@ Este documento es el **plan de ejecución** de los 16 ítems del plan de correcc
 
 ## Contexto de partida
 
-- **Documento base**: `V4/devoluciones/tesis_v4.md` (1.152 líneas, 13 H1, 46 H2, 22 tablas, 4 figuras). Se convierte a PDF con `V4/scripts/convertir_pdf.py` (pandoc → DOCX → Word COM → PDF).
+- **Documento base**: `docs/devoluciones/tesis_v4.md` (1.152 líneas, 13 H1, 46 H2, 22 tablas, 4 figuras). Se convierte a PDF con `docs/scripts/convertir_pdf.py` (pandoc → DOCX → Word COM → PDF).
 - **Correcciones previas**: R-01…R-05 (commit `b77964c`) responden al prompt de autorevisión, no a esta devolución. Cubren parcialmente H-01 (ítem 4) y N-05 (ítem 12); **ninguna cierra un bloqueante**.
 - **Datos reales**: corpus B5 con corte `2026-10-17`. La base `tesi_osint` hoy contiene 765 posts (incluye el track secundario C-25 y datos hasta el 19/10); el subconjunto del corte tiene 724 posts y 170 detecciones declaradas. Toda cifra nueva se recalcula con su consulta, fecha y `n`.
 - **Verificaciones ya hechas contra el repo/base** (confirman al tribunal): erratas del diccionario (`caeron`, `sequestro`) presentes en `generar_workflow.py`; `1x4xuvc` con `nlp_score = 0.25` (el guion no matchea); IDs de r/devsarg (1x5acdz, 1x2vur9, 1wr7qwo) reales en la base; `B_workflow.json` con `active = False` (contradice la Figura 1); devsarg = 59,1 % del corpus con 7 detecciones (4,1 %); «irreversible» ×5; «alertas tempranas» ×2.
@@ -12,7 +12,7 @@ Este documento es el **plan de ejecución** de los 16 ítems del plan de correcc
 ## Principios de ejecución
 
 1. **Bloqueantes primero, en orden.** Los ítems 1–5 son condición de defensa; se cierran antes de tocar los de alta. El ítem 1 (declaración) es requisito previo indispensable.
-2. **Sin cifras sin consulta.** Cada número nuevo lleva su `SELECT`, su fecha y su `n` archivados en `V4/evidencias/informe_v5_2026-10-20/`.
+2. **Sin cifras sin consulta.** Cada número nuevo lleva su `SELECT`, su fecha y su `n` archivados en `docs/evidencias/informe_v5_2026-10-20/`.
 3. **Plan B explícito por ítem.** Cuando una exigencia depende de un recurso que el equipo puede no tener (2º anotador, fuente local), se define la alternativa declarativa (NO EVALUADO) y se documenta.
 4. **Cambios conmutablemente reversibles.** El diccionario (N-12) toca código; cualquier cambio se valida con una corrida controlada y no altera la base de producción.
 5. **Una sola pasada de consistencia al final.** N-14 se corrige en una tabla de 14 filas rastreada, y la verificación final recorre Resumen/Abstract/cuerpo/figuras/anexos.
@@ -24,7 +24,7 @@ Este documento es el **plan de ejecución** de los 16 ítems del plan de correcc
 **Qué exige el tribunal**: un anexo firmado por los tres autores, con conocimiento de la dirección, con tres contenidos: (a) cada cifra cuantitativa de V2/V3 ausente en V4 y su origen; (b) el ciclo de vida de los datos con fechas (B4 24/09 descartado, corpus 25–30/09 con r/DerechoGenial y r/argentina, depuración no declarada, B5 con primer registro 01/10); (c) si alguna cifra de V4 deriva de material de V2/V3.
 
 **Diseño**:
-- **Documento nuevo**: `V4/evidencias/informe_v5_2026-10-20/Declaracion_trazabilidad_versiones.md` — borrador redactado por el agente, **firmado por Lorca, Zúñiga y Severino** y visado por los directores (Cortez, Enferrel). El agente no puede firmar; entrega el borrador listo para firma.
+- **Documento nuevo**: `docs/evidencias/informe_v5_2026-10-20/Declaracion_trazabilidad_versiones.md` — borrador redactado por el agente, **firmado por Lorca, Zúñiga y Severino** y visado por los directores (Cortez, Enferrel). El agente no puede firmar; entrega el borrador listo para firma.
 - **Tabla (a)**: columnas `Cifra retirada | Versión | Valor publicado | Origen | ¿Cómo se estableció?`. Filas mínimas exigidas: corpus 8.240/181 días; 42.150 comentarios; comunidades V3 (r/argentina, r/devsarg, r/derechogenial); Kappa de Fleiss 0,78 (3 evaluadores); latencia media 4,2 min / P95 4,9 min; throughput 1.450 posts/h del banco de pruebas; precisión 82 %; Tablas 1–5 de la V3; los 3 casos de la Sección 5.3 de la V3. Cada origen se clasifica en: *medición sobre corpus descartado* / *proyección* / *simulación* / *generación con herramienta de asistencia* / *otro (especificar)*.
 - **Tabla (b)**: línea de tiempo con fechas — B4 (24/09, descartado) → corpus 25–30/09 (muestra del 30/09, con r/DerechoGenial y r/argentina) → depuración (fecha y criterio) → B5 (01/10 → 17/10, corte 19/10). Columna «destino de lo eliminado».
 - **Punto (c)**: declaración booleana por cifra de V4 que reutiliza material anterior (p. ej. casos de 5.6 vs casos V2/V3).
@@ -76,7 +76,7 @@ Si el equipo no consigue un segundo anotador, la V5:
 **Qué exige**: (a) URL o copia congelada (ZIP) con hash SHA-256 declarado en el documento; (b) Anexo B con el **código** de HMAC Anonymize, Classify Dictionary, Extract Entities y Anomaly Engine; (c) SQL de Upsert Posts, Query Daily Counts, Registrar Anomalias y Alertas, y de las consultas Q1–Q15; (d) la sentencia `ON CONFLICT … SET` con su lista explícita de columnas (m-29: la Figura 1 dice «13 columnas» pero 4.3 enumera 7 campos).
 
 **Diseño**:
-- **Paquete congelado**: `V4/evidencias/informe_v5_2026-10-20/evidencia_v5.zip` con las consultas (Q1–Q15), la muestra y sus hashes, las salidas crudas, el DDL, el `B_workflow.json` del corte y el diccionario. Se calcula y declara el **SHA-256 del ZIP** en el Anexo D.
+- **Paquete congelado**: `docs/evidencias/informe_v5_2026-10-20/evidencia_v5.zip` con las consultas (Q1–Q15), la muestra y sus hashes, las salidas crudas, el DDL, el `B_workflow.json` del corte y el diccionario. Se calcula y declara el **SHA-256 del ZIP** en el Anexo D.
 - **Anexo B ampliado**: transcripción literal del código de los 4 nodos de código (desde `generar_workflow.py`, que es la fuente) y del SQL de los 3 nodos de PostgreSQL. Formato `Source Code` (Consolas 9,5) ya soportado por `convertir_pdf.py`.
 - **m-29**: transcribir el `INSERT … ON CONFLICT (id) DO UPDATE SET <lista explícita>` y verificar contra 4.3 que los campos sobrescritos son 7 (no 13). Confirmar que `ingested_at` y `created_utc` **no** se sobrescriben (de lo contrario se alteran latencia y conteos diarios del motor).
 
@@ -219,7 +219,7 @@ Debe fijar, antes de etiquetar:
 - κ informado (o NO EVALUADO declarado con §7.4 reescrito); N₀ publicado; estimadores ponderados con IC.
 - Las 14 contradicciones corregidas (tabla de rastreo 14/14).
 - Índices correctos; PDF sin mojibake; cifras clave con consulta, fecha y n.
-- `V4/evidencias/informe_v5_2026-10-20/CHECKLIST_V5.md` con el estado ítem por ítem.
+- `docs/evidencias/informe_v5_2026-10-20/CHECKLIST_V5.md` con el estado ítem por ítem.
 
 ## Riesgos y mitigaciones
 

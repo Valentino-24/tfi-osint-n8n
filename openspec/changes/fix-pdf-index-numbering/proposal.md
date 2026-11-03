@@ -2,7 +2,7 @@
 
 ## Why
 
-El pipeline de generación del PDF (`V4/scripts/convertir_pdf.py`) no puede procesar el índice multinivel de la V6. El algoritmo `numerar_indices` asume una correspondencia 1:1 entre el número secuencial de la entrada del índice (1-61) y el número de capítulo (1-10), por lo que 51 entradas quedan "SIN PAGINA" y el build aborta. El tribunal pide explícitamente un índice multinivel (m-28, NO RESUELTO; H-14, PARCIAL), y el contenido del informe ya tiene 61 entradas en el índice general. Sin esta corrección, el PDF no puede generarse con índices numerados.
+El pipeline de generación del PDF (`docs/scripts/convertir_pdf.py`) no puede procesar el índice multinivel de la V6. El algoritmo `numerar_indices` asume una correspondencia 1:1 entre el número secuencial de la entrada del índice (1-61) y el número de capítulo (1-10), por lo que 51 entradas quedan "SIN PAGINA" y el build aborta. El tribunal pide explícitamente un índice multinivel (m-28, NO RESUELTO; H-14, PARCIAL), y el contenido del informe ya tiene 61 entradas en el índice general. Sin esta corrección, el PDF no puede generarse con índices numerados.
 
 ## What Changes
 
@@ -21,7 +21,7 @@ El pipeline de generación del PDF (`V4/scripts/convertir_pdf.py`) no puede proc
 
 ## Impact
 
-- `V4/scripts/convertir_pdf.py` — funciones `mapa_cuerpo` y `numerar_indices`
-- `V4/scripts/verificar_pdf.py` — compuertas `indices_numerados` y `rotulos`
+- `docs/scripts/convertir_pdf.py` — funciones `mapa_cuerpo` y `numerar_indices`
+- `docs/scripts/verificar_pdf.py` — compuertas `indices_numerados` y `rotulos`
 - No afecta el Markdown del informe ni el contenido del PDF
 - No afecta el workflow de n8n ni la base de datos

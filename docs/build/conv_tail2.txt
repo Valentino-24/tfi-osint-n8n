@@ -1,0 +1,201 @@
+﻿    """(indice de parrafo, texto base, clave de rotulo o numero de capitulo)."""
+    parrafos = doc.Paragraphs
+    entradas: list[tuple[int, str, str | int]] = []
+    seccion = None
+    for i in range(1, parrafos.Count + 1):
+        p = parrafos(i)
+        try:
+            texto = p.Range.Text.strip()
+            nombre = p.Style.NameLocal
+        except Exception:  # noqa: BLE001
+            continue
+        if nombre in ESTILOS_TITULO:
+            seccion = texto if (ESTILOS_TITULO[nombre] == 2 and texto.lower() in INDICES_MIN) else None
+            continue
+        if not seccion or not texto:
+            continue
+        m = ROTULO.match(texto)
+        if m:
+            entradas.append((i, texto, f"{m.group(1)} {m.group(2)}."))
+            continue
+        numero = None
+        m = re.match(r"^(\d+)\.\s+\S", texto)
+        if m:
+            numero = int(m.group(1))
+        if numero:
+            entradas.append((i, texto, numero))
+    return entradas
+
+
+def numerar_indices(doc, intentos: int = 3) -> None:
+    parrafos = doc.Paragraphs
+    pagina_resumen = 0
+    for p in parrafos:
+        try:
+            if p.Style.NameLocal in ESTILOS_TITULO and \
+                    p.Range.Text.strip().upper() == "RESUMEN":
+                pagina_resumen = pagina_actual(p.Range)
+                break
+        except Exception:  # noqa: BLE001
+            continue
+    if not pagina_resumen:
+        raise SystemExit("[indices] no se encontro el RESUMEN: no se puede numerar")
+
+    entradas = recolectar_entradas(doc)
+    print(f"[indices] entradas detectadas: {len(entradas)}")
+    if not entradas:
+        raise SystemExit("[indices] no se detecto ninguna entrada de indice")
+    aplicados: dict[int, tuple[str, int]] = {}   # indice -> (sufijo escrito, pagina)
+    etiquetas: dict[str, int] = {}
+    capitulos: dict[int, int] = {}
+    resueltas: dict[int, int] = {}
+
+    for intento in range(1, intentos + 1):
+        etiquetas, capitulos = mapa_cuerpo(doc, pagina_resumen)
+        cambios = 0
+        resueltas = {}
+        for indice, texto_base, clave in entradas:
+            pagina = etiquetas.get(clave) if isinstance(clave, str) else capitulos.get(clave)
+            if not pagina:
+                continue
+            resueltas[indice] = pagina
+            sufijo = f"\t{pagina}"
+            previo = aplicados.get(indice)
+            if previo and previo[0] == sufijo:
+                continue
+            p = parrafos(indice)
+            try:
+                if previo:
+                    quitar = doc.Range(p.Range.End - 1 - len(previo[0]), p.Range.End - 1)
+                    quitar.Delete()
+                cuerpo = doc.Range(parrafos(indice).Range.Start, parrafos(indice).Range.End - 1)
+                cuerpo.InsertAfter(sufijo)
+                aplicados[indice] = (sufijo, pagina)
+                cambios += 1
+            except Exception as e:  # noqa: BLE001
+                print(f"[indices] fallo en '{texto_base[:38]}': {e}")
+        print(f"[indices] pasada {intento}: resueltas {len(resueltas)}, escritas {cambios}, "
+              f"rotulos {len(etiquetas)}, capitulos {len(capitulos)}")
+        if cambios == 0:
+            break
+
+    print("[indices] paginas asignadas a los rotulos:")
+    for etiqueta in sorted(etiquetas, key=lambda e: (e.split()[0], e.split()[1])):
+        print(f"    {etiqueta:14} -> {etiquetas[etiqueta]:3}")
+
+    faltan = [(texto, clave) for indice, texto, clave in entradas
+              if indice not in resueltas]
+    print(f"[indices] cobertura: {len(entradas) - len(faltan)}/{len(entradas)} entradas")
+    if faltan:
+        for texto, clave in faltan[:30]:
+            print(f"    SIN PAGINA: {texto[:78]!r} (clave {clave!r})")
+        raise SystemExit(f"[indices] {len(faltan)} entradas sin pagina: se aborta el build")
+
+
+def exportar_pdf(doc, destino: Path) -> None:
+    doc.Save()
+    if destino.exists():
+        destino.unlink()
+    doc.ExportAsFixedFormat(
+        OutputFileName=str(destino), ExportFormat=WD_EXPORT_FORMAT_PDF,
+        OpenAfterExport=False, OptimizeFor=0, Range=WD_EXPORT_ALL_DOCUMENT,
+        Item=WD_EXPORT_DOCUMENT_CONTENT, IncludeDocProps=True, KeepIRM=True,
+        CreateBookmarks=WD_EXPORT_CREATE_HEADING_BOOKMARKS, DocStructureTags=True,
+        BitmapMissingFonts=True, UseISO19005_1=False)
+
+
+def procesar_con_word(numerar: bool) -> None:
+    try:
+        import win32com.client
+    except ImportError as e:
+        raise SystemExit("[word] falta pywin32: instalarlo o usar --sin-word") from e
+
+    try:
+        word = win32com.client.DispatchEx("Word.Application")
+    except Exception as e:  # noqa: BLE001
+        raise SystemExit(
+            "[word] Microsoft Word no esta disponible (COM): " + str(e)
+            + "\n        instalar Word o usar --sin-word para generar solo el DOCX") from e
+    word.Visible = False
+    word.DisplayAlerts = 0
+    try:
+        word.AutomationSecurity = 3
+    except Exception:  # noqa: BLE001
+        pass
+    doc = None
+    try:
+        print("[word] abriendo el DOCX...", flush=True)
+        doc = word.Documents.Open(str(DOCX_BUILD), ReadOnly=False, AddToRecentFiles=False)
+        print(f"[word] abierto ({DOCX_BUILD.name})", flush=True)
+        pasos = (("pagina", preparar_pagina), ("saltos", arreglar_saltos),
+                 ("cuerpo", estilo_cuerpo), ("titulos", estilo_titulos),
+                 ("portada", estilo_portada), ("tablas", estilo_tablas),
+                 ("espaciado", espaciado_bloques), ("figuras", estilo_figuras),
+                 ("indices", estilo_indices), ("numeracion", numerar_paginas))
+        for nombre, paso in pasos:
+            print(f"[word] {nombre}...", flush=True)
+            paso(doc)
+        print(f"[word] paginas tras el formateo: {doc.ComputeStatistics(2)}", flush=True)
+        if numerar:
+            print("[word] numerando indices...", flush=True)
+            numerar_indices(doc)
+        print("[word] exportando PDF...", flush=True)
+        exportar_pdf(doc, PDF_SALIDA)
+        print("[word] DOCX intermedio: " + str(DOCX_BUILD))
+        print("[word] PDF generado:    " + str(PDF_SALIDA))
+    finally:
+        if doc is not None:
+            try:
+                doc.Close(SaveChanges=False)
+            except Exception:  # noqa: BLE001
+                pass
+        word.Quit()
+
+
+# --------------------------------------------------------------------------
+# 4. Verificacion
+# --------------------------------------------------------------------------
+def rotulos_markdown(texto_md: str) -> list[tuple[str, str]]:
+    patron = re.compile(r"(?m)^(?:\*\*|!\[)(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)?)\.")
+    return patron.findall(texto_md)
+
+
+def verificar(renderizar: bool = False) -> int:
+    """Corre las compuertas de verificar_pdf.py; devuelve el codigo de salida."""
+    import verificar_pdf
+
+    with zipfile.ZipFile(DOCX_BUILD) as z:
+        imagenes = [n for n in z.namelist() if n.startswith("word/media/")]
+    print("\n=== VERIFICACION ===")
+    print(f"imagenes embebidas en el DOCX: {len(imagenes)}")
+
+    codigo = verificar_pdf.ejecutar(PDF_SALIDA, MD_ORIGEN, DOCX_BUILD, PDF_APROBADO)
+
+    if renderizar:
+        import pypdfium2 as pdfium
+
+        pdf = pdfium.PdfDocument(str(PDF_SALIDA))
+        textos = [pdf[i].get_textpage().get_text_range() for i in range(len(pdf))]
+        carpeta = CARPETA_BUILD / "paginas"
+        carpeta.mkdir(parents=True, exist_ok=True)
+        elegidas = {0}
+        for i, t in enumerate(textos):
+            for marca in ("Figura 1.", "Tabla 5.4.", "Tabla C.1.", "Ãndice de tablas"):
+                if marca in t:
+                    elegidas.add(i)
+                    break
+        for i in sorted(elegidas):
+            pdf[i].render(scale=1.4).to_pil().save(carpeta / f"pagina_{i + 1:03}.png")
+        print(f"paginas renderizadas: {[i + 1 for i in sorted(elegidas)]}")
+        pdf.close()
+    return codigo
+
+
+def main() -> int:
+    global MD_ORIGEN, MD_BUILD, DOCX_BUILD, PDF_SALIDA, FUENTE_CUERPO
+
+    ap = argparse.ArgumentParser(
+        description="Convierte el Markdown de la tesis a PDF con la estetica de tesis_v4")
+    ap.add_argument("--md", type=Path, default=MD_ORIGEN, help="Markdown de origen")
+    ap.add_argument("--out", type=Path, default=PDF_SALIDA, help="PDF de salida")
+    ap.add_argument("--fuente", default=FUENTE_CUERPO, help="fuente del cuerpo")

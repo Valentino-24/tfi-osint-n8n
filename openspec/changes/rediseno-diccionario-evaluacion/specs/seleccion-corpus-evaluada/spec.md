@@ -30,7 +30,7 @@ El proyecto MUST separar en el informe dos cosas que la medición permite distin
 
 ### Requirement: La evidencia de medición se archiva y es reproducible
 
-La medición MUST archivarse en `V4/evidencias/` con la consulta que la produjo, su fecha, el identificador de la ventana, el `n` por comunidad y la versión del diccionario usada. La evidencia MUST ser reproducible por reejecución de la consulta.
+La medición MUST archivarse en `docs/evidencias/` con la consulta que la produjo, su fecha, el identificador de la ventana, el `n` por comunidad y la versión del diccionario usada. La evidencia MUST ser reproducible por reejecución de la consulta.
 
 #### Scenario: La cabecera documenta la procedencia
 

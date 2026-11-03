@@ -67,7 +67,7 @@ El proyecto MUST muestrear la muestra antes de conocer el resultado de la clasif
 
 ### Requirement: Las etiquetas se persisten de forma versionable y auditable
 
-Las etiquetas MUST persistirse en un archivo versionable bajo `V4/evidencias/`, MUST identificar quién etiquetó cada post y cuándo, y MUST permitir reconstruir la matriz de confusión sin volver a consultar a los autores.
+Las etiquetas MUST persistirse en un archivo versionable bajo `docs/evidencias/`, MUST identificar quién etiquetó cada post y cuándo, y MUST permitir reconstruir la matriz de confusión sin volver a consultar a los autores.
 
 La persistencia MUST NOT modificar `tesi_osint`. Las etiquetas son evidencia externa al pipeline, no una columna nueva.
 

@@ -114,8 +114,8 @@ Las funcionalidades se organizan por épica y se expresan como historias de usua
 **Para** sustentar capítulos, tablas y figuras sin inventar cifras.
 
 **Criterios de aceptación**:
-- [x] Existe `V4/anexos/B_workflow.json` importable.
-- [x] Existe `V4/anexos/A_DDL.sql` con las correcciones aplicadas.
+- [x] Existe `docs/anexos/B_workflow.json` importable.
+- [x] Existe `docs/anexos/A_DDL.sql` con las correcciones aplicadas.
 - [ ] Completar E1–E15 según disponibilidad real de datos.
 
 **Reglas relacionadas**: RN-GL-01, RN-GL-03.

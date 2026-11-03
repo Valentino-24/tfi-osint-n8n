@@ -1,0 +1,85 @@
+﻿def compuerta_indices_pdf(paginas: list[str]) -> tuple[bool, str]:
+    """Cada entrada de los tres indices, leida del PDF, debe terminar en pagina."""
+    actual, conteo = None, {}
+    for linea in "\n".join(paginas).splitlines():
+        s = linea.strip()
+        if not s or s.isdigit():
+            continue
+        if s.upper() in ENCABEZADO_INDICE:
+            actual = s.upper()
+            conteo[actual] = {"entradas": 0, "numeradas": 0}
+            continue
+        if not actual:
+            continue
+        # Solo son entradas del indice las que llevan puntos guia o empiezan como
+        # rotulo ("Tabla 5.9.b.") o capitulo ("3. Marco..."). Cualquier otra linea
+        # cierra la seccion.
+        if not ("..." in s or re.match(r"^(?:Tabla|Figura)\s|\d+\.\s", s)):
+            actual = None
+            continue
+        conteo[actual]["entradas"] += 1
+        if re.search(r"\d\s*$", s):
+            conteo[actual]["numeradas"] += 1
+    detalle = {k: f"{v['numeradas']}/{v['entradas']}" for k, v in conteo.items()}
+    ok = (len(conteo) == 3 and all(v["entradas"] and v["numeradas"] == v["entradas"]
+                                   for v in conteo.values()))
+    return ok, f"entradas numeradas por indice: {detalle}"
+
+
+def compuerta_indices(docx: Path) -> tuple[bool, str, dict]:
+    parrafos = parrafos_docx(docx)
+    nombres = {k.lower(): k for k in INDICES}
+    activo, conteo, sin_numero = None, {}, []
+    for estilo, texto in parrafos:
+        if ES_TITULO.match(estilo):
+            activo = nombres.get(texto.strip().lower())
+            continue
+        if not activo or not texto:
+            continue
+        conteo[activo] = conteo.get(activo, 0) + 1
+        if not re.search(r"\t\d{1,3}$", texto):
+            sin_numero.append(f"{activo}: {texto[:60]!r}")
+    detalles = {k: conteo.get(k, 0) for k in INDICES}
+    ok = (detalles == INDICES) and not sin_numero
+    return ok, f"entradas {detalles} (esperado {INDICES}); sin numero: " \
+               f"{sin_numero[:5] if sin_numero else 'ninguna'}", detalles
+
+
+def compuerta_fuentes(docx: Path) -> tuple[bool, str]:
+    with zipfile.ZipFile(docx) as z:
+        documento = z.read("word/document.xml").decode("utf-8")
+        estilos = z.read("word/styles.xml").decode("utf-8")
+    times = documento.count('w:ascii="Times New Roman"') + estilos.count('w:ascii="Times New Roman"')
+    aptos = re.findall(r'w:ascii="Aptos[^"]*"', documento + estilos)
+    ok = times > 0 and not aptos
+    return ok, f"Times New Roman en {times} definiciones; Aptos: {len(aptos)}"
+
+
+def compuerta_margenes(docx: Path) -> tuple[bool, str]:
+    with zipfile.ZipFile(docx) as z:
+        documento = z.read("word/document.xml").decode("utf-8")
+    margenes = re.search(r"<w:pgMar\b[^>]*>", documento)
+    if not margenes:
+        return False, "sin w:pgMar"
+    valores = {k: int(v) for k, v in re.findall(r'w:(top|bottom|left|right)="(-?\d+)"',
+                                               margenes.group(0))}
+    malos = {k: valores.get(k) for k, esperado in MARGENES_TWIPS.items()
+             if abs(valores.get(k, -99999) - esperado) > TOLERANCIA_TWIPS}
+    return not malos, f"{valores}; fuera de rango: {malos if malos else 'ninguno'}"
+
+
+def compuerta_rotulos(md: Path, docx: Path, todo_pdf: str) -> tuple[bool, str]:
+    texto = io.open(md, encoding="utf-8").read()
+    rotulos = re.findall(
+        r"(?m)^(?:\*\*|!\[)(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)*(?:\.[a-z])?)\.",
+        texto)
+    etiquetas = {f"{t} {n}." for t, n in rotulos}
+    faltantes = sorted(e for e in etiquetas if e not in todo_pdf)
+    tablas = sum(1 for t, _ in rotulos if t == "Tabla")
+    figuras = sum(1 for t, _ in rotulos if t == "Figura")
+    with zipfile.ZipFile(docx) as z:
+        cuerpo = z.read("word/document.xml").decode("utf-8")
+def compuerta_indices(docx: Path) -> tuple[bool, str, dict]:
+    parrafos = parrafos_docx(docx)
+    nombres = {k.lower(): k for k in INDICES}
+    activo, conteo, sin_numero = None, {}, []

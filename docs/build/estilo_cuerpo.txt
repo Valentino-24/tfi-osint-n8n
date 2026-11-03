@@ -1,0 +1,97 @@
+﻿    for p in doc.Paragraphs:
+        try:
+            nombre = p.Style.NameLocal
+        except Exception:  # noqa: BLE001
+            continue
+        if nombre in ESTILOS_TITULO or nombre in ESTILO_FIGURA or \
+                nombre in ESTILO_EPIGRAFE or nombre in ESTILO_CODIGO:
+            continue
+        f = p.Format
+        p.Range.Font.Name = FUENTE_CUERPO
+        p.Range.Font.Size = 12
+        f.LineSpacingRule = WD_LINE_SPACE_1PT5
+        f.SpaceBefore = 0
+        # 8 pt entre parrafos; 6 pt entre items de lista, que se leen como bloque
+        f.SpaceAfter = 6 if nombre == "Compact" else 8
+        f.FirstLineIndent = 0
+        f.Alignment = WD_ALIGN_JUSTIFY
+        if ROTULO.match(p.Range.Text.strip()):
+            p.Range.Font.Bold = True
+            f.Alignment = WD_ALIGN_LEFT
+            f.KeepWithNext = True
+            f.SpaceBefore = 12
+        elif nombre in ESTILOS_CITA:
+            f.LeftIndent = 28
+            f.RightIndent = 14
+            p.Range.Font.Size = 10.5
+
+
+def estilo_titulos(doc) -> None:
+    for p in doc.Paragraphs:
+        try:
+            nivel = ESTILOS_TITULO.get(p.Style.NameLocal)
+        except Exception:  # noqa: BLE001
+            continue
+        if not nivel:
+            continue
+        f = p.Format
+        p.Range.Font.Name = FUENTE_CUERPO
+        p.Range.Font.Bold = True
+        p.Range.Font.Color = 0
+        f.Alignment = WD_ALIGN_LEFT
+        f.FirstLineIndent = 0
+        f.KeepWithNext = True
+        f.LineSpacingRule = WD_LINE_SPACE_SINGLE
+        if nivel == 1:
+            p.Range.Font.Size = 14
+            f.SpaceBefore = 18
+            f.SpaceAfter = 12
+        elif nivel == 2:
+            p.Range.Font.Size = 12.5
+            f.SpaceBefore = 14
+            f.SpaceAfter = 8
+        else:
+            p.Range.Font.Size = 12
+            f.SpaceBefore = 12
+            f.SpaceAfter = 6
+
+
+def estilo_portada(doc) -> None:
+    """Portada limpia: solo los datos del trabajo en la pagina 1.
+
+    Mueve las dos notas (version + declaracion de autoria) a su propia pagina y
+    reparte el aire entre los bloques de la portada. La declaracion de autoria
+    no puede quedar fuera del documento: sigue presente, en la pagina siguiente.
+    """
+    fin = indice_rotulo(doc)
+    parrafos = _parrafos(doc)[: fin - 1 if fin else len(_parrafos(doc))]
+
+    notas = [p for p in parrafos
+             if p.Style.NameLocal in ESTILOS_CITA or "Declaraci" in p.Range.Text]
+    if notas:
+        notas[0].Format.PageBreakBefore = True
+        notas[0].Format.SpaceBefore = 0
+        for p in notas:
+            p.Range.Font.Size = 9.5
+            p.Format.Alignment = WD_ALIGN_JUSTIFY
+            p.Format.SpaceAfter = 10
+
+    for p in parrafos:
+        if p in notas:
+            continue
+        try:
+            nombre = p.Style.NameLocal
+        except Exception:  # noqa: BLE001
+            continue
+        p.Format.Alignment = WD_ALIGN_CENTER
+        p.Format.FirstLineIndent = 0
+        p.Format.SpaceAfter = 0
+        texto = p.Range.Text.strip()
+        if nombre in ESTILOS_TITULO:
+            if texto.lower().startswith(PREFIJO_INDICE):
+                break
+            p.Range.Font.Size = 16
+            p.Format.SpaceAfter = 36
+        elif texto.startswith("Universidad"):
+            p.Range.Font.Size = 11.5
+            p.Format.SpaceAfter = 6

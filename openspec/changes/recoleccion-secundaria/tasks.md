@@ -13,10 +13,10 @@
 
 ## 2. Registro diario del track
 
-- [ ] 2.1 Declarar en este registro que las entradas posteriores al corte se generan con `V4/scripts/bitacora_b5.py` en `V4/evidencias/bitacora_b5/`, con el rótulo de «día posterior al corte oficial» que el script ya aplica (D-2)
+- [ ] 2.1 Declarar en este registro que las entradas posteriores al corte se generan con `docs/scripts/bitacora_b5.py` en `docs/evidencias/bitacora_b5/`, con el rótulo de «día posterior al corte oficial» que el script ya aplica (D-2)
 - [ ] 2.2 Mientras dure el track: por cada día con recolección, generar la entrada con el comando estándar (`--fecha`, `--n8n-estado`, `--n8n-detalle`) sin `--permitir-reescritura`, de modo que las entradas archivadas de B5 no se reescriban
 - [ ] 2.3 Si un día posterior al corte transcurre sin ninguna ejecución de trigger, generar igualmente la entrada como constancia de día sin recolección, con `n = 0` y el estado del workflow como evidencia (mismo criterio que el `2026-10-18`)
-- [ ] 2.4 Anotar en `V4/evidencias/VENTANA_B5.md` §18 el estado del track (días cubiertos, workflow activo o inactivo), sin tocar §1–§4 ni el acumulado ya cerrado
+- [ ] 2.4 Anotar en `docs/evidencias/VENTANA_B5.md` §18 el estado del track (días cubiertos, workflow activo o inactivo), sin tocar §1–§4 ni el acumulado ya cerrado
 
 ## 3. Aislamiento de la evidencia de B5
 
@@ -25,15 +25,15 @@
 
 ## 4. Documentación y coherencia
 
-- [x] 4.1 `V4/evidencias/VENTANA_B5.md` §18.2 deja puntero a este change y declara que el track no es evidencia de B5
+- [x] 4.1 `docs/evidencias/VENTANA_B5.md` §18.2 deja puntero a este change y declara que el track no es evidencia de B5
 - [x] 4.2 `knowledge-base/09_decisiones_y_supuestos.md`: DD-08 declara el track secundario y SU-02 registra el cierre del `2026-10-19`
 - [x] 4.3 `knowledge-base/02_descripcion_general.md` §Estado de implementación: B5 figurada como **CERRADA** con su corte y su puntero al track
 - [x] 4.4 `knowledge-base/10_preguntas_abiertas.md`: constancia del cierre y de la resolución de las preguntas de fecha, suficiencia y conservar/reiniciar
-- [ ] 4.5 Si este change produce artifacts en `V4/evidencias/`, nombrarlos y enlazarlos desde §18.2
+- [ ] 4.5 Si este change produce artifacts en `docs/evidencias/`, nombrarlos y enlazarlos desde §18.2
 
 ## 5. Procedimiento de extensión y cierre
 
 - [x] 5.1 El spec declara que extender el corte es una enmienda documentada de DD-08 y de `VENTANA_B5.md` §3, con su trazabilidad, antes de recalcular
-- [ ] 5.2 Si el profesor o los directores piden extender la ventana: registrar la enmienda en DD-08 y en `VENTANA_B5.md` §3, actualizar `VENTANA_CORTE_FECHA` en `V4/scripts/bitacora_b5.py` y solo entonces recalcular acumulado y días
+- [ ] 5.2 Si el profesor o los directores piden extender la ventana: registrar la enmienda en DD-08 y en `VENTANA_B5.md` §3, actualizar `VENTANA_CORTE_FECHA` en `docs/scripts/bitacora_b5.py` y solo entonces recalcular acumulado y días
 - [ ] 5.3 Verificación final: ninguna tarea tocó DDL, artefacto del workflow, nodos, credenciales ni HMAC; todas las interacciones con `tesi_osint` fueron `SELECT`
 - [ ] 5.4 Archivar este change (`/opsx:archive`) cuando el track se cierre o cuando se le fije fecha fin; hasta entonces queda abierto como registro vivo

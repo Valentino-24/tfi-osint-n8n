@@ -28,8 +28,8 @@ Ninguna. `openspec/specs/` está vacío: no existen specs previos cuyos requisit
 ## Impact
 
 - **Artefactos nuevos**: este change (`proposal.md`, `design.md`, `tasks.md`, `specs/recoleccion-secundaria/spec.md`).
-- **Documentación coherente ya actualizada**: `V4/evidencias/VENTANA_B5.md` §18.2 (puntero al track), `knowledge-base/09_decisiones_y_supuestos.md` DD-08 y SU-02, `knowledge-base/02_descripcion_general.md` §Estado de implementación, `knowledge-base/10_preguntas_abiertas.md` (constancia del cierre).
-- **Sin impacto en**: `V4/anexos/A_DDL.sql`, `V4/anexos/B_workflow.json`, `V4/scripts/generar_workflow.py`, la lógica de nodos y las credenciales. Ninguna tabla, columna, índice ni sentencia cambia.
+- **Documentación coherente ya actualizada**: `docs/evidencias/VENTANA_B5.md` §18.2 (puntero al track), `knowledge-base/09_decisiones_y_supuestos.md` DD-08 y SU-02, `knowledge-base/02_descripcion_general.md` §Estado de implementación, `knowledge-base/10_preguntas_abiertas.md` (constancia del cierre).
+- **Sin impacto en**: `docs/anexos/A_DDL.sql`, `docs/anexos/B_workflow.json`, `docs/scripts/generar_workflow.py`, la lógica de nodos y las credenciales. Ninguna tabla, columna, índice ni sentencia cambia.
 - **Sin impacto sobre las métricas de B5**: 724 posts, 15 días y la serie diaria no cambian, ni por este change ni por la recolección posterior.
 - **Sin escrituras destructivas**: las tareas solo ejecutan consultas `SELECT` de conteo y agregación sobre `tesi_osint`.
 - **Dependencias**: requiere C-05 **cerrado** (ya lo está: corte fijado el 2026-10-19). No bloquea C-08 → C-09 → C-20 → C-21 → C-23, que se apoyan en la ventana ya cerrada.

@@ -67,7 +67,7 @@ Si se decide extender la ventana más allá del `2026-10-17`, la decisión MUST 
 #### Scenario: Se pide extender la ventana
 
 - **WHEN** los autores o sus directores deciden cerrar en una fecha posterior al `2026-10-17`
-- **THEN** la enmienda queda registrada con su trazabilidad y recién entonces se recalculan el acumulado y el conteo de días, actualizando también `V4/scripts/bitacora_b5.py`
+- **THEN** la enmienda queda registrada con su trazabilidad y recién entonces se recalculan el acumulado y el conteo de días, actualizando también `docs/scripts/bitacora_b5.py`
 
 #### Scenario: No hay enmienda registrada
 
@@ -81,7 +81,7 @@ Este change MUST NOT publicar ni activar el workflow en n8n: la republicación e
 #### Scenario: Implementación sin publicación
 
 - **WHEN** se ejecutan las tareas de este change
-- **THEN** ninguna publica ni activa un workflow, ninguna altera `V4/anexos/B_workflow.json` ni `V4/scripts/generar_workflow.py`, y ninguna toca credenciales o HMAC
+- **THEN** ninguna publica ni activa un workflow, ninguna altera `docs/anexos/B_workflow.json` ni `docs/scripts/generar_workflow.py`, y ninguna toca credenciales o HMAC
 
 #### Scenario: Base intacta
 

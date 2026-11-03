@@ -4,7 +4,7 @@
 > Cada change es atómico: un agente puede ejecutarlo en una sesión (~4-6 horas).
 > **Leer este archivo antes de ejecutar cualquier `/opsx:propose`.**
 
-> **Estado real al momento de generar este roadmap:** el prototipo **ya está construido y corriendo** (pasos B1–B4 verificados sobre la fuente RSS / Plan C). Los changes `C-01` a `C-04` están marcados `[x]` porque se ejecutaron **antes** de inicializar OpenSpec: no están en `openspec/changes/archive/`, su artefacto verificable es `V4/anexos/A_DDL.sql`, `V4/anexos/B_workflow.json` y la base `tesi_osint`. Todo lo que sigue (B5, B6 y la reconstrucción del documento) está `[ ]`, salvo `C-24`, que se describe abajo.
+> **Estado real al momento de generar este roadmap:** el prototipo **ya está construido y corriendo** (pasos B1–B4 verificados sobre la fuente RSS / Plan C). Los changes `C-01` a `C-04` están marcados `[x]` porque se ejecutaron **antes** de inicializar OpenSpec: no están en `openspec/changes/archive/`, su artefacto verificable es `docs/anexos/A_DDL.sql`, `docs/anexos/B_workflow.json` y la base `tesi_osint`. Todo lo que sigue (B5, B6 y la reconstrucción del documento) está `[ ]`, salvo `C-24`, que se describe abajo.
 > **Regla de honestidad vigente (RN-GL-01):** ninguna cifra de este roadmap ni de la tesis se inventa. Las cifras quoted abajo provienen de la corrida verificada de B4 y de la base real.
 
 ### Leyenda de estados
@@ -17,15 +17,15 @@
 
 > **`C-24` `rediseno-diccionario-evaluacion` es `[~] parcial`.** Está implementado (55 de 65 tareas) pero **no archivado**: su `tasks.md` conserva tareas abiertas, así que no puede marcarse `[x]`. Se registra acá porque **el clasificador vigente del proyecto es el de nueve categorías**, no el de cinco, y porque es la precondición de `C-10` y `C-13`, que se construyen contra ese diccionario.
 
-> **`C-26` `reconstruccion-informe-v4` es `[~] parcial` y absorbe la rama documento.** Ejecutado el 2026-10-19: produce el informe completo (`V4/devoluciones/tesis_v4.md`) y con ello cubre `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22` y `C-23` en un solo change, porque los ocho compartían el mismo entregable y la misma sesión de trabajo. No se archiva todavía: su `tasks.md` deja abierta sólo la tarea 5.8, que era el registro de este roadmap y ya está cumplida con esta entrada; el cierre se hace con `/opsx:archive`. Como efecto colateral, las evidencias consolidadas que `C-08`, `C-09`, `C-10` y `C-13` iban a producir existen **dentro del propio informe y su carpeta de evidencias** (`V4/evidencias/informe_v4_2026-10-19/`), no como changes separados: quien retome esos cambios debe revisar primero qué falta de verdad, porque pueden quedar sin objeto.
+> **`C-26` `reconstruccion-informe-v4` es `[~] parcial` y absorbe la rama documento.** Ejecutado el 2026-10-19: produce el informe completo (`docs/devoluciones/tesis_v4.md`) y con ello cubre `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22` y `C-23` en un solo change, porque los ocho compartían el mismo entregable y la misma sesión de trabajo. No se archiva todavía: su `tasks.md` deja abierta sólo la tarea 5.8, que era el registro de este roadmap y ya está cumplida con esta entrada; el cierre se hace con `/opsx:archive`. Como efecto colateral, las evidencias consolidadas que `C-08`, `C-09`, `C-10` y `C-13` iban a producir existen **dentro del propio informe y su carpeta de evidencias** (`docs/evidencias/informe_v4_2026-10-19/`), no como changes separados: quien retome esos cambios debe revisar primero qué falta de verdad, porque pueden quedar sin objeto.
 
-> **`C-XX` `regeneracion-pdf-tesis-v5`** (`openspec/changes/regeneracion-pdf-tesis-v5/`) es `[~] parcial`. Regenera el PDF V5 desde `V4/devoluciones/tesis_v5.md` con conversor basado en Word/COM (`V4/scripts/convertir_pdf.py`) y verificador de 10 compuertas (`V4/scripts/verificar_pdf.py`). Entregable `V4/devoluciones/tesis_v5.pdf` (113 pp, A4) con índices 10/28/4, registro en `V4/devoluciones/build/verificacion_pdf.json`. Históricos reorganizados a `V4/documentos/`; `V4/devoluciones/recuperacion/` versionado con evidencia del PDF aprobado. Pendientes: 6.1–6.5 y aprobación visual/final.
+> **`C-XX` `regeneracion-pdf-tesis-v5`** (`openspec/changes/regeneracion-pdf-tesis-v5/`) es `[~] parcial`. Regenera el PDF V5 desde `docs/devoluciones/tesis_v5.md` con conversor basado en Word/COM (`docs/scripts/convertir_pdf.py`) y verificador de 10 compuertas (`docs/scripts/verificar_pdf.py`). Entregable `docs/devoluciones/tesis_v5.pdf` (113 pp, A4) con índices 10/28/4, registro en `docs/devoluciones/build/verificacion_pdf.json`. Históricos reorganizados a `docs/documentos/`; `docs/devoluciones/recuperacion/` versionado con evidencia del PDF aprobado. Pendientes: 6.1–6.5 y aprobación visual/final.
 
 ---
 
 ## Cómo usar este documento
 
-1. Identificar el change a implementar (verificar que sus dependencias están en `openspec/changes/archive/`; los `C-01`–`C-04` son la excepción y se validan contra `V4/anexos/` y la base).
+1. Identificar el change a implementar (verificar que sus dependencias están en `openspec/changes/archive/`; los `C-01`–`C-04` son la excepción y se validan contra `docs/anexos/` y la base).
 2. Leer los docs de la knowledge-base indicados en "Leer antes".
 3. Ejecutar `/opsx:propose <nombre-del-change>`.
 4. Al terminar el change, archivarlo con `/opsx:archive <nombre-del-change>`.
@@ -68,7 +68,7 @@ C-17 antecedente-e15-rivas-dengra   ──┴──► C-18
 C-22 figuras-2-3-4-e-indices   ◄── C-12, C-08
 ```
 
-> **`C-26` `reconstruccion-informe-v4` (2026-10-19) cubre toda la rama documento**: `C-16` (base textual de V2), `C-17` (antecedente Rivas–Dengra), `C-18`, `C-19`, `C-20`, `C-21`, `C-22` (figuras e índices) y `C-23` (auto-auditoría). Los ocho se ejecutaron dentro de un único change porque comparten entregable. Las dependencias que figuraban para esos cambios (`C-08`, `C-09`, `C-10`, `C-13`) se satisficieron con los archivos de `V4/evidencias/informe_v4_2026-10-19/` y con el propio Capítulo 5, sin ejecutarlos como changes separados.
+> **`C-26` `reconstruccion-informe-v4` (2026-10-19) cubre toda la rama documento**: `C-16` (base textual de V2), `C-17` (antecedente Rivas–Dengra), `C-18`, `C-19`, `C-20`, `C-21`, `C-22` (figuras e índices) y `C-23` (auto-auditoría). Los ocho se ejecutaron dentro de un único change porque comparten entregable. Las dependencias que figuraban para esos cambios (`C-08`, `C-09`, `C-10`, `C-13`) se satisficieron con los archivos de `docs/evidencias/informe_v4_2026-10-19/` y con el propio Capítulo 5, sin ejecutarlos como changes separados.
 
 > `◄── C-24` marca un **desbloqueo**: `C-24` se ejecutó y dejó disponible lo que ese change necesita. No significa que `C-10` ni `C-13` estén cumplidos — sus entregables consolidados (la evidencia E5 y el Anexo C escrito) todavía no existen.
 
@@ -174,7 +174,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
     - Scripts nativos `arrancar_postgres.bat` / `parar_postgres.bat`: **obsoletos**, el cluster vive en el contenedor
     - n8n 2.40.6 en Docker (contenedor `tfi-n8n`) y accesible en `http://localhost:5678` con cuenta local del operador
     - Rol `postgres` con acceso a `tesi_osint` (credencial en el contenedor; nunca versionada). No existe un rol `tesi_app`
-  - Variables de entorno documentadas en `V4/GUIA_EJECUCION.md` §1: `OSINT_HMAC_KEY`, `NODE_FUNCTION_ALLOW_BUILTIN=crypto`, `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `PGPASSWORD`
+  - Variables de entorno documentadas en `docs/GUIA_EJECUCION.md` §1: `OSINT_HMAC_KEY`, `NODE_FUNCTION_ALLOW_BUILTIN=crypto`, `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `PGPASSWORD`
   - Verificación: cluster arriba + n8n responde + `psql` conecta a `tesi_osint` en `localhost:5433`
 - **Dependencias**: ninguna
 - **Governance**: BAJO
@@ -189,7 +189,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-02] `modelo-ddl-tesi-osint`
 - **Estado**: `[x]` verificado
 - **Scope**:
-  - `V4/anexos/A_DDL.sql` como fuente de verdad del esquema, con las correcciones aplicadas (no el borrador original)
+  - `docs/anexos/A_DDL.sql` como fuente de verdad del esquema, con las correcciones aplicadas (no el borrador original)
   - Tablas: `subreddits`, `posts`, `comments`, `anomalias`, `alertas` — las cinco verificadas en `tesi_osint`
   - `posts.id VARCHAR(50)` derivado de `/r/{sub}/comments/{id}/`; `author_hash CHAR(64)`; `nlp_score REAL CHECK (nlp_score BETWEEN 0 AND 1)`; `entities JSONB`; `nlp_processed BOOLEAN`; `ingested_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP`
   - `posts.subreddit_id` con `ON DELETE RESTRICT` + baja lógica vía `subreddits.active_monitoring` (m-20)
@@ -211,9 +211,9 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-03] `workflow-n8n-generado-e-importado`
 - **Estado**: `[x]` verificado
 - **Scope**:
-  - `V4/scripts/generar_workflow.py` como generador (fuente de verdad); `V4/anexos/B_workflow.json` como artefacto importable
+  - `docs/scripts/generar_workflow.py` como generador (fuente de verdad); `docs/anexos/B_workflow.json` como artefacto importable
   - Trigger 1 `Schedule Ingesta` cada 15 min: `Prepare Subreddits` → upsert `subreddits` → `RSS Read` (`new/.rss`) → parse (id y subreddit desde el link) → `HMAC-SHA-256` → clasificador por diccionario (**5 categorías** + `No relevante`, score `[0,1]`; **vigente solo hasta `C-24`**, que lo rediseñó a nueve categorías sobre un único eje de tipo de amenaza) → extracción de entidades (CVE, emails, IPs, dominios, productos) → `Upsert Posts` con `ON CONFLICT (id) DO UPDATE`
-  - Trigger 2 `Schedule Anomalias` diario 00:05: counts por categoría de ayer + media diaria de los 10 días previos → umbral `max(cuantil 95 de Poisson, 3)` → registro en `anomalias` → `alertas` con estado inicial si hubo disparo → `Send Telegram Alert` **deshabilitado por defecto** (**trasladado a las 12:05 el 2026-10-01**: la máquina no queda encendida de noche y el tick de las 00:05 se perdía todos los días — ver `V4/evidencias/VENTANA_B5.md` §10; no altera el período evaluado)
+  - Trigger 2 `Schedule Anomalias` diario 00:05: counts por categoría de ayer + media diaria de los 10 días previos → umbral `max(cuantil 95 de Poisson, 3)` → registro en `anomalias` → `alertas` con estado inicial si hubo disparo → `Send Telegram Alert` **deshabilitado por defecto** (**trasladado a las 12:05 el 2026-10-01**: la máquina no queda encendida de noche y el tick de las 00:05 se perdía todos los días — ver `docs/evidencias/VENTANA_B5.md` §10; no altera el período evaluado)
   - `continueOnFail` + retry x3 con espera de 30 s ante 429/403 de Reddit (RN-FU-03)
   - Fuente RSS / Atom público (Plan C, DD-01): la API `.json` da 403 "blocked by network security" y la creación de apps está bloqueada por la Responsible Builder Policy
   - Import verificado con `n8n import:workflow`; credencial Postgres reasignada en la interfaz tras cada importación
@@ -259,13 +259,13 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Estado**: `[~]` parcial — **ejecutado, no archivable**: quedó 1 tarea abierta de 38 (6.3, posts previos)
 - **Scope**:
   - Fijar por escrito la **fecha de inicio** y la **fecha de corte** de la ventana real de recolección; reemplazar toda mención a la ventana ficticia de 6 meses de V2/V3 (SU-02)
-  - Mantener el `Schedule Ingesta` de 15 min activo durante la ventana; registrar en `V4/evidencias/` una entrada por día con: fecha, posts ingeridos, posts por subreddit, ejecuciones fallidas y su causa
+  - Mantener el `Schedule Ingesta` de 15 min activo durante la ventana; registrar en `docs/evidencias/` una entrada por día con: fecha, posts ingeridos, posts por subreddit, ejecuciones fallidas y su causa
   - Caracterizar la ventana real de rate limiting de Reddit observada en las corridas (cierra el criterio pendiente de US-002) y documentar el efecto de `r/derechogenial` en el corpus (m-16)
   - Dejar acumular días hasta que la media de los 10 días previos del motor de anomalías sea interpretable (RN-AN-02)
   - **Decisión de los autores, con los directores**: fecha de cierre de la ventana y si se conserva la actual o se reinicia la recolección con métricas corregidas
   - No declarar ninguna métrica de resultados hasta cerrar la ventana (RN-GL-01)
-  - **Correcciones ya aplicadas dentro de la ventana**, sin efecto sobre conteos ni sobre el criterio de suficiencia: `poissonCdf` del motor y endurecimiento del despliegue (`9612715`, 2026-10-05 — dos categorías quedaban con umbral 501 e inhibidas); rótulo de la §4 de la bitácora por el día evaluado (`d21232f`) y cierre de la contradicción cabecera/§6 en tres entradas (`3e45d59`), ambas 2026-10-07. Detalle en `V4/evidencias/VENTANA_B5.md` §15-§16
-  - **Resolución IN-07 (2026-10-07, decisión de los autores)**: alcance fijado al Plan C (`r/netsec`, `r/Malware`, `r/devsarg`); `r/derechogenial` pasada a `active_monitoring = false` por decisión temática (se desactiva, no se elimina); denominador de cobertura corregido de 6 a 3 en `bitacora_b5.py`, en §6 de `VENTANA_B5.md` (nueva §6.1: el control negativo se documenta con la clase real `No relevante` — `r/devsarg` 99,1 %, `r/netsec` 55,8 %, `r/Malware` 31,3 %) y en las 8 entradas archivadas vía `V4/scripts/corregir_in07.py`; `knowledge-base/10_preguntas_abiertas.md` cierra IN-07. La entrada `2026-09-25.md` queda como registro histórico del último día con alcance Plan B
+  - **Correcciones ya aplicadas dentro de la ventana**, sin efecto sobre conteos ni sobre el criterio de suficiencia: `poissonCdf` del motor y endurecimiento del despliegue (`9612715`, 2026-10-05 — dos categorías quedaban con umbral 501 e inhibidas); rótulo de la §4 de la bitácora por el día evaluado (`d21232f`) y cierre de la contradicción cabecera/§6 en tres entradas (`3e45d59`), ambas 2026-10-07. Detalle en `docs/evidencias/VENTANA_B5.md` §15-§16
+  - **Resolución IN-07 (2026-10-07, decisión de los autores)**: alcance fijado al Plan C (`r/netsec`, `r/Malware`, `r/devsarg`); `r/derechogenial` pasada a `active_monitoring = false` por decisión temática (se desactiva, no se elimina); denominador de cobertura corregido de 6 a 3 en `bitacora_b5.py`, en §6 de `VENTANA_B5.md` (nueva §6.1: el control negativo se documenta con la clase real `No relevante` — `r/devsarg` 99,1 %, `r/netsec` 55,8 %, `r/Malware` 31,3 %) y en las 8 entradas archivadas vía `docs/scripts/corregir_in07.py`; `knowledge-base/10_preguntas_abiertas.md` cierra IN-07. La entrada `2026-09-25.md` queda como registro histórico del último día con alcance Plan B
   - **Cierre ejecutado (2026-10-19)**: corte fijado en **`2026-10-17`** por decisión del autor (tarea 6.1, **DD-08**) — ventana **CERRADA** con **15 días completos evaluados** (objetivo alcanzado) y **724 posts**, con límite superior fijo `2026-10-18 00:00:00 -03:00`. Tarea 6.2 resuelta en **conservar** (sin reinicio); 6.5 confirmada. El `2026-10-18` quedó como día sin recolección documentado (`VENTANA_B5.md` §18) y la recolección posterior corre como **track secundario** en `C-25`
   - **Bloqueado para archivar por**: solo la decisión 6.3 (si los posts previos al 2026-09-25 entran al corpus) — decisión de los autores
 - **Dependencias**: C-04
@@ -281,8 +281,8 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-06] `sincronizacion-documental-v4`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - **IN-01**: regenerar `V4/anexos/B_workflow.json` desde `V4/scripts/generar_workflow.py`, contar los nodos de esa versión final y corregir la cifra en `V4/GUIA_EJECUCION.md` y en la Figura 3 (la discrepancia 15 vs 14 es un bloqueante de trazabilidad del Anexo B)
-  - **IN-02**: actualizar la tabla de estado de `V4/GUIA_EJECUCION.md` con B4 marcado como ejecutado, la fecha de la corrida y la limitación de `r/derechogenial`
+  - **IN-01**: regenerar `docs/anexos/B_workflow.json` desde `docs/scripts/generar_workflow.py`, contar los nodos de esa versión final y corregir la cifra en `docs/GUIA_EJECUCION.md` y en la Figura 3 (la discrepancia 15 vs 14 es un bloqueante de trazabilidad del Anexo B)
+  - **IN-02**: actualizar la tabla de estado de `docs/GUIA_EJECUCION.md` con B4 marcado como ejecutado, la fecha de la corrida y la limitación de `r/derechogenial`
   - **IN-05**: revisión editorial de los 10 archivos de `knowledge-base/` — español técnico, sin términos en inglés ni errores de tipeo, antes de que la KB se use como fuente del documento final
   - Congelar la versión del workflow que se usa como Anexo B y registrar su hash, para que E1 y la Figura 3 sean el mismo artefacto
   - Actualizar `knowledge-base/02_descripcion_general.md` §Estado de implementación si la corrida más reciente difiere de la registrada
@@ -293,7 +293,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - `knowledge-base/10_preguntas_abiertas.md` §Inconsistencias detectadas
   - `knowledge-base/08_arquitectura_propuesta.md` §Estructura de directorios
   - `knowledge-base/02_descripcion_general.md` §Estado de implementación
-  - `V4/GUIA_EJECUCION.md` §Estado actual
+  - `docs/GUIA_EJECUCION.md` §Estado actual
 
 ---
 
@@ -302,8 +302,8 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Scope**:
   - **IN-03**: fijar la sentencia final de `Upsert Posts` dejando explícito qué campos se actualizan en el `ON CONFLICT (id) DO UPDATE` y que `ingested_at` **no** se toca, para preservar la latencia de la primera ingesta (RN-PE-03, DD-04)
   - Verificar la semántica con una **segunda corrida controlada**: comprobar que `COUNT(*)` no crece y que `ingested_at` es idéntico al de la corrida original para los mismos ids
-  - Registrar la sentencia final en `V4/anexos/A_DDL.sql` o en un anexo de workflow, para que el Cap. 4 pueda mostrar la persistencia que garantiza la idempotencia (m-18)
-  - Si la corrección implica regenerar el workflow, hacerlo desde `V4/scripts/generar_workflow.py` y reasignar la credencial Postgres tras la importación
+  - Registrar la sentencia final en `docs/anexos/A_DDL.sql` o en un anexo de workflow, para que el Cap. 4 pueda mostrar la persistencia que garantiza la idempotencia (m-18)
+  - Si la corrección implica regenerar el workflow, hacerlo desde `docs/scripts/generar_workflow.py` y reasignar la credencial Postgres tras la importación
   - Debe cerrar **antes** de C-08: E6 (latencia) se calcula sobre `ingested_at` y sería inválida si el upsert lo sobreescribe
 - **Dependencias**: C-04
 - **Governance**: ALTO
@@ -318,15 +318,15 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-24] `rediseno-diccionario-evaluacion`
 - **Estado**: `[~]` parcial — 55 de 65 tareas completas, **no archivado**. Vive en `openspec/changes/rediseno-diccionario-evaluacion/` (a diferencia de `C-01` a `C-04`, sí tiene change formal en OpenSpec, pero todavía sin cerrar)
 - **Scope**:
-  - **Redefinición de `DICT`** en `V4/scripts/generar_workflow.py:143`: de 5 a **9 categorías** sobre un único eje —*tipo de amenaza*—, en castellano e inglés: `Phishing`, `Robo de Credenciales`, `Malware`, `Ransomware`, `Vulnerabilidades`, `Filtración de Datos`, `Infraestructura y Ataques`, `Hacktivismo`, `Ingenieria Social`. **201 términos**, verificados sin acentos, sin guiones, sin duplicados y sin términos vacíos (contados sobre el `DICT` del generador, 22+29+24+15+30+29+16+16+20)
+  - **Redefinición de `DICT`** en `docs/scripts/generar_workflow.py:143`: de 5 a **9 categorías** sobre un único eje —*tipo de amenaza*—, en castellano e inglés: `Phishing`, `Robo de Credenciales`, `Malware`, `Ransomware`, `Vulnerabilidades`, `Filtración de Datos`, `Infraestructura y Ataques`, `Hacktivismo`, `Ingenieria Social`. **201 términos**, verificados sin acentos, sin guiones, sin duplicados y sin términos vacíos (contados sobre el `DICT` del generador, 22+29+24+15+30+29+16+16+20)
   - La categoría **`Estafas Virtuales` se elimina**: sus términos se redistribuyen en `Phishing`, `Robo de Credenciales` e `Ingenieria Social`
   - El **contexto geográfico argentino deja de ser categoría** y pasa a las entidades `PRODUCTS`, que no cambian
   - Se retiran los términos genéricos que matcheaban por trivialidad (`mp`, `cuenta`, `enlace`, `correo`, `bug`, `falla`, `transferencia`, `banco`, `filtrar`, `cangrejo`, `pescar`, `actualizacion`) y se agregan formas conjugadas en castellano, porque el clasificador hace match por token exacto sobre `text.split(/[^a-z0-9]+/)` y **no lematiza** — la limitación se documenta como parte del método
   - **Fórmula de `nlp_score`**: de `hits / |keywords(cat)|` a **saturante**, `min(1, hits / SATURATION)` con `SATURATION = 4`. La anterior se normalizaba contra el tamaño del diccionario, así que ampliar el diccionario degradaba la escala sin cambiar el resultado de la clasificación; la nueva es estable ante cambios del diccionario y respeta el `CHECK (nlp_score BETWEEN 0 AND 1)` del DDL
   - **`MIN_HITS = 1`**, calibrado contra la muestra de control y no contra datos de producción. Con `MIN_HITS = 2` el F1 era 0,842
-  - Artefacto `V4/anexos/B_workflow.json`: de 14 a **16 nodos** (se incorporan `Loop Over Items` y `Espera Rate Limit` con el rate limiting espaciado). Se regenera desde el generador, nunca a mano. **`V4/anexos/A_DDL.sql` no cambia**: `nlp_category` es `VARCHAR(100)` sin `CHECK`, `ENUM` ni dominio, y ninguna tabla, columna ni índice se altera
-  - **Muestra de control de `n = 50`** posts etiquetada a mano el **2026-09-30** por Enzo Severino, con su consulta, fecha, ventana y `n` en `V4/evidencias/muestra_control_50_2026-09-30*`. Muestreo estratificado: los 28 posts con categoría de amenaza entran como censo del estrato y 22 se sortean de los 473 `No relevante`, con semilla declarada `20260930`
-  - **Métricas sobre `n = 50`, fecha 2026-09-30** (`V4/evidencias/evaluacion_muestra_control_2026-09-30.md`, reproducible con `V4/scripts/evaluar_muestra_control.py` y `evaluar_muestra_reproducible.py` sobre el `selftext` exacto): **TP 27, FP 2, FN 2, TN 19** → precisión = recall = F1 = **0,931**; acierto exacto de categoría **84,0 %**
+  - Artefacto `docs/anexos/B_workflow.json`: de 14 a **16 nodos** (se incorporan `Loop Over Items` y `Espera Rate Limit` con el rate limiting espaciado). Se regenera desde el generador, nunca a mano. **`docs/anexos/A_DDL.sql` no cambia**: `nlp_category` es `VARCHAR(100)` sin `CHECK`, `ENUM` ni dominio, y ninguna tabla, columna ni índice se altera
+  - **Muestra de control de `n = 50`** posts etiquetada a mano el **2026-09-30** por Enzo Severino, con su consulta, fecha, ventana y `n` en `docs/evidencias/muestra_control_50_2026-09-30*`. Muestreo estratificado: los 28 posts con categoría de amenaza entran como censo del estrato y 22 se sortean de los 473 `No relevante`, con semilla declarada `20260930`
+  - **Métricas sobre `n = 50`, fecha 2026-09-30** (`docs/evidencias/evaluacion_muestra_control_2026-09-30.md`, reproducible con `docs/scripts/evaluar_muestra_control.py` y `evaluar_muestra_reproducible.py` sobre el `selftext` exacto): **TP 27, FP 2, FN 2, TN 19** → precisión = recall = F1 = **0,931**; acierto exacto de categoría **84,0 %**
   - **Cohen's Kappa NO es calculable**: hay un solo anotador, así que no existe un segundo juez con el que comparar. El límite se declara en lugar de publicar una cifra de concordancia (tarea 7.4, abierta)
   - La muestra **no está libre de condiciones**: se estratificó usando la categoría que el propio modelo evaluado ya había asignado, y el sorteo real ocurre en Python (`random.Random(20260930)`) y no es reproducible con el método documentado en SQL. Ambas desviaciones están declaradas en `§6.2` y `§6.3` de la evaluación
   - **Corpus de la ventana fijado** en `r/netsec`, `r/Malware` y `r/devsarg`. `r/argentina` y `r/DerechoGenial` se desactivan con `active_monitoring = false` y **conservan sus 201 posts** (prohibido `DELETE`). La fila huérfana `derechogenial` en minúscula queda sin tocar y documentada como inconsistencia conocida
@@ -335,14 +335,14 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - **El change no se puede archivar todavía**: `tasks.md` tiene 10 tareas abiertas de 65. Ocho son de fondo y no dependen de nada de este roadmap — 6.5 (no superposición de la muestra con el corpus de resultados de B5, verificable solo cuando la ventana cierre), 7.4 (Kappa no calculable), 7.7 (reportar los conteos operativos del `Why` como conteos y no como métricas) y 9.2 a 9.6 (KB de reglas y modelo de datos, más Tabla 6, Anexo C, fórmula del score y criterios de aceptación en la tesis, que vive fuera del repo). Las dos restantes, 9.9 y 9.10, son el registro en este roadmap y la verificación de la tabla de skills de `AGENTS.md` y `CLAUDE.md`
   - **Desviación de gobernanza declarada**: los grupos 1 a 5 se ejecutaron el 2026-09-30 **antes** de que el change existiera, contra lo que exige RN-GL-03. El change se registra después de los hechos; la trazabilidad se recupera con las ocho decisiones de `design.md` (con su alternativa rechazada) y con la corrida de 301 posts del 2026-09-30, que es la que motivó el rediseño y es reproducible con las consultas citadas
 - **Dependencias**: C-04, C-05
-- **Desbloquea**: C-10 (la matriz de confusión ya existe, calculada sobre las 9 categorías), C-13 (el Anexo C ahora tiene fuente autoritativa: el `DICT` de `V4/scripts/generar_workflow.py`)
+- **Desbloquea**: C-10 (la matriz de confusión ya existe, calculada sobre las 9 categorías), C-13 (el Anexo C ahora tiene fuente autoritativa: el `DICT` de `docs/scripts/generar_workflow.py`)
 - **Governance**: ALTO — rompe el criterio de aceptación de US-005 ("un diccionario taxonómico de cinco categorías"), que `C-13` cierra, y se ejecutó con desviación de RN-GL-03
 - **Leer antes**:
   - `openspec/changes/rediseno-diccionario-evaluacion/proposal.md`, `design.md` y `tasks.md`
   - `knowledge-base/06_funcionalidades.md` §US-005, §US-006
   - `knowledge-base/05_reglas_de_negocio.md` §Dominio: clasificación y entidades (RN-CL)
-  - `V4/evidencias/evaluacion_muestra_control_2026-09-30.md` §6 (limitaciones del método)
-  - `V4/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md`
+  - `docs/evidencias/evaluacion_muestra_control_2026-09-30.md` §6 (limitaciones del método)
+  - `docs/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md`
 
 ---
 
@@ -357,7 +357,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Dependencias**: C-05 (**cerrado el 2026-10-19**)
 - **Governance**: MEDIO
 - **Leer antes**:
-  - `V4/evidencias/VENTANA_B5.md` §18
+  - `docs/evidencias/VENTANA_B5.md` §18
   - `knowledge-base/09_decisiones_y_supuestos.md` §DD-08
   - `openspec/changes/recoleccion-secundaria/design.md`
 
@@ -373,7 +373,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - **E4 (Tabla 3 reconstruida)**: `SELECT COALESCE(nlp_category,'No relevante') AS categoria, COUNT(*) AS n, ROUND(100.0*COUNT(*)/SUM(COUNT(*)) OVER (),2) AS pct FROM posts GROUP BY nlp_category ORDER BY n DESC` — recuentos **contados**, con la fila residual rotulada `No relevante (salida del clasificador)`; prohibido derivar el residual de una tasa (N-02)
   - **E6 (latencia publicación→ingesta)**: `SELECT COUNT(*), AVG/PERCENTILE_CONT(0.50)/PERCENTILE_CONT(0.95) de EXTRACT(EPOCH FROM (ingested_at - to_timestamp(created_utc)))/60.0` con `WHERE created_utc IS NOT NULL AND created_utc > 0`; reportar `n`, media, DS, P50 y P95
   - Decidir el criterio de latencia del §1.6: si P95 supera 5 min, **declarar NO CUMPLIDO con justificación** o ajustar el scheduler a 5 min verificando la cuota — nunca ambos (N-01)
-  - Exportar cada salida a `V4/evidencias/` con la consulta usada, la fecha y el `n` de la ventana (Flujo 3, RN-GL-01)
+  - Exportar cada salida a `docs/evidencias/` con la consulta usada, la fecha y el `n` de la ventana (Flujo 3, RN-GL-01)
   - Separar throughput operativo (4 ejecuciones/h × 100 ítems = 400/h) de métricas de banco de pruebas (H-06)
 - **Dependencias**: C-05, C-07
 - **Governance**: MEDIO
@@ -408,7 +408,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Scope**:
   - **E5**: consolidar la **matriz de confusión 10×10** (9 categorías taxonómicas + `No relevante`) de la muestra de control: etiquetas humanas vs. `nlp_category` predicha. `C-24` **ya calculó la matriz binaria** de detección de amenaza — TP 27, FP 2, FN 2, TN 19 sobre `n = 50` del 2026-09-30 — pero **no** la matriz por categoría que E5 pide, ni el intervalo de confianza
   - Constituir la muestra de control con el **n declarado** y el criterio de muestreo documentado; muestreo estratificado sobre la base real, nunca sobre cifras de V2/V3. **Ya hecho en `C-24`** con `n = 50`, con sus dos desviaciones declaradas (muestra condicionada por la predicción del modelo; sorteo no reproducible por el método documentado)
-  - Script en `V4/scripts/` que calcula la matriz desde dos CSV (etiquetas humanas + predicciones) y la persiste como evidencia fechada. **Ya existe**: `V4/scripts/evaluar_muestra_control.py` y `evaluar_muestra_reproducible.py`, con salida en `V4/evidencias/evaluacion_muestra_control_2026-09-30.*`
+  - Script en `docs/scripts/` que calcula la matriz desde dos CSV (etiquetas humanas + predicciones) y la persiste como evidencia fechada. **Ya existe**: `docs/scripts/evaluar_muestra_control.py` y `evaluar_muestra_reproducible.py`, con salida en `docs/evidencias/evaluacion_muestra_control_2026-09-30.*`
   - Fórmula explícita de la **tasa de falsos positivos** en 3.3 (H-04) y reportar intervalos de confianza. Con `n = 50` el recall **no es publicable**: el IC 95 % de la tasa de amenazas ocultas en el estrato `No relevante` es **[5,2 % , 40,2 %]**. Para un intervalo de ±5 puntos en ese estrato hacen falta ~270 posts
   - Regla de desempate del etiquetado a 3 votos (H-13); evaluar y documentar el sesgo de evaluación endógena. **No se puede cumplir con la evidencia disponible**: hay un solo anotador y Cohen's Kappa no es calculable. La regla de 3 votos queda para `C-15`, con evaluador externo
   - Mantener separados los conteos de comentarios: `comments` no es poblada por el pipeline RSS, la Tabla 2 se reconstruye solo con posts (m-16)
@@ -416,7 +416,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 - **Dependencias**: C-08, C-24 *(desbloqueo registrado el 2026-09-30: `C-24` está `[~]` parcial — el diccionario y la matriz binaria existen, la evidencia E5 consolidada todavía no)*
 - **Governance**: ALTO
 - **Leer antes**:
-  - `openspec/changes/rediseno-diccionario-evaluacion/design.md` y `V4/evidencias/evaluacion_muestra_control_2026-09-30.md`
+  - `openspec/changes/rediseno-diccionario-evaluacion/design.md` y `docs/evidencias/evaluacion_muestra_control_2026-09-30.md`
   - `knowledge-base/06_funcionalidades.md` §US-010
   - `knowledge-base/05_reglas_de_negocio.md` §Dominio: clasificación y entidades (RN-CL-01, RN-CL-05)
   - `knowledge-base/10_preguntas_abiertas.md` §Preguntas abiertas priorizadas
@@ -427,7 +427,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-11] `evidencias-e8-captura-recaptura`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - **E8**: ejecutar el protocolo captura–recaptura sobre la ventana real — dos capturas, `n₁`, `n₂`, `m`, `N̂`, cobertura `n₁/N̂` e intervalo de confianza — con la tabla completa archivada en `V4/evidencias/`
+  - **E8**: ejecutar el protocolo captura–recaptura sobre la ventana real — dos capturas, `n₁`, `n₂`, `m`, `N̂`, cobertura `n₁/N̂` e intervalo de confianza — con la tabla completa archivada en `docs/evidencias/`
   - Discutir la **independencia de los canales** de captura; es la debilidad conocida del método y debe declararse (H-05)
   - **Decisión de cierre explícita**: si el protocolo no puede sostenerse con la fuente RSS, **retirar la métrica de cobertura** de §1.6, §5.2, Resumen y Conclusiones — retirarla es la salida honesta, no dejarla como "parcial" sin justificar
   - Registrar la decisión en OpenSpec como cambio de alcance (RN-GL-03)
@@ -450,9 +450,9 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - **E1**: export JSON del workflow desde la instancia real de n8n, **verificado como importable** y sin secretos (la credencial Postgres no viaja en el JSON)
   - **E2**: captura de pantalla del workflow en la interfaz de n8n mostrando los nodos visibles, incluido el subflujo de alertas; alimenta la Figura 3
   - **E3**: volcado del DDL realmente ejecutado en B2 (`\d+` o export del esquema), que es la fuente de la tabla de atributos del Cap. 4 y de la Figura 2 (DER)
-  - **E10**: URL pública del repositorio Git con acceso para el auditor → Anexo D; **hoy `V4/anexos/` solo contiene A y B, C y D no existen** (H-07)
+  - **E10**: URL pública del repositorio Git con acceso para el auditor → Anexo D; **hoy `docs/anexos/` solo contiene A y B, C y D no existen** (H-07)
   - Verificar que `crypto` y `$env` están habilitados en la configuración de n8n y dejarlo asentado junto al export (H-01c)
-  - Archivar todo en `V4/anexos/` y `V4/evidencias/` con fecha en el nombre
+  - Archivar todo en `docs/anexos/` y `docs/evidencias/` con fecha en el nombre
 - **Dependencias**: C-06
 - **Governance**: MEDIO
 - **Leer antes**:
@@ -464,9 +464,9 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ---
 
 ### [C-13] `anexo-c-diccionario-taxonomico-e11`
-- **Estado**: `[ ]` pendiente — **desbloqueado por `C-24`**, no cumplido. `V4/anexos/C_diccionario.md` todavía **no existe**
+- **Estado**: `[ ]` pendiente — **desbloqueado por `C-24`**, no cumplido. `docs/anexos/C_diccionario.md` todavía **no existe**
 - **Scope**:
-  - **E11**: publicar el **diccionario taxonómico completo** como `V4/anexos/C_diccionario.md` — las **9 categorías** y sus **201 términos** (cierra US-005). **Fuente autoritativa: el `DICT` de `V4/scripts/generar_workflow.py:143`**, de donde sale el Code node; el artefacto `V4/anexos/B_workflow.json` es su copia materializada y no se edita a mano. `C-24` eliminó `Estafas Virtuales` como categoría y redefinió el eje único como tipo de amenaza, así que el Anexo C se escribe contra ese diccionario y no contra el de cinco categorías
+  - **E11**: publicar el **diccionario taxonómico completo** como `docs/anexos/C_diccionario.md` — las **9 categorías** y sus **201 términos** (cierra US-005). **Fuente autoritativa: el `DICT` de `docs/scripts/generar_workflow.py:143`**, de donde sale el Code node; el artefacto `docs/anexos/B_workflow.json` es su copia materializada y no se edita a mano. `C-24` eliminó `Estafas Virtuales` como categoría y redefinió el eje único como tipo de amenaza, así que el Anexo C se escribe contra ese diccionario y no contra el de cinco categorías
   - Documentar la **fórmula exacta del score** y su normalización a `[0,1]`: `min(1, hits / SATURATION)` con `SATURATION = 4` y `MIN_HITS = 1`, con ejemplos calculados a mano que se puedan verificar contra `posts.nlp_score` de la base (H-17). La fórmula anterior `hits / |keywords(cat)|` deja de ser la vigente y **3 posts de `r/DerechoGenial` conservan `nlp_score = 0.2`, residuo de ella** — ese valor no existe en la grilla actual (`hits/4` → 0, 0,25, 0,5, 0,75, 1,0) y hay que declararlo
   - Documentar el **componente de extracción de entidades**: qué reconoce (CVE, emails, IPs, dominios, productos), con qué expresión y con 3–5 ejemplos reales tomados de `posts.entities` (N-06). El contexto geográfico argentino, que era categoría del diccionario viejo, ahora vive acá, en `PRODUCTS`
   - Declarar la **limitación de no lematización**: el match es por token exacto sobre `text.split(/[^a-z0-9]+/)`, por lo que el diccionario declara las formas conjugadas que necesita y no las deduplica por raíz
@@ -527,8 +527,8 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-16] `normalizacion-base-textual-v2`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - `V4/devoluciones/tesis_v2.txt` ya existe (extracción hecha); falta **normalizar**: acentos rotos, saltos de línea de la extracción, caracteres de viñeta, comillas
-  - Seccionar el texto normalizado **un archivo por capítulo** en `V4/capitulos/`, respetando la numeración original de V2 para que las restituciones sean verificables contra la fuente
+  - `docs/devoluciones/tesis_v2.txt` ya existe (extracción hecha); falta **normalizar**: acentos rotos, saltos de línea de la extracción, caracteres de viñeta, comillas
+  - Seccionar el texto normalizado **un archivo por capítulo** en `docs/capitulos/`, respetando la numeración original de V2 para que las restituciones sean verificables contra la fuente
   - Marcar en cada capítulo los **tramos que V3 eliminó** y que deben restituirse: entorno de benchmarking 5.2, tabla de atributos 4.2, diseño muestral y regla de resolución de discrepancias 3.3, priorización del Cap. 8, citas del marco conceptual 2.1.3, nodos del Anexo B, ejemplos de modismos ("caer", "pescar", "cangrejo")
   - Entregable: corpus base limpio del cual los capítulos se reescriben sin copiar-pegar a ciegas
   - Reglas de forma a aplicar de arranque: separador decimal coma (`0,78`), APA 7, declaración de autoría precisa (m-17)
@@ -581,7 +581,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - **Cap. 3 (§3.3, §3.4)**: fórmula explícita de la **tasa de falsos positivos** (pedida desde V2); **restituir el diseño muestral y la regla de resolución de discrepancias** — el aporte metodológico más sólido según V2, borrado en V3; declarar el `n` de la muestra de control y de cada métrica; terminología exacta **"HMAC-SHA-256 con clave secreta por despliegue"** (no "SHA-256 con salt" ni "dinámica"); párrafo de gestión de clave (generación, custodia, rotación) y **riesgo residual** (el seudonimizado sigue siendo dato personal, Ley 25.326); política de enmascaramiento de atributos indirectos
   - **Cap. 4 (§4.1–§4.5)**: descripción **completa** de la arquitectura + Figura 1 (V3 la redujo a una oración); **tabla de atributos como espejo EXACTO del DDL** de E3 (V3 la eliminó en vez de alinearla); resolver `pg_trgm` (eliminarlo o justificarlo); **sentencia de persistencia** de C-07 que garantiza la idempotencia de OE2; scheduler 15 min vs. latencia medida en C-08; **función de puntuación y normalización** de C-13; **componente de extracción de entidades** de C-13; **§4.5 nueva: formalizar el motor de anomalías** (variable, ventana, base, umbral, regla de disparo) con la justificación de C-09
   - **Cap. 4 es el núcleo de la evaluación**: debe ser el capítulo más extenso
-  - Ninguna afirmación de diseño sin respaldo en `V4/anexos/` o en la base
+  - Ninguna afirmación de diseño sin respaldo en `docs/anexos/` o en la base
 - **Dependencias**: C-18, C-13, C-07, C-12
 - **Governance**: ALTO
 - **Leer antes**:
@@ -599,7 +599,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - **Cap. 5 (§5.2, §5.3)**: **Tabla 3 desde SQL** con la salida de C-08 y el residual rotulado — los recuentos saldrán sobre las **9 categorías** de `C-24`, no sobre las cinco; **explicar por qué los recuentos difieren de V2** (la ventana cambió y el diccionario también, RN-GL-02); **matriz de confusión 10×10** de C-10; reportar `n`, media, DS, P50, P95 de latencia y el throughput de C-08; separar métricas **operativas vs. banco de pruebas**; validar los 3 casos contra el motor real y reportar el **número real de disparos** de C-09
   - **Cap. 6 (§6.1–§6.3)**: reescribir la comparación con la literatura sobre **estimación de amenazas reales corregida por precisión**, no sobre salidas crudas del clasificador (N-02); precisar **qué dato exacto** del informe Fortinet se contrasta (categoría, porcentaje, página); citar fuentes primarias de penetración de plataformas con URL y fecha o reformular en términos cualitativos; mantener el sesgo de evaluación endógena como **limitación declarada** e incorporar la regla de desempate del etiquetado
   - Publicar el F1 con su `n = 50` y su fecha (2026-09-30) o **retirarlo**: con un solo anotador y un intervalo de confianza abierto en el estrato `No relevante`, el recall no es publicable tal como está (tarea 7.4 abierta, `C-10`)
-  - Cada tabla y cada cifra del capítulo **deben apuntar a su archivo en `V4/evidencias/`** con fecha y consulta
+  - Cada tabla y cada cifra del capítulo **deben apuntar a su archivo en `docs/evidencias/`** con fecha y consulta
   - Ninguna cifra que provenga de V2/V3 sobrevive sin recalcularse contra la base
 - **Dependencias**: C-19, C-08, C-09, C-10, C-11
 - **Governance**: ALTO
@@ -614,7 +614,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-21] `capitulo-7-8-resumen-titulo`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - **Cap. 7 (§7.1–§7.3)**: alinear el estado de **OE5 y OE6** con lo realmente implementado (H-02, H-03); **conservar la honestidad epistémica de PI-1** — la comparación con soluciones propietarias no ejecutada, que el tribunal valoró en V2; corregir la afirmación de anexos disponibles según lo que exista realmente en `V4/anexos/` al momento del cierre
+  - **Cap. 7 (§7.1–§7.3)**: alinear el estado de **OE5 y OE6** con lo realmente implementado (H-02, H-03); **conservar la honestidad epistémica de PI-1** — la comparación con soluciones propietarias no ejecutada, que el tribunal valoró en V2; corregir la afirmación de anexos disponibles según lo que exista realmente en `docs/anexos/` al momento del cierre
   - **Cap. 8**: **restituir la priorización por esfuerzo e impacto** de las recomendaciones (N-03)
   - **Resumen y Abstract**: espejo exacto el uno del otro, con las métricas reales del Cap. 5; **no afirmar "se superaron todos los umbrales"** (M-01)
   - **Título**: evaluar si sigue siendo correcto si OE6 se reclasifica (H-02)
@@ -637,9 +637,9 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
   - **Figura 2 (DER)**: generar desde el DDL real de C-12, con `matplotlib` o herramienta equivalente; debe reflejar `RESTRICT` en `posts.subreddit_id` y las cinco tablas
   - **Figura 3 (captura n8n)**: usar la captura E2 de C-12, con el conteo de nodos **corregido** según C-06
   - **Figura 4 (serie temporal por categoría)**: generar desde la salida real de la serie horaria (`date_trunc('hour', ingested_at)` × `nlp_category`); **nunca** con datos de V2/V3
-  - **Figura 1** ya existe (`V4/figuras/Figura_1_arquitectura.png`): solo verificar que coincide con la arquitectura descrita en Cap. 4 tras C-19
+  - **Figura 1** ya existe (`docs/figuras/Figura_1_arquitectura.png`): solo verificar que coincide con la arquitectura descrita en Cap. 4 tras C-19
   - Índice de tablas y figuras automático tras el índice general, con numeración verificada (H-14, M-05)
-  - Guardar los PNG en `V4/figuras/` y el script generador en `V4/scripts/` para que sean reproducibles
+  - Guardar los PNG en `docs/figuras/` y el script generador en `docs/scripts/` para que sean reproducibles
 - **Dependencias**: C-12, C-08
 - **Governance**: BAJO
 - **Leer antes**:
@@ -653,8 +653,8 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-23] `auto-auditoria-final`
 - **Estado**: `[ ]` pendiente
 - **Scope**:
-  - Recalcular **todas** las cifras verificables del documento (Tablas 1–5, F1, FP, latencias, ratios, redondeos) con un script en `V4/scripts/` y contrastarlas contra la base
-  - Verificar **correspondencia** cuerpo ↔ anexos ↔ índice ↔ figuras, y que cada anexo citado exista en `V4/anexos/`
+  - Recalcular **todas** las cifras verificables del documento (Tablas 1–5, F1, FP, latencias, ratios, redondeos) con un script en `docs/scripts/` y contrastarlas contra la base
+  - Verificar **correspondencia** cuerpo ↔ anexos ↔ índice ↔ figuras, y que cada anexo citado exista en `docs/anexos/`
   - Construir la **matriz de trazabilidad final** OE ↔ resultados ↔ evidencia, con una fila por objetivo de estudio
   - Recorrer la **lista completa de hallazgos** H-01…H-17, M-01…M-12, N-01…N-06, m-13…m-20 y marcar cada uno **RESUELTO / PARCIAL / NO RESUELTO** con su evidencia
   - Chequeo **APA 7**: cada referencia citada y cada cita referenciada, con URL y fecha de recuperación en fuentes institucionales
@@ -676,9 +676,9 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 ### [C-26] `reconstruccion-informe-v4`
 - **Estado**: `[~]` parcial — ejecutado el **2026-10-19**, no archivado (tarea 5.8 abierta por diseño: se cierra con la entrada de este roadmap, y el archivo se hace con `/opsx:archive`)
 - **Absorbe**: `C-16`, `C-17`, `C-18`, `C-19`, `C-20`, `C-21`, `C-22`, `C-23` (misma rama documento, mismo entregable)
-- **Entregable**: `V4/devoluciones/tesis_v4.md` — informe único en Markdown (UTF-8 sin BOM): portada, declaración de autoría y uso de herramientas, índices de contenido/tablas/figuras, siglas, Resumen, Abstract, Capítulos 1–8, Referencias (15 entradas APA 7) y Anexos A–D. **22 tablas** numeradas y citadas, **4 figuras** embebidas, sin marcadores pendientes.
-- **Trazabilidad**: `V4/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` recorre los **45 hallazgos** de las dos instancias (`H-01…H-17`, `M-01…M-12`, `N-01…N-06`, `m-13…m-20`) con la sección que resuelve cada uno y su estado.
-- **Evidencia de datos**: `V4/evidencias/informe_v4_2026-10-19/consultas_corpus_b5.txt` (consultas Q1–Q15 con fecha y `n`), `DICCIONARIO_REAL.md|.json`, `V4/scripts/generar_figuras_v4.py`, y los archivos de la muestra de control del 2026-09-30. Todas las consultas a `tesi_osint` fueron `SELECT`.
+- **Entregable**: `docs/devoluciones/tesis_v4.md` — informe único en Markdown (UTF-8 sin BOM): portada, declaración de autoría y uso de herramientas, índices de contenido/tablas/figuras, siglas, Resumen, Abstract, Capítulos 1–8, Referencias (15 entradas APA 7) y Anexos A–D. **22 tablas** numeradas y citadas, **4 figuras** embebidas, sin marcadores pendientes.
+- **Trazabilidad**: `docs/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` recorre los **45 hallazgos** de las dos instancias (`H-01…H-17`, `M-01…M-12`, `N-01…N-06`, `m-13…m-20`) con la sección que resuelve cada uno y su estado.
+- **Evidencia de datos**: `docs/evidencias/informe_v4_2026-10-19/consultas_corpus_b5.txt` (consultas Q1–Q15 con fecha y `n`), `DICCIONARIO_REAL.md|.json`, `docs/scripts/generar_figuras_v4.py`, y los archivos de la muestra de control del 2026-09-30. Todas las consultas a `tesi_osint` fueron `SELECT`.
 - **Decisiones que el informe declara en lugar de maquillar**:
   - **Latencia y throughput NO CUMPLIDOS** (P95 operativo 1.376,2 min frente al umbral de 5 min; 1,8 posts/h frente a 1.000), con la causa estructural analizada en §5.3 y §5.7 y sin mover los umbrales. **Ratificado por los tres autores el 2026-10-19** para quedar publicado así.
   - **Cobertura retirada** por falta de diseño de captura–recaptura (hallazgo H-05, salida que el tribunal admite).
@@ -728,7 +728,7 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 
 **Cobertura de evidencias E1–E15:** E1, E2, E3, E10 → C-12 · E4, E6 → C-08 · E5 → C-10 · E7 → C-09 · E8 → C-11 · E9, E12, E13 → C-14 · E11 → C-13 · E14 → C-15 · E15 → C-17.
 
-> `C-24` no cambia la cobertura: **no produce ninguna evidencia consolidada**. Aporta la matriz binaria preliminar de E5 y el `DICT` autoritativo de E11, pero E5 sigue siendo de `C-10` y E11 de `C-13`. Sus entregables son el diccionario vigente, el corpus fijado y la muestra etiquetada — todos ya en `V4/` y verificables.
+> `C-24` no cambia la cobertura: **no produce ninguna evidencia consolidada**. Aporta la matriz binaria preliminar de E5 y el `DICT` autoritativo de E11, pero E5 sigue siendo de `C-10` y E11 de `C-13`. Sus entregables son el diccionario vigente, el corpus fijado y la muestra etiquetada — todos ya en `docs/` y verificables.
 
 **Primer change recomendado:** `C-05` `ventana-recoleccion-b5` — no produciría artefactos por sí solo, pero es el **reloj del proyecto**: la ventana real define qué métricas son calculables, y todo el tramo crítico pendiente cuelga de ella. Si los autores quieren producir artefactos visibles en el primer paso, el paralelo natural es `C-16` (normalizar la base textual de V2), que no depende de nada.
 
@@ -738,4 +738,4 @@ Paso │ Agente A (Pipeline y Datos)   │ Agente B (Evidencias y Anexos)  │ A
 /opsx:propose C-05-ventana-recoleccion-b5
 ```
 
-> **Estado real al 2026-10-19 (posterior a `C-26`).** `C-05` pasó a `[~] parcial`: la ventana B5 se cerró con **corte 2026-10-17** (15 días completos evaluados, 724 publicaciones, decisión DD-08) y no se archiva hasta resolver la pregunta 6.3 sobre los posts previos; la recolección posterior al corte corre como track paralelo en `C-25` (31 publicaciones iniciales). `C-26` ejecutó y absorbió la rama documento completa (`C-16`…`C-23`), de modo que los pendientes reales son: `C-07` (prerrequisito de latencia, IN-03), `C-08` a `C-15` (revisar antes de ejecutar: parte de sus evidencias ya existe dentro de `V4/evidencias/informe_v4_2026-10-19/`), y el cierre de `C-05` y `C-24`. El informe de la reentrega está en `V4/devoluciones/tesis_v4.md`.
+> **Estado real al 2026-10-19 (posterior a `C-26`).** `C-05` pasó a `[~] parcial`: la ventana B5 se cerró con **corte 2026-10-17** (15 días completos evaluados, 724 publicaciones, decisión DD-08) y no se archiva hasta resolver la pregunta 6.3 sobre los posts previos; la recolección posterior al corte corre como track paralelo en `C-25` (31 publicaciones iniciales). `C-26` ejecutó y absorbió la rama documento completa (`C-16`…`C-23`), de modo que los pendientes reales son: `C-07` (prerrequisito de latencia, IN-03), `C-08` a `C-15` (revisar antes de ejecutar: parte de sus evidencias ya existe dentro de `docs/evidencias/informe_v4_2026-10-19/`), y el cierre de `C-05` y `C-24`. El informe de la reentrega está en `docs/devoluciones/tesis_v4.md`.

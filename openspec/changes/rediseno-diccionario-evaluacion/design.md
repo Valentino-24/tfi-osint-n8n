@@ -2,7 +2,7 @@
 
 El pipeline funciona de punta a punta sobre Docker: 16 nodos, seudonimización HMAC, idempotencia del upsert verificada, y tres comunidades ingiriendo sin duplicados. El componente que no funciona es el de clasificación.
 
-`CLASSIFY_CODE` (`V4/scripts/generar_workflow.py:89-128`) implementa un clasificador por diccionario con cinco categorías. La evidencia del 2026-09-30 sobre los 301 posts ingeridos muestra que su cobertura léxica no corresponde al alcance de la tesis: 3 clasificaciones positivas en total, 1 de ellas falso positivo por coincidencia con términos genéricos, y 0 detecciones al sustituirlo por un diccionario bilingüe de nueve categorías sobre el mismo corpus.
+`CLASSIFY_CODE` (`docs/scripts/generar_workflow.py:89-128`) implementa un clasificador por diccionario con cinco categorías. La evidencia del 2026-09-30 sobre los 301 posts ingeridos muestra que su cobertura léxica no corresponde al alcance de la tesis: 3 clasificaciones positivas en total, 1 de ellas falso positivo por coincidencia con términos genéricos, y 0 detecciones al sustituirlo por un diccionario bilingüe de nueve categorías sobre el mismo corpus.
 
 La causa de ese 0 no es el diccionario nuevo sino el corpus. Medido con el diccionario nuevo sobre 100 posts por comunidad: `r/malware` 19%, `r/netsec` 6%, `r/cybersecurity` 3%, `r/reverseengineering` 3%, `r/devsarg` 0%. Los subreddits monitorizados son generalistas —política, programación, derechos del consumidor— y no contienen tráfico de amenazas.
 
@@ -80,9 +80,9 @@ Dos restricciones del mismo mecanismo condicionan qué términos pueden escribir
 
 ### D-6 — La selección de corpus se decide con medición, y la medición se archiva
 
-**Qué**: la señal por comunidad se mide antes de decidir qué comunidades integran el corpus, y el resultado se archiva en `V4/evidencias/` con su consulta, fecha y `n`. Este change produce esa evidencia; la decisión de alcance corresponde a los autores con sus directores.
+**Qué**: la señal por comunidad se mide antes de decidir qué comunidades integran el corpus, y el resultado se archiva en `docs/evidencias/` con su consulta, fecha y `n`. Este change produce esa evidencia; la decisión de alcance corresponde a los autores con sus directores.
 
-**Estado**: medición archivada el 2026-09-30 en `V4/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md` (censo de 520 posts, 5 comunidades, 113 con señal). Las cifras citadas abajo como 19 % y 0 % son las del momento de la decisión y **no son reproducibles hoy**: el umbral bajó de `MIN_HITS=2` a `MIN_HITS=1`. Las vigentes son 66,3 % para `r/Malware` y 1,7 % para `r/devsarg`.
+**Estado**: medición archivada el 2026-09-30 en `docs/evidencias/MEDICION_SENAL_POR_COMUNIDAD_2026-09-30.md` (censo de 520 posts, 5 comunidades, 113 con señal). Las cifras citadas abajo como 19 % y 0 % son las del momento de la decisión y **no son reproducibles hoy**: el umbral bajó de `MIN_HITS=2` a `MIN_HITS=1`. Las vigentes son 66,3 % para `r/Malware` y 1,7 % para `r/devsarg`.
 
 **Por qué**: la medición sobre 100 posts por comunidad con el diccionario nuevo separa dos cosas que se confundían: la capacidad del clasificador y la temática de la comunidad. `r/malware` con 19% y `r/devsarg` con 0% miden lo mismo —el mismo diccionario— y la diferencia de 19 puntos no puede atribuirse al algoritmo.
 

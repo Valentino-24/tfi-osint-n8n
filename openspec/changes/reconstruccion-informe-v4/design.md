@@ -8,7 +8,7 @@ El sistema real difiere de lo que describen V2 y V3 en puntos estructurales: la 
 
 **Goals**
 
-- Producir `V4/devoluciones/tesis_v4.md`: el informe completo, autocontenido, en Markdown, con la estructura de capítulos que el proyecto viene usando.
+- Producir `docs/devoluciones/tesis_v4.md`: el informe completo, autocontenido, en Markdown, con la estructura de capítulos que el proyecto viene usando.
 - Fijar un presupuesto de extensión por capítulo (42–48 páginas equivalentes) para que la V4 no repita ni la condensación de 24 páginas de V3 ni las 125 páginas del borrador descartado.
 - Restituir el contenido que la V3 eliminó y que el tribunal valoró (protocolo 3.3, entorno de pruebas, tabla 4.2, modismos, priorización del Cap. 8, citas 2.1.3, Anexo B).
 - Sostener cada cifra con su consulta, su fecha y su `n`; retirar toda cifra heredada.
@@ -27,9 +27,9 @@ El sistema real difiere de lo que describen V2 y V3 en puntos estructurales: la 
 
 ### D-1 — Base V2, una sola pieza, sin plan embebido
 
-El texto se reconstruye desde `V4/devoluciones/tesis_v2.txt` (cuerpo real, líneas 2614–3442), no desde `tesis_v3.md`. La V3 aporta únicamente correcciones puntuales que el tribunal validó. El entregable es **un solo archivo** `V4/devoluciones/tesis_v4.md`; el plan capítulo por capítulo vive en este `design.md`, no dentro del informe.
+El texto se reconstruye desde `docs/devoluciones/tesis_v2.txt` (cuerpo real, líneas 2614–3442), no desde `tesis_v3.md`. La V3 aporta únicamente correcciones puntuales que el tribunal validó. El entregable es **un solo archivo** `docs/devoluciones/tesis_v4.md`; el plan capítulo por capítulo vive en este `design.md`, no dentro del informe.
 
-- **Alternativa**: un archivo por capítulo en `V4/capitulos/` (lo que preveía C-16). **Descartada**: el usuario necesita una pieza única para pasarla a otra herramienta y generar el PDF.
+- **Alternativa**: un archivo por capítulo en `docs/capitulos/` (lo que preveía C-16). **Descartada**: el usuario necesita una pieza única para pasarla a otra herramienta y generar el PDF.
 - **Consecuencia**: C-16 no produce los archivos por capítulo; cuando se archive, deberá referenciar este change. La normalización de la V2 sigue siendo un paso interno (tarea 1.1).
 
 ### D-2 — Presupuesto de extensión cerrado
@@ -51,13 +51,13 @@ El informe se escribe contra un presupuesto, no contra «lo que salga». Total o
 | Anexos A–D | 4 |
 | **Total** | **~46** |
 
-> **Desviación registrada al cerrar el apply (2026-10-19).** El cuerpo del entregable quedó en **20.364 palabras de prosa** (21.042 con portada, índices y siglas), ≈ **51 páginas** a 400 palabras/página, o sea **≈ 7 % sobre el techo**. El exceso no es relleno: proviene de correcciones exigidas por las dos evaluaciones y agregadas después del control de presupuesto (entorno de ejecución de H-06, ejemplos de modismos de H-09, condiciones de configuración de n8n de H-01c, nota de cambio de umbrales de N-05, priorización esfuerzo/impacto de N-03 en el Cap. 8, aclaración del residual en el Cap. 5). Se decidió **no recortar**: el tribunal reprobó la versión anterior por resolver las correcciones borrando contenido. Si se requiere volver a 48 páginas, los recortes candidatos son el Cap. 5 (cifras repetidas ya tabuladas) y el Cap. 2 (listado de herramientas), nunca el Cap. 4. Detalle en `V4/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` §5.3.
+> **Desviación registrada al cerrar el apply (2026-10-19).** El cuerpo del entregable quedó en **20.364 palabras de prosa** (21.042 con portada, índices y siglas), ≈ **51 páginas** a 400 palabras/página, o sea **≈ 7 % sobre el techo**. El exceso no es relleno: proviene de correcciones exigidas por las dos evaluaciones y agregadas después del control de presupuesto (entorno de ejecución de H-06, ejemplos de modismos de H-09, condiciones de configuración de n8n de H-01c, nota de cambio de umbrales de N-05, priorización esfuerzo/impacto de N-03 en el Cap. 8, aclaración del residual en el Cap. 5). Se decidió **no recortar**: el tribunal reprobó la versión anterior por resolver las correcciones borrando contenido. Si se requiere volver a 48 páginas, los recortes candidatos son el Cap. 5 (cifras repetidas ya tabuladas) y el Cap. 2 (listado de herramientas), nunca el Cap. 4. Detalle en `docs/evidencias/informe_v4_2026-10-19/CHECKLIST_CORRECCIONES.md` §5.3.
 
 ### D-3 — Solo datos reales, con trazabilidad obligatoria
 
 Toda cifra del informe cumple una de estas tres condiciones:
 
-1. Proviene de una consulta `SELECT` archivada en `V4/evidencias/informe_v4_2026-10-19/` con su SQL, fecha y `n`.
+1. Proviene de una consulta `SELECT` archivada en `docs/evidencias/informe_v4_2026-10-19/` con su SQL, fecha y `n`.
 2. Proviene de un archivo de evidencia existente, citado por nombre y fecha.
 3. Es una especificación de diseño (versión de motor, scheduler, tamaño de diccionario, fórmula), verificable contra el código o el DDL.
 
@@ -113,11 +113,11 @@ APA 7 con correspondencia biunívoca citas↔referencias y URL/fecha de recupera
 
 ### D-9 — Trazabilidad por cifra
 
-Cada tabla del Cap. 5 y cada cifra del Resumen lleva, en el texto o en una nota, su fuente (`V4/evidencias/...` o consulta archivada). La verificación final recorre el documento y falla si encuentra una cifra sin fuente.
+Cada tabla del Cap. 5 y cada cifra del Resumen lleva, en el texto o en una nota, su fuente (`docs/evidencias/...` o consulta archivada). La verificación final recorre el documento y falla si encuentra una cifra sin fuente.
 
 ## Plan capítulo por capítulo
 
-> Las referencias `l.xxxx` son al cuerpo real de `V4/devoluciones/tesis_v2.txt`.
+> Las referencias `l.xxxx` son al cuerpo real de `docs/devoluciones/tesis_v2.txt`.
 
 ### Resumen + Abstract (2 pp) — l. 2615–2660
 
@@ -136,7 +136,7 @@ Cada tabla del Cap. 5 y cada cifra del Resumen lleva, en el texto o en una nota,
 ### Cap. 2 — Marco teórico y estado del arte (4,5 pp) — l. 2813–2896
 
 - **Restituir**: 2.1.1 OSINT (ciclo de 5 fases, Russell y Klassen; Pastor-Galindo), 2.1.2 Reddit como fuente, 2.1.3 NLP, 2.1.4 ETL/n8n, 2.2 estado del arte (SpiderFoot, Maltego CE, theHarvester, Recon-ng; Liao et al. correctamente usado; Zong).
-- **Corregir**: 2.1.2 describe la **fuente pública** y sus restricciones reales, no OAuth2/100 rpm como si fuera el mecanismo del sistema; H-08 fuentes con URL y fecha; H-09 conservar los ejemplos de modismos («caer», «pescar», «cangrejo») **sin** el «>30 %» contrafáctico; H-10 completar las 8 referencias huérfanas y **contrastar explícitamente con Rivas y Dengra (2026)** — el texto del antecedente está disponible en `V4/devoluciones/Tesis_Rivas_Dengra.md`; m-14 APA 7 sin «et al.» en la lista de referencias.
+- **Corregir**: 2.1.2 describe la **fuente pública** y sus restricciones reales, no OAuth2/100 rpm como si fuera el mecanismo del sistema; H-08 fuentes con URL y fecha; H-09 conservar los ejemplos de modismos («caer», «pescar», «cangrejo») **sin** el «>30 %» contrafáctico; H-10 completar las 8 referencias huérfanas y **contrastar explícitamente con Rivas y Dengra (2026)** — el texto del antecedente está disponible en `docs/devoluciones/Tesis_Rivas_Dengra.md`; m-14 APA 7 sin «et al.» en la lista de referencias.
 - **No entra**: CABASE/Fortinet como cifras duras sin URL verificable; si no se verifica la fuente, se reformula cualitativamente.
 
 ### Cap. 3 — Marco metodológico (5,5 pp) — l. 2897–2979
@@ -171,7 +171,7 @@ Cada tabla del Cap. 5 y cada cifra del Resumen lleva, en el texto o en una nota,
 ### Cap. 7 — Conclusiones (3 pp) — l. 3213–3295
 
 - **Restituir**: 7.1 trazabilidad OE1–OE8, 7.2 PI-1–PI-4, 7.3 aporte.
-- **Corregir**: H-02/H-03 estados honestos (OE5 con resultados reales del motor; OE6 parcial); M-01; PI-1 conserva la honestidad epistémica de V2 (benchmark no ejecutado); 7.3 solo afirma lo que existe en `V4/anexos/`.
+- **Corregir**: H-02/H-03 estados honestos (OE5 con resultados reales del motor; OE6 parcial); M-01; PI-1 conserva la honestidad epistémica de V2 (benchmark no ejecutado); 7.3 solo afirma lo que existe en `docs/anexos/`.
 - **No entra**: «todos los objetivos cumplidos», «anexos disponibles» si C o D no existen (en este change C y D se escriben).
 
 ### Cap. 8 — Recomendaciones (2 pp) — l. 3296–3331

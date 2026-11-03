@@ -6,7 +6,7 @@ Las métricas del Capítulo 5 (E4 Tabla 3, E5 matriz de confusión, E6 latencia,
 
 Restricciones que gobiernan el diseño:
 
-- **El DDL y la lógica del pipeline están congelados.** `V4/anexos/A_DDL.sql` y `V4/scripts/generar_workflow.py` no se tocan. Ninguna tabla, columna, índice o sentencia cambia.
+- **El DDL y la lógica del pipeline están congelados.** `docs/anexos/A_DDL.sql` y `docs/scripts/generar_workflow.py` no se tocan. Ninguna tabla, columna, índice o sentencia cambia.
 - **La fecha de corte es una decisión de los autores con sus directores.** No se propone un plazo por defecto ni se deja un campo tipo "a definir" que después se pueda leer como una fecha implícita.
 - **La ventana de rate limiting es un hecho observado, no un parámetro.** Reddit impone su propia ventana; el sistema solo la registra y la reporta.
 - **El corpus pre-B5 no es la ventana.** Los 201 posts de B4 son del 2026-09-24, un día antes del inicio.
@@ -44,7 +44,7 @@ Restricciones que gobiernan el diseño:
 
 ### D-2 — El bitácora es un archivo de texto por día en Markdown, generado por script
 
-**Qué**: un script en `V4/scripts/` emite `V4/evidencias/bitacora_b5/YYYY-MM-DD.md` por día, con una cabecera que incluye la consulta SQL usada, la fecha, el nombre de la ventana y el `n` total.
+**Qué**: un script en `docs/scripts/` emite `docs/evidencias/bitacora_b5/YYYY-MM-DD.md` por día, con una cabecera que incluye la consulta SQL usada, la fecha, el nombre de la ventana y el `n` total.
 
 **Por qué**: es texto plano versionable y legible sin herramientas, a diferencia de CSV o binarios. El encabezado lleva la consulta literal, que es lo que exige RN-GL-01: ninguna cifra sin su consulta, fecha, ventana y número de observaciones. Las salidas crudas de `psql` van en el mismo directorio como `.txt` adjunto cuando el volumen lo justifique.
 
@@ -62,7 +62,7 @@ Restricciones que gobiernan el diseño:
 
 ### D-4 — La caracterización del rate limiting se describe, no se parametriza
 
-**Qué**: un documento de caracterización en `V4/evidencias/` describe la ventana de rate limiting observada — Reddit devuelve 429 tras una cantidad de requests por unidad de tiempo desde la IP del proyecto — y su efecto: el ciclo de 15 minutos hace 3 requests (uno por subreddit), `r/derechogenial` quedó en 0, y el reintento x3 con 30 s de espera es la mitigación configurada (RN-FU-03).
+**Qué**: un documento de caracterización en `docs/evidencias/` describe la ventana de rate limiting observada — Reddit devuelve 429 tras una cantidad de requests por unidad de tiempo desde la IP del proyecto — y su efecto: el ciclo de 15 minutos hace 3 requests (uno por subreddit), `r/derechogenial` quedó en 0, y el reintento x3 con 30 s de espera es la mitigación configurada (RN-FU-03).
 
 **Por qué**: cierra el criterio pendiente de US-002, que quedó sin definir por la ausencia de la API `.json`. La caracterización es una observación empírica acumulativa: cada corrida que sufra 429 suma una fila a la evidencia. El número de requests que dispara el límite **no se afirma de memoria**: se registra lo observado y, si no se pudo aislar, se declara como no determinado.
 
@@ -94,11 +94,11 @@ Restricciones que gobiernan el diseño:
 
 **Alternativas consideradas**: (a) proponer 30 días como default por si los autores no responden, rechazado explícitamente: una fecha sin decisión es una fecha inventada; (b) dejar el campo vacío, rechazado por el motivo de ambigüedad anterior.
 
-**Actualización 2026-10-19**: la decisión se tomó y el corte quedó fijado en **`2026-10-17`** (tarea 6.1, **DD-08**), con su registro de RN-GL-03 en `V4/evidencias/VENTANA_B5.md` §3 y la ventana **CERRADA** en 15 días y 724 posts. El modelo de "no fijada" deja de estar vigente en la definición de la ventana, y se conserva en dos usos: (a) como valor que declaran las entradas de bitácora archivadas, que no se reescriben, y (b) como regla para todo cambio futuro del corte: una enmienda se registra con trazabilidad, no se improvisa (D-4 del change `recoleccion-secundaria`).
+**Actualización 2026-10-19**: la decisión se tomó y el corte quedó fijado en **`2026-10-17`** (tarea 6.1, **DD-08**), con su registro de RN-GL-03 en `docs/evidencias/VENTANA_B5.md` §3 y la ventana **CERRADA** en 15 días y 724 posts. El modelo de "no fijada" deja de estar vigente en la definición de la ventana, y se conserva en dos usos: (a) como valor que declaran las entradas de bitácora archivadas, que no se reescriben, y (b) como regla para todo cambio futuro del corte: una enmienda se registra con trazabilidad, no se improvisa (D-4 del change `recoleccion-secundaria`).
 
 ### D-8 — Las actualizaciones documentales se limitan a sustituir la ventana ficticia por la real
 
-**Qué**: `V4/GUIA_EJECUCION.md`, `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 se editan solo en lo relativo a la ventana. El resto de las correcciones documentales de esos archivos son C-06.
+**Qué**: `docs/GUIA_EJECUCION.md`, `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 se editan solo en lo relativo a la ventana. El resto de las correcciones documentales de esos archivos son C-06.
 
 **Por qué**: C-06 ya es el responsable de IN-01, IN-02 e IN-05 sobre los mismos archivos. Tocar de más genera conflictos entre changes paralelos de la Fase 1.
 
@@ -126,7 +126,7 @@ No hay migración: el change no altera esquema, ni datos, ni código ejecutable.
 
 Orden de aplicación:
 
-1. Script de bitácora en `V4/scripts/` y primera entrada fechada 2026-09-25.
+1. Script de bitácora en `docs/scripts/` y primera entrada fechada 2026-09-25.
 2. Documento de caracterización de rate limiting.
 3. Registro de la ventana (inicio 2026-09-25, corte no fijada, criterio de suficiencia de D-6).
 4. Ediciones documentales acotadas por D-8.

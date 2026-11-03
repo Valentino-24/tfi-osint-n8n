@@ -76,7 +76,7 @@
 `posts.ingested_at`; la fecha de corte no tiene fecha tentativa y la cierra la tarea 6.1 del
 change `ventana-recoleccion-b5` (C-05). Criterio de suficiencia: **mínimo 10 días completos** de
 evaluaciones en `anomalias` (base comparativa de RN-AN-02). Definición completa y bitácora
-diaria en `V4/evidencias/VENTANA_B5.md` y `V4/evidencias/bitacora_b5/`.
+diaria en `docs/evidencias/VENTANA_B5.md` y `docs/evidencias/bitacora_b5/`.
 **Actualización (2026-10-09)**: el autor fijó como **objetivo 15 días completos evaluados** (dos
 ciclos semanales), con corte estimado `~2026-10-17`; el mínimo de 10 se conserva como piso técnico
 de RN-AN-02. El corte formal sigue sin ratificarse con los directores.
@@ -86,7 +86,7 @@ de RN-AN-02. El corte formal sigue sin ratificarse con los directores.
 `2026-10-18 00:00:00 -03:00` sobre `posts.ingested_at`. La recolección posterior al corte se separa
 como track **secundario** (`openspec/changes/recoleccion-secundaria/`); el `2026-10-18` es un día
 **sin recolección** (workflow inactivo, 0 ejecuciones de trigger, `n = 0`) documentado como
-constancia del hueco en `V4/evidencias/VENTANA_B5.md` §18. **La ratificación con los directores
+constancia del hueco en `docs/evidencias/VENTANA_B5.md` §18. **La ratificación con los directores
 sigue sin constar en el registro.**
 
 ### SU-03 — La base seguirá siendo local durante la recolección

@@ -124,9 +124,9 @@ Observaciones que se registran como hechos del código y no como errores:
 - `Estafas Virtuales` ya no es una categoría propia: sus términos se redistribuyeron entre
   `Phishing`, `Robo de Credenciales` e `Ingenieria Social`.
 - El listado completo de los 201 términos vive en la constante `DICT` de
-  `V4/scripts/generar_workflow.py`; el Anexo C está pendiente (change C-13) y hasta que
+  `docs/scripts/generar_workflow.py`; el Anexo C está pendiente (change C-13) y hasta que
   exista esa es la fuente consultable.
 
 ## Seed data inicial
 
-Se insertan o actualizan los tres subreddits monitoreados: `argentina`, `devsarg` y `derechogenial`. El DDL completo y las correcciones aplicadas están en `V4/anexos/A_DDL.sql`.
+Se insertan o actualizan los tres subreddits monitoreados: `argentina`, `devsarg` y `derechogenial`. El DDL completo y las correcciones aplicadas están en `docs/anexos/A_DDL.sql`.

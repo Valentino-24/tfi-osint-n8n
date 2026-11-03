@@ -4,7 +4,7 @@
 
 ### Requirement: Una entrada de bitácora por día de la ventana
 
-El proyecto MUST mantener una entrada de bitácora por cada día de la ventana de recolección, en `V4/evidencias/bitacora_b5/`, con nombre de archivo `YYYY-MM-DD.md` y formato de texto plano versionable.
+El proyecto MUST mantener una entrada de bitácora por cada día de la ventana de recolección, en `docs/evidencias/bitacora_b5/`, con nombre de archivo `YYYY-MM-DD.md` y formato de texto plano versionable.
 
 Cada entrada MUST registrar: fecha, total de posts ingeridos, distribución de posts por subreddit, ejecuciones fallidas y la causa de cada una.
 
@@ -44,7 +44,7 @@ Toda cifra registrada en la bitácora MUST estar acompañada de la consulta SQL 
 
 ### Requirement: La bitácora se genera por script de solo lectura
 
-La bitácora MUST generarse con un script en `V4/scripts/` que tome la fecha como parámetro y ejecute únicamente consultas `SELECT` agregadas sobre `tesi_osint`. El script MUST NOT ejecutar sentencias de escritura, `DELETE`, `TRUNCATE`, `DROP` ni `ALTER`.
+La bitácora MUST generarse con un script en `docs/scripts/` que tome la fecha como parámetro y ejecute únicamente consultas `SELECT` agregadas sobre `tesi_osint`. El script MUST NOT ejecutar sentencias de escritura, `DELETE`, `TRUNCATE`, `DROP` ni `ALTER`.
 
 #### Scenario: El script está acotado a lectura
 

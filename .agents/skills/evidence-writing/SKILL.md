@@ -1,6 +1,6 @@
 ---
 name: evidence-writing
-description: Evidence-first technical writing for TFI OSINT/n8n. Use when writing V4/evidencias/*, bitácoras, VENTANA_B5.md, verifications, or any document that must state metrics with traceability. Enforces "no metric without query/date/window/n" and RN-GL-01/RN-GL-02.
+description: Evidence-first technical writing for TFI OSINT/n8n. Use when writing docs/evidencias/*, bitácoras, VENTANA_B5.md, verifications, or any document that must state metrics with traceability. Enforces "no metric without query/date/window/n" and RN-GL-01/RN-GL-02.
 ---
 
 # Evidence Writing (TFI OSINT/n8n)
@@ -11,7 +11,7 @@ Produce documents that are **evidence, not results**. Every numeric claim must b
 ## Mandatory structure
 For any evidentiary document include:
 - **Objetivo / alcance** - What is being evidenced (window, date, artifact)
-- **Fuente** - DB/table/script (`psql`, `V4/scripts/...`, n8n SQLite read-only, etc.)
+- **Fuente** - DB/table/script (`psql`, `docs/scripts/...`, n8n SQLite read-only, etc.)
 - **Consulta SQL literal** - Copy/pasteable, no paraphrases
 - **Fecha/hora de ejecución** - With timezone (`America/Argentina/Buenos_Aires`) when relevant
 - **Ventana** - Define `ingested_at`/`created_utc` range explicitly

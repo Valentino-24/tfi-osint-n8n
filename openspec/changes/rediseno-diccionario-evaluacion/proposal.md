@@ -1,6 +1,6 @@
 ## Why
 
-El clasificador por diccionario está alineado con un alcance que la tesis no tiene. `DICT` en `V4/scripts/generar_workflow.py:91-97` define cinco categorías de **fraude al consumidor en español** —estafa, Mercado Pago, DNI, clonación de tarjeta— y ninguna de seguridad técnica. Su cobertura léxica es de 51 términos, de los cuales 8 están en inglés (`phishing`, `leak`, `cve`, `exploit`, `pwn`, `ransomware`, `wannacry`, `smishing`).
+El clasificador por diccionario está alineado con un alcance que la tesis no tiene. `DICT` en `docs/scripts/generar_workflow.py:91-97` define cinco categorías de **fraude al consumidor en español** —estafa, Mercado Pago, DNI, clonación de tarjeta— y ninguna de seguridad técnica. Su cobertura léxica es de 51 términos, de los cuales 8 están en inglés (`phishing`, `leak`, `cve`, `exploit`, `pwn`, `ransomware`, `wannacry`, `smishing`).
 
 Dos consecuencias medidas sobre los 301 posts ingeridos en la corrida del 2026-09-30, con el diccionario vigente:
 
@@ -42,8 +42,8 @@ Ninguna. `openspec/specs/` está vacío: no existen specs previos cuyos requisit
 
 ## Impact
 
-- **Código**: `V4/scripts/generar_workflow.py` — `PREPARE_SUBS` (línea 33), `CLASSIFY_CODE` (líneas 89-128), `PRODUCTS` sin cambios, definición de nodos y conexiones.
-- **Artefacto generado**: `V4/anexos/B_workflow.json` pasa de 14 a **16 nodos**. Se regenera; nunca se edita a mano.
+- **Código**: `docs/scripts/generar_workflow.py` — `PREPARE_SUBS` (línea 33), `CLASSIFY_CODE` (líneas 89-128), `PRODUCTS` sin cambios, definición de nodos y conexiones.
+- **Artefacto generado**: `docs/anexos/B_workflow.json` pasa de 14 a **16 nodos**. Se regenera; nunca se edita a mano.
 - **Sin impacto en el DDL**: `A_DDL.sql` no cambia. `posts.nlp_category` es `VARCHAR(100)` sin `CHECK`, `ENUM` ni tipo dominio, y `nlp_score` tiene `CHECK (nlp_score BETWEEN 0 AND 1)` que la fórmula saturante respeta. Ninguna tabla, columna ni índice se altera.
 - **Documentación a actualizar**: `knowledge-base/06_funcionalidades.md` (US-005, "cinco categorías" → nueve), `knowledge-base/05_reglas_de_negocio.md` (RN-CL-04, referencia al Anexo C), `Facultad-2026/Proyecto-Final/Versiones-Tesis/tesis_v4.md` (Tabla 6 en `:1450-1458` y `:2889-2895`, Anexo C en `:2876-2938`, fórmula del score en OE4 `:2492`), `CHANGES.md`.
 - **Reconciliación de datos**: la tabla `subreddits` conserva la fila huérfana `derechogenial` (minúscula) de las corridas previas, con 0 posts. **No se borra en este change**: la regla dura prohíbe eliminar un subreddit con datos y la limpieza requiere su propio change. Se documenta como inconsistencia conocida. Las filas `argentina` y `DerechoGenial` se desactivan, no se borran.

@@ -9,7 +9,7 @@
 |------|------------|-------------------|
 | Orquestación | n8n | 2.40.6 (Docker `tfi-n8n`) |
 | Persistencia | PostgreSQL | 18, cluster local en puerto 5433 |
-| Base de datos | `tesi_osint` | `V4/anexos/A_DDL.sql` |
+| Base de datos | `tesi_osint` | `docs/anexos/A_DDL.sql` |
 | Fuente de datos | Reddit RSS/Atom público | Feeds `new/.rss` |
 | Transformación | Code nodes de n8n | Node.js, JavaScript |
 | Seudonimización | Node `crypto` | HMAC-SHA-256 |
@@ -66,7 +66,7 @@ Antes de cualquier `/opsx:propose`, leer `CHANGES.md`, respetar las dependencias
 ## Reglas duras (específicas del proyecto)
 
 - **NUNCA** hardcodear credenciales, tokens o la clave HMAC en el workflow, el código o las evidencias → usar credenciales de n8n y variables de entorno.
-- **NUNCA** editar `V4/anexos/B_workflow.json` manualmente → regenerarlo desde `V4/scripts/generar_workflow.py`.
+- **NUNCA** editar `docs/anexos/B_workflow.json` manualmente → regenerarlo desde `docs/scripts/generar_workflow.py`.
 - **NUNCA** asumir que una importación conserva credenciales → reasignar la credencial Postgres después de importar.
 - **NUNCA** modificar la base ni ejecutar pruebas destructivas sin una corrida controlada → validar el workflow y verificar que el upsert siga siendo idempotente.
 - **NUNCA** derivar métricas de resultados de V2/V3 o de tasas supuestas → reconstruirlas con consultas SQL sobre datos reales.

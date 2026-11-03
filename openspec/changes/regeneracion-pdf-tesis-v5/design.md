@@ -33,7 +33,7 @@ Restricciones: Windows 10/11, Word 365 obligatorio para la exportación, Pandoc 
 **Non-Goals:**
 - Corregir cifras, prosa, tablas ni referencias del informe.
 - Cambiar el workflow de n8n, el esquema de la base o las evidencias.
-- Reorganizar masivamente `V4/documentos/` en este change.
+- Reorganizar masivamente `docs/documentos/` en este change.
 - Publicar o activar nada en n8n.
 
 ## Decisions
@@ -41,7 +41,7 @@ Restricciones: Windows 10/11, Word 365 obligatorio para la exportación, Pandoc 
 ### D1 — Base de contenido: DOCX del 28/10, verificado contra el PDF aprobado
 
 Se reconstruye el Markdown desde el DOCX staged (`git show
-:V4/devoluciones/build/tesis_v5.docx`) con Pandoc (`-f docx -t gfm --wrap=none`), y se compara
+:docs/devoluciones/build/tesis_v5.docx`) con Pandoc (`-f docx -t gfm --wrap=none`), y se compara
 token a token contra el PDF del 14:38. El Markdown de `HEAD` se conserva como referencia histórica
 pero **no** se usa como fuente: perdió las tablas nuevas y el Anexo E.
 
@@ -76,7 +76,7 @@ rechazado porque fue la causa del fallo (coincidencias múltiples y exportación
 
 ### D4 — Un solo script, sin cadena de parches
 
-`V4/scripts/convertir_pdf.py` absorbe todo: preparación del Markdown, Pandoc, estilos, saltos,
+`docs/scripts/convertir_pdf.py` absorbe todo: preparación del Markdown, Pandoc, estilos, saltos,
 índices, numeración, exportación y verificación. Argumentos: `--md`, `--out`, `--fuente`,
 `--sin-word` (solo DOCX, no apto para entrega) y `--verificar`. No se permiten scripts posteriores
 sobre el DOCX.
@@ -93,13 +93,13 @@ Un verificador con `pypdfium2` comprueba, sobre el PDF final:
 - inventario de tablas y figuras contra el Markdown (32 tablas, 4 figuras);
 - comparación de tokens contra el PDF aprobado (similitud ≥ 0,97), reportando los bloques distintos.
 
-El resultado se escribe en `V4/devoluciones/build/verificacion_pdf.json` y en un resumen legible.
+El resultado se escribe en `docs/devoluciones/build/verificacion_pdf.json` y en un resumen legible.
 Si una compuerta falla, el proceso termina con código distinto de cero.
 
 ### D6 — Ubicación de archivos
 
-La fuente activa y el PDF final quedan en `V4/devoluciones/` (rutas que citan los scripts y el
-propio informe). `V4/documentos/` se conserva como archivo histórico y no se toca en este change.
+La fuente activa y el PDF final quedan en `docs/devoluciones/` (rutas que citan los scripts y el
+propio informe). `docs/documentos/` se conserva como archivo histórico y no se toca en este change.
 
 ## Risks / Trade-offs
 
@@ -118,7 +118,7 @@ propio informe). `V4/documentos/` se conserva como archivo histórico y no se to
 
 ## Migration Plan
 
-1. Extraer los blobs a `V4/devoluciones/recuperacion/` sin sobrescribir nada.
+1. Extraer los blobs a `docs/devoluciones/recuperacion/` sin sobrescribir nada.
 2. Reconstruir `tesis_v5.md` y validar inventario (tablas, figuras, rótulos, cifras clave).
 3. Reescribir `convertir_pdf.py` y ejecutar `--sin-word` para validar el DOCX.
 4. Ejecutar el build completo y la verificación; revisar el diff contra el PDF aprobado.
@@ -129,5 +129,5 @@ propio informe). `V4/documentos/` se conserva como archivo histórico y no se to
 
 - ¿La cátedra exige Aptos 11 (formato del PDF aprobado) o acepta la paridad con la V4 en Times New
   Roman? Se implementa V4 por el pedido del 17:40 y se deja `--fuente` para cambiarlo en una línea.
-- ¿`V4/documentos/` debe ser la ubicación canónica de los PDF históricos? Se difiere; no bloquea el
+- ¿`docs/documentos/` debe ser la ubicación canónica de los PDF históricos? Se difiere; no bloquea el
   build.

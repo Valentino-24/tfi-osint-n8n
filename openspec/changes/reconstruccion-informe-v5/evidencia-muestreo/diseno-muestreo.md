@@ -4,7 +4,7 @@ Sub-artefacto del bloqueante 2 (N-08) del change `reconstruccion-informe-v5`.
 
 ## Datos reales de B5 (del corte `2026-10-17`)
 
-Fuente: `V4/evidencias/informe_v4_2026-10-19/consultas_corpus_b5.txt` (Q1–Q15). Ventana 724 posts, 31 del track secundario C-25 (fuera del corte). `comments` = 0.
+Fuente: `docs/evidencias/informe_v4_2026-10-19/consultas_corpus_b5.txt` (Q1–Q15). Ventana 724 posts, 31 del track secundario C-25 (fuera del corte). `comments` = 0.
 
 | Estrato | Definición | N (población) |
 |---|---|---|

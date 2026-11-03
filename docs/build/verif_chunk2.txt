@@ -1,0 +1,141 @@
+﻿            h.update(bloque)
+    return h.hexdigest()
+
+
+def texto_pdf(ruta: Path) -> tuple[list[str], float, float]:
+    doc = pdfium.PdfDocument(str(ruta))
+    paginas = [doc[i].get_textpage().get_text_range() for i in range(len(doc))]
+    ancho, alto = doc[0].get_size()
+    doc.close()
+    return paginas, ancho, alto
+
+
+def tamano_paginas(ruta: Path) -> tuple[bool, str]:
+    doc = pdfium.PdfDocument(str(ruta))
+    malas = []
+    for i in range(len(doc)):
+        ancho, alto = doc[i].get_size()
+        if abs(ancho - A4[0]) > TOLERANCIA_PT or abs(alto - A4[1]) > TOLERANCIA_PT:
+            malas.append(f"{i + 1}:{ancho:.0f}x{alto:.0f}")
+    n = len(doc)
+    doc.close()
+    return (not malas), f"{n} paginas; fuera de A4: {malas[:6] if malas else 'ninguna'}"
+
+
+PATRON_TEXTO = re.compile(r"<w:tab\s*/>|<w:t(?:\s[^>]*)?>(.*?)</w:t>", re.S)
+# Word traduce los ids de pandoc a los nombres locales del estilo (Ttulo1..3).
+ES_TITULO = re.compile(r"^(?:Heading[123]|Ttulo[123]|Title)$")
+
+
+def parrafos_docx(docx: Path) -> list[tuple[str, str]]:
+    """(estilo, texto) de cada parrafo, en orden."""
+    with zipfile.ZipFile(docx) as z:
+        documento = z.read("word/document.xml").decode("utf-8")
+    salida = []
+    for p in re.findall(r"<w:p(?:\s[^>]*)?>.*?</w:p>", documento, re.S):
+        estilo = re.search(r'<w:pStyle w:val="([^"]+)"', p)
+        texto = ""
+        for m in PATRON_TEXTO.finditer(p):
+            if m.group(0).startswith("<w:tab"):
+                texto += "\t"
+            else:
+                texto += xml.sax.saxutils.unescape(m.group(1))
+        salida.append((estilo.group(1) if estilo else "", texto.strip()))
+    return salida
+
+
+ENCABEZADO_INDICE = {"ÃNDICE GENERAL", "ÃNDICE DE TABLAS", "ÃNDICE DE FIGURAS"}
+
+
+def compuerta_indices_pdf(paginas: list[str]) -> tuple[bool, str]:
+    """Cada entrada de los tres indices, leida del PDF, debe terminar en pagina."""
+    actual, conteo = None, {}
+    for linea in "\n".join(paginas).splitlines():
+        s = linea.strip()
+        if not s or s.isdigit():
+            continue
+        if s.upper() in ENCABEZADO_INDICE:
+            actual = s.upper()
+            conteo[actual] = {"entradas": 0, "numeradas": 0}
+            continue
+        if not actual:
+            continue
+        # Solo son entradas del indice las que llevan puntos guia o empiezan como
+        # rotulo ("Tabla 5.9.b.") o capitulo ("3. Marco..."). Cualquier otra linea
+        # cierra la seccion.
+        if not ("..." in s or re.match(r"^(?:Tabla|Figura)\s|\d+\.\s", s)):
+            actual = None
+            continue
+        conteo[actual]["entradas"] += 1
+        if re.search(r"\d\s*$", s):
+            conteo[actual]["numeradas"] += 1
+    detalle = {k: f"{v['numeradas']}/{v['entradas']}" for k, v in conteo.items()}
+    ok = (len(conteo) == 3 and all(v["entradas"] and v["numeradas"] == v["entradas"]
+                                   for v in conteo.values()))
+    return ok, f"entradas numeradas por indice: {detalle}"
+
+
+def compuerta_indices(docx: Path) -> tuple[bool, str, dict]:
+    parrafos = parrafos_docx(docx)
+    nombres = {k.lower(): k for k in INDICES}
+    activo, conteo, sin_numero = None, {}, []
+    for estilo, texto in parrafos:
+        if ES_TITULO.match(estilo):
+            activo = nombres.get(texto.strip().lower())
+            continue
+        if not activo or not texto:
+            continue
+        conteo[activo] = conteo.get(activo, 0) + 1
+        if not re.search(r"\t\d{1,3}$", texto):
+            sin_numero.append(f"{activo}: {texto[:60]!r}")
+    detalles = {k: conteo.get(k, 0) for k in INDICES}
+    ok = (detalles == INDICES) and not sin_numero
+    return ok, f"entradas {detalles} (esperado {INDICES}); sin numero: " \
+               f"{sin_numero[:5] if sin_numero else 'ninguna'}", detalles
+
+
+def compuerta_fuentes(docx: Path) -> tuple[bool, str]:
+    with zipfile.ZipFile(docx) as z:
+        documento = z.read("word/document.xml").decode("utf-8")
+        estilos = z.read("word/styles.xml").decode("utf-8")
+    times = documento.count('w:ascii="Times New Roman"') + estilos.count('w:ascii="Times New Roman"')
+    aptos = re.findall(r'w:ascii="Aptos[^"]*"', documento + estilos)
+    ok = times > 0 and not aptos
+    return ok, f"Times New Roman en {times} definiciones; Aptos: {len(aptos)}"
+
+
+def compuerta_margenes(docx: Path) -> tuple[bool, str]:
+    with zipfile.ZipFile(docx) as z:
+        documento = z.read("word/document.xml").decode("utf-8")
+    margenes = re.search(r"<w:pgMar\b[^>]*>", documento)
+    if not margenes:
+        return False, "sin w:pgMar"
+    valores = {k: int(v) for k, v in re.findall(r'w:(top|bottom|left|right)="(-?\d+)"',
+                                               margenes.group(0))}
+    malos = {k: valores.get(k) for k, esperado in MARGENES_TWIPS.items()
+             if abs(valores.get(k, -99999) - esperado) > TOLERANCIA_TWIPS}
+    return not malos, f"{valores}; fuera de rango: {malos if malos else 'ninguno'}"
+
+
+def compuerta_rotulos(md: Path, docx: Path, todo_pdf: str) -> tuple[bool, str]:
+    texto = io.open(md, encoding="utf-8").read()
+    rotulos = re.findall(
+        r"(?m)^(?:\*\*|!\[)(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)*(?:\.[a-z])?)\.",
+        texto)
+    etiquetas = {f"{t} {n}." for t, n in rotulos}
+    faltantes = sorted(e for e in etiquetas if e not in todo_pdf)
+    tablas = sum(1 for t, _ in rotulos if t == "Tabla")
+    figuras = sum(1 for t, _ in rotulos if t == "Figura")
+    with zipfile.ZipFile(docx) as z:
+        cuerpo = z.read("word/document.xml").decode("utf-8")
+    tablas_docx = cuerpo.count("<w:tbl>")
+    ok = (not faltantes and tablas == 28 and figuras == 4 and tablas_docx == 32)
+    return ok, f"{tablas} rotulos de tabla y {figuras} de figura; tablas en el DOCX: " \
+               f"{tablas_docx} (esperado 32); ausentes: {faltantes[:6] if faltantes else 'ninguno'}"
+
+
+def compuerta_portada(paginas: list[str]) -> tuple[bool, str]:
+    if len(paginas) < 2:
+        return False, "menos de 2 paginas"
+    p1, p2 = paginas[0], paginas[1]
+    ok = ("SISTEMA AUTOMATIZADO" in p1.upper() and "Mendoza, Argentina" in p1

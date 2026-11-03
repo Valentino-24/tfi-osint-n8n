@@ -60,7 +60,7 @@ Schedule -> Prepare -> RSS Read -> Parse -> HMAC -> Clasificar
 
 1. Conectar `psql` a `localhost:5433`, base `tesi_osint`, rol `tesi_app`.
 2. Ejecutar consultas de recuentos, latencia, series horarias y anomalías.
-3. Exportar la salida a `V4/evidencias/` con fecha y consulta usada.
+3. Exportar la salida a `docs/evidencias/` con fecha y consulta usada.
 4. Relacionar cada tabla, cifra o figura de la tesis con su evidencia.
 
 **Restricciones**: no derivar una cifra que la consulta no haya contado; registrar `n` y la ventana temporal de cada métrica.

@@ -13,7 +13,7 @@ C-05 cerró la ventana B5 con corte `2026-10-17` (DD-08) y congeló sus métrica
 
 **Non-Goals**
 
-- No tocar el DDL (`V4/anexos/A_DDL.sql`), el artefacto del workflow (`V4/anexos/B_workflow.json`), `V4/scripts/generar_workflow.py` ni la lógica de nodos.
+- No tocar el DDL (`docs/anexos/A_DDL.sql`), el artefacto del workflow (`docs/anexos/B_workflow.json`), `docs/scripts/generar_workflow.py` ni la lógica de nodos.
 - No publicar ni activar el workflow: lo hace el operador desde la UI (regla dura del proyecto).
 - No extender la ventana ni recalcular el 724, los 15 días ni la serie diaria de B5.
 - No corregir IN-06, IN-08 ni IN-10: son cambios propios posteriores a la ventana.
@@ -30,7 +30,7 @@ El track secundario se distingue de B5 por **un único límite temporal**, no po
 
 ### D-2 - La bitácora sigue siendo un solo directorio y un solo script
 
-Las entradas posteriores al corte se siguen generando con `V4/scripts/bitacora_b5.py` en `V4/evidencias/bitacora_b5/`: el script ya las rotula como «día posterior al corte oficial» y ya declara congelados el acumulado y los días evaluados. La entrada del `2026-10-18` existe con ese formato y sirve de plantilla.
+Las entradas posteriores al corte se siguen generando con `docs/scripts/bitacora_b5.py` en `docs/evidencias/bitacora_b5/`: el script ya las rotula como «día posterior al corte oficial» y ya declara congelados el acumulado y los días evaluados. La entrada del `2026-10-18` existe con ese formato y sirve de plantilla.
 
 - **Alternativa**: script y directorio propios (`bitacora_secundaria/`). **Descartada por ahora**: fragmentaría el registro diario y exigiría una rama nueva en el script; si el volumen de días secundarios crece, se reconsidera con su propio change.
 - **Trade-off aceptado**: conviven en `bitacora_b5/` entradas que no son de B5. Se compensa con el rótulo del título y con `VENTANA_B5.md` §18.2.

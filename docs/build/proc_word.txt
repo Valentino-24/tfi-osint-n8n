@@ -1,0 +1,81 @@
+﻿def procesar_con_word(numerar: bool) -> None:
+    try:
+        import win32com.client
+    except ImportError as e:
+        raise SystemExit("[word] falta pywin32: instalarlo o usar --sin-word") from e
+
+    try:
+        word = win32com.client.DispatchEx("Word.Application")
+    except Exception as e:  # noqa: BLE001
+        raise SystemExit(
+            "[word] Microsoft Word no esta disponible (COM): " + str(e)
+            + "\n        instalar Word o usar --sin-word para generar solo el DOCX") from e
+    word.Visible = False
+    word.DisplayAlerts = 0
+    try:
+        word.AutomationSecurity = 3
+    except Exception:  # noqa: BLE001
+        pass
+    doc = None
+    try:
+        print("[word] abriendo el DOCX...", flush=True)
+        doc = word.Documents.Open(str(DOCX_BUILD), ReadOnly=False, AddToRecentFiles=False)
+        print(f"[word] abierto ({DOCX_BUILD.name})", flush=True)
+        pasos = (("pagina", preparar_pagina), ("saltos", arreglar_saltos),
+                 ("cuerpo", estilo_cuerpo), ("titulos", estilo_titulos),
+                 ("portada", estilo_portada), ("tablas", estilo_tablas),
+                 ("espaciado", espaciado_bloques), ("figuras", estilo_figuras),
+                 ("indices", estilo_indices), ("numeracion", numerar_paginas))
+        for nombre, paso in pasos:
+            print(f"[word] {nombre}...", flush=True)
+            paso(doc)
+        print(f"[word] paginas tras el formateo: {doc.ComputeStatistics(2)}", flush=True)
+        if numerar:
+            print("[word] numerando indices...", flush=True)
+            numerar_indices(doc)
+        print("[word] exportando PDF...", flush=True)
+        exportar_pdf(doc, PDF_SALIDA)
+        print("[word] DOCX intermedio: " + str(DOCX_BUILD))
+        print("[word] PDF generado:    " + str(PDF_SALIDA))
+    finally:
+        if doc is not None:
+            try:
+                doc.Close(SaveChanges=False)
+            except Exception:  # noqa: BLE001
+                pass
+        word.Quit()
+
+
+# --------------------------------------------------------------------------
+# 4. Verificacion
+# --------------------------------------------------------------------------
+def rotulos_markdown(texto_md: str) -> list[tuple[str, str]]:
+    patron = re.compile(r"(?m)^(?:\*\*|!\[)(Tabla|Figura)\s+([A-Za-z0-9]+(?:\.[0-9]+)?)\.")
+    return patron.findall(texto_md)
+
+
+def verificar(renderizar: bool = False) -> int:
+    """Corre las compuertas de verificar_pdf.py; devuelve el codigo de salida."""
+    import verificar_pdf
+
+    with zipfile.ZipFile(DOCX_BUILD) as z:
+        imagenes = [n for n in z.namelist() if n.startswith("word/media/")]
+    print("\n=== VERIFICACION ===")
+    print(f"imagenes embebidas en el DOCX: {len(imagenes)}")
+
+    codigo = verificar_pdf.ejecutar(PDF_SALIDA, MD_ORIGEN, DOCX_BUILD, PDF_APROBADO)
+
+    if renderizar:
+        import pypdfium2 as pdfium
+
+        pdf = pdfium.PdfDocument(str(PDF_SALIDA))
+        textos = [pdf[i].get_textpage().get_text_range() for i in range(len(pdf))]
+        carpeta = CARPETA_BUILD / "paginas"
+        carpeta.mkdir(parents=True, exist_ok=True)
+        elegidas = {0}
+        for i, t in enumerate(textos):
+            for marca in ("Figura 1.", "Tabla 5.4.", "Tabla C.1.", "Ãndice de tablas"):
+                if marca in t:
+                    elegidas.add(i)
+                    break
+        for i in sorted(elegidas):

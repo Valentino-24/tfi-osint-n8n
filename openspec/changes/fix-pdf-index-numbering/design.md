@@ -2,14 +2,14 @@
 
 ## Context
 
-El pipeline `V4/scripts/convertir_pdf.py` genera el PDF de la tesis a partir del Markdown. Incluye un paso de numeración de índices (`numerar_indices`, L730-795) que asigna número de página a cada entrada del índice general, de tablas y de figuras. El algoritmo asume que cada entrada del índice general tiene un número secuencial (1-N) que corresponde a un capítulo (1-10). Con un índice multinivel (61 entradas), esa correspondencia se rompe.
+El pipeline `docs/scripts/convertir_pdf.py` genera el PDF de la tesis a partir del Markdown. Incluye un paso de numeración de índices (`numerar_indices`, L730-795) que asigna número de página a cada entrada del índice general, de tablas y de figuras. El algoritmo asume que cada entrada del índice general tiene un número secuencial (1-N) que corresponde a un capítulo (1-10). Con un índice multinivel (61 entradas), esa correspondencia se rompe.
 
 **Funciones relevantes:**
 - `mapa_cuerpo(doc, desde)` (L657-694): construye `etiquetas` (rótulos Tabla/Figura → página) y `capitulos` (int→página, solo 1-10).
 - `recolectar_entradas(doc)` (L709-727): extrae entradas del índice. Para rótulos, clave = string ("Tabla 5.1.1."); para el resto, clave = int (primer número).
 - `numerar_indices(doc)` (L730-795): para cada entrada, busca `capitulos.get(clave)` o `etiquetas.get(clave)`. Si no encuentra → SIN PAGINA → aborta.
 
-**Ver también:** `V4/scripts/verificar_pdf.py` compuertas `indices_numerados` y `rotulos`.
+**Ver también:** `docs/scripts/verificar_pdf.py` compuertas `indices_numerados` y `rotulos`.
 
 ## Goals / Non-Goals
 

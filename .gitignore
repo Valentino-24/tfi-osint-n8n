@@ -4,7 +4,7 @@
 
 # PostgreSQL: cluster propio del proyecto con DATOS REALES recolectados.
 # La evidencia se comparte via consultas SQL (V4\evidencias), nunca la base.
-V4/pgdata/
+docs/pgdata/
 
 # Logs
 *.log
@@ -58,9 +58,9 @@ env.txt
 .opencode/package.json
 
 # --- agregado 2026-10-19: intermedios de la conversion a PDF ---
-# V4/scripts/convertir_pdf.py los regenera en cada corrida (Markdown de
+# docs/scripts/convertir_pdf.py los regenera en cada corrida (Markdown de
 # trabajo, DOCX intermedio y PNG de revision): no son entregables.
-V4/devoluciones/build/
+docs/devoluciones/build/
 
 # =====================================================================
 # Agregados para este repo

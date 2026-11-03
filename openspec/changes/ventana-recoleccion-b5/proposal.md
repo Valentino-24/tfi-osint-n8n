@@ -9,7 +9,7 @@ Además, dos limitaciones de la corrida B4 quedaron sin caracterizar formalmente
 - Fijar por escrito la **fecha de inicio de la ventana real de recolección: 2026-09-25**. Es una decisión ya tomada por los autores.
 - Dejar la **fecha de corte explícitamente abierta**: se representa como decisión pendiente, no se inventa ni se propone un plazo por defecto.
 - Sustituir en la documentación toda mención a la ventana ficticia de seis meses de V2/V3 por la ventana real, con su duración declarada (SU-02).
-- Crear una **bitácora diaria de evidencia** en `V4/evidencias/` con una entrada por día: fecha, posts ingeridos, posts por subreddit, ejecuciones fallidas y su causa.
+- Crear una **bitácora diaria de evidencia** en `docs/evidencias/` con una entrada por día: fecha, posts ingeridos, posts por subreddit, ejecuciones fallidas y su causa.
 - **Caracterizar la ventana real de rate limiting de Reddit** observada en las corridas, cerrando el criterio pendiente de US-002.
 - **Documentar el efecto de `r/derechogenial` en el corpus** (m-16): el subreddit está habilitado en `active_monitoring` pero no aporta posts, lo que sesga cualquier percentage por subreddit.
 - Definir el **criterio de suficiencia** para dar por cerrada la ventana (RN-AN-02: la base comparativa es la media diaria de los diez días previos) y registrar el estado de acumulación día a día.
@@ -29,7 +29,7 @@ Además, dos limitaciones de la corrida B4 quedaron sin caracterizar formalmente
 ### New Capabilities
 
 - `ventana-recoleccion-b5`: definición por escrito de la ventana real de recolección — fecha de inicio 2026-09-25, fecha de corte como decisión abierta, reemplazo de la ventana ficticia de seis meses (SU-02) y criterio de suficiencia para cerrarla.
-- `bitacora-evidencia-diaria`: registro diario de la recolección en `V4/evidencias/` con fecha, posts ingeridos, distribución por subreddit, ejecuciones fallidas y causa, y trazabilidad a consultas SQL reproducibles.
+- `bitacora-evidencia-diaria`: registro diario de la recolección en `docs/evidencias/` con fecha, posts ingeridos, distribución por subreddit, ejecuciones fallidas y causa, y trazabilidad a consultas SQL reproducibles.
 - `caracterizacion-rate-limit`: caracterización de la ventana real de rate limiting de Reddit observada en las corridas, con su efecto sobre la cobertura por subreddit y el caso de `r/derechogenial` (US-002, m-16).
 - `decision-cierre-ventana`: registro trazable de la decisión de los autores sobre la fecha de cierre de la ventana y sobre conservar o reiniciar la recolección (RN-GL-03).
 
@@ -39,9 +39,9 @@ Ninguna. `openspec/specs/` está vacío: no existen specs previos cuyas REQUISIT
 
 ## Impact
 
-- **Artefactos nuevos**: `V4/evidencias/bitacora_b5/` con una entrada diaria versionable, y el registro de caracterización de rate limiting.
-- **Documentación a actualizar**: `V4/GUIA_EJECUCION.md` (tabla de estado de B5), `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02.
-- **Sin impacto en**: `V4/anexos/A_DDL.sql` (Anexo A), `V4/anexos/B_workflow.json` (Anexo B), `V4/scripts/generar_workflow.py` y la lógica de nodos. Ninguna tabla, columna, índice o sentencia del pipeline cambia.
+- **Artefactos nuevos**: `docs/evidencias/bitacora_b5/` con una entrada diaria versionable, y el registro de caracterización de rate limiting.
+- **Documentación a actualizar**: `docs/GUIA_EJECUCION.md` (tabla de estado de B5), `knowledge-base/02_descripcion_general.md` §Estado de implementación y `knowledge-base/09_decisiones_y_supuestos.md` §SU-02.
+- **Sin impacto en**: `docs/anexos/A_DDL.sql` (Anexo A), `docs/anexos/B_workflow.json` (Anexo B), `docs/scripts/generar_workflow.py` y la lógica de nodos. Ninguna tabla, columna, índice o sentencia del pipeline cambia.
 - **Sin impacto destructivo**: este change no ejecuta operaciones sobre `tesi_osint` más allá de consultas `SELECT` de conteo. No borra, no altera `active_monitoring`, no reinicia la recolección.
 - **Dependencias**: requiere solo C-04 (verificada). No bloquea ni desbloquea DDL.
 - **Habilita**: C-08 y C-11 (dependen directamente de la ventana) y, en cascada, C-09, C-20, C-21, C-23.

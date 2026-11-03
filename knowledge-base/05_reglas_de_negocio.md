@@ -37,7 +37,7 @@ Cada regla tiene un código único `RN-{DOMINIO}-{NN}` para trazabilidad. Las re
 - **RN-CL-02**: `nlp_score` representa una confianza normalizada en `[0, 1]`; la fórmula y su interpretación deben estar documentadas en la tesis.
 - **RN-CL-03**: la extracción de entidades reconoce al menos CVE, emails, IPs, dominios y productos, y guarda el resultado como JSONB.
 - **RN-CL-04**: la fuente autoritativa de las categorías y de sus términos es el diccionario
-  `DICT` del clasificador en `V4/scripts/generar_workflow.py`: nueve categorías sobre un único
+  `DICT` del clasificador en `docs/scripts/generar_workflow.py`: nueve categorías sobre un único
   eje (tipo de amenaza) y 201 términos en total. El Anexo C, que debe publicar esas entradas
   completas, **está pendiente** — es el change C-13 `anexo-c-diccionario-taxonomico-e11` y
   sigue sin escribirse. Hasta que exista, la fuente consultable de las categorías y los

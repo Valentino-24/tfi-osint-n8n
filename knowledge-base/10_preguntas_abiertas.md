@@ -7,7 +7,7 @@
 > cumplirse al cerrarse la ventana, así que esas correcciones ya **pueden** salir como cambios de
 > versión **fuera** de la ventana. Siguen **pendientes** de su propio change y esta nota **no** las
 > cierra. Registro: `knowledge-base/09_decisiones_y_supuestos.md` DD-08 y
-> `V4/evidencias/VENTANA_B5.md` §3 y §18.
+> `docs/evidencias/VENTANA_B5.md` §3 y §18.
 
 ### ~~IN-01 — La guía declara 15 nodos y la verificación final 14~~ — RESUELTA 2026-09-30
 
@@ -63,7 +63,7 @@ cuantitativa de menciones sin un ajuste posterior.
 ventana haría incomparables los `entities` de los días anteriores y posteriores. El cambio de
 comportamiento debe ocurrir **fuera de la ventana** y declararse como cambio de versión.
 **Resolución propuesta**: agregar límites de palabra al extractor (regex con `\b`, o
-comparación por token) en `V4/scripts/generar_workflow.py`, regenerar el artefacto, y tratar el
+comparación por token) en `docs/scripts/generar_workflow.py`, regenerar el artefacto, y tratar el
 campo `entities` ya recolectado como afectado por la limitación conocida. Requiere change
 propio en el roadmap y decisión de los autores sobre si se recalcula `entities` sobre el
 corpus ya ingerido o se declara la limitación tal cual.
@@ -71,12 +71,12 @@ corpus ya ingerido o se declara la limitación tal cual.
 ### IN-07 — El denominador por subreddit de la ventana no coincide con el alcance real
 > **RESUELTO** el 2026-10-07 por decisión de los autores. Ver "Resolución adoptada" al final.
 
-**Detectado**: 2026-10-02, al regenerar la bitácora del 2026-10-01 con `V4/scripts/bitacora_b5.py`.
-**Documento A dice**: `V4/evidencias/VENTANA_B5.md` §6 fija el denominador de **todo** desglose por
+**Detectado**: 2026-10-02, al regenerar la bitácora del 2026-10-01 con `docs/scripts/bitacora_b5.py`.
+**Documento A dice**: `docs/evidencias/VENTANA_B5.md` §6 fija el denominador de **todo** desglose por
 subreddit de la ventana en tres comunidades: `r/argentina`, `r/devsarg`, `r/derechogenial`. Es el
 alcance del Plan B.
 **Documento B dice**: el workflow en ejecución (`Prepare Subreddits`, fuente de verdad
-`V4/scripts/generar_workflow.py`) monitorea **otro** conjunto: `r/netsec`, `r/Malware`, `r/devsarg`
+`docs/scripts/generar_workflow.py`) monitorea **otro** conjunto: `r/netsec`, `r/Malware`, `r/devsarg`
 (Plan C). Los posts ingeridos lo confirman: `SELECT subreddit_id, COUNT(*) FROM posts GROUP BY 1`
 devuelve solo esas tres claves.
 **Estado verificado de `subreddits`** (6 filas, con duplicados):
@@ -112,7 +112,7 @@ base no declare activa una comunidad que el pipeline no consulta; (c) decidir el
 
 **Resolución adoptada (2026-10-07, autores)**:
 - **(a) Alcance = Plan C** (`r/netsec`, `r/Malware`, `r/devsarg`). §6 de `VENTANA_B5.md`
-  actualizada y `SUBSIDIOS_MONITORIZADOS` en `V4/scripts/bitacora_b5.py` corregido, con la
+  actualizada y `SUBSIDIOS_MONITORIZADOS` en `docs/scripts/bitacora_b5.py` corregido, con la
   historia del cambio Plan B → Plan C (el Plan B original no tenía contenido de ciberseguridad;
   `r/argentina` y `r/derechogenial` quedaron fuera por **decisión temática**, no por cobertura).
   La entrada `2026-09-25.md` queda como registro del último día con alcance Plan B.
@@ -151,7 +151,7 @@ ciclo**.
 2026-10-02 (#44, #45, #48). **Corrección al cierre de la jornada 2**: con el día completo son
 **15 de 28** corridas incompletas (#44, #45, #48, #49, #51, #53, #54, #57, #58, #60, #61, #63,
 #64, #66, #68), es decir un **53,6 %**, no el 37 % estimado a media jornada. Las 13 restantes
-leyeron los 3. Ver `V4/evidencias/VENTANA_B5.md` §13 y §14.
+leyeron los 3. Ver `docs/evidencias/VENTANA_B5.md` §13 y §14.
 **Corrección del denominador (2026-10-02, mismo día)**: el cierre anterior contaba **17 de 30**.
 Son dos errores de conteo y ninguno de los dos favorece al proyecto. El rango `#39`–`#68` son 30
 ejecuciones, pero **#40 y #41 son ejecuciones manuales** de la rama de anomalías, no de ingesta:
@@ -183,7 +183,7 @@ para investigación académica no comercial— exigiría aprobación institucion
 dio por **no viable**. **En consecuencia, el arreglo del 429 no puede depender de OAuth** y debe
 resolverse íntegramente del lado del workflow.
 **Resolución aplicada (2026-10-02, commit `4a2f7c1`)**: implementada en
-`V4/scripts/generar_workflow.py` (16 → 17 nodos). No publicada en su momento: B5 estaba abierta y
+`docs/scripts/generar_workflow.py` (16 → 17 nodos). No publicada en su momento: B5 estaba abierta y
 publicar el cambio a mitad de ventana habría vuelto incomparables las jornadas.
 **Constancia 2026-10-19**: la ventana B5 se cerró con corte `2026-10-17`, así que ese bloqueo **ya no
 aplica**: el cambio de versión puede publicarse **fuera** de la ventana, declarándolo como cambio de
@@ -278,7 +278,7 @@ los días 2026-10-12 y 2026-10-13, cuando el día 11 había registrado 8.
 fila por categoría con su `n_observado`, `base_media` y `umbral`. Las secciones §12 y §15 de
 `VENTANA_B5.md` muestran tablas de 7 y 8 categorías, y las bitácoras §4 de los días 12 y 13 reportan
 7 filas.
-**Documento B dice**: `QUERY_COUNTS_SQL` (`V4/scripts/generar_workflow.py`, nodo `Query Daily
+**Documento B dice**: `QUERY_COUNTS_SQL` (`docs/scripts/generar_workflow.py`, nodo `Query Daily
 Counts`) **deriva la lista de categorías de los posts presentes en la ventana móvil de 11 días**, no
 de las 9 del diccionario:
 
@@ -348,14 +348,14 @@ habilita C-08 → C-09 → C-20 → C-21 → C-23.
 
 | Pregunta | Estado | Constancia |
 |---|---|---|
-| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **RESUELTA el 2026-10-19 (parcialmente — el corte está decidido, la ratificación con los directores no consta).** Inicio nominal **2026-09-25** / inicio operativo **2026-10-01** (IN-09, resuelta); **corte fijado en `2026-10-17`** por decisión del **autor** el **2026-10-19** (tarea **6.1** de C-05, **DD-08**), con su registro de RN-GL-03 en `VENTANA_B5.md` §3. Ventana **CERRADA**: **15 días completos evaluados**, **724 posts**, límite superior fijo `2026-10-18 00:00:00 -03:00`. **Constancia 2026-10-14**: el autor fijó el objetivo de 15 días (mínimo 10, RN-AN-02) con corte estimado `~2026-10-17`, cumplido. **Ratificación con los directores: no consta** (§3.3) | `V4/evidencias/VENTANA_B5.md` §1, §3 y §18 |
-| ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? (prioridad **Media**) | **RESUELTA el 2026-10-19 — se CONSERVA.** Tarea **6.2** ejecutada: la ventana se cerró sobre sus datos existentes (724 posts, 15 días, inicio operativo `2026-10-01 13:15:12`) y **no se reinicia**. Las correcciones de pipeline pendientes (IN-06, IN-08, IN-10) salen como cambios de versión **fuera** de la ventana | `V4/evidencias/VENTANA_B5.md` §3, §18; tasks 6.1/6.2 de C-05 |
+| ¿Cuál es la fecha de inicio de la ventana real y cuándo se cierra? (prioridad **Alta**) | **RESUELTA el 2026-10-19 (parcialmente — el corte está decidido, la ratificación con los directores no consta).** Inicio nominal **2026-09-25** / inicio operativo **2026-10-01** (IN-09, resuelta); **corte fijado en `2026-10-17`** por decisión del **autor** el **2026-10-19** (tarea **6.1** de C-05, **DD-08**), con su registro de RN-GL-03 en `VENTANA_B5.md` §3. Ventana **CERRADA**: **15 días completos evaluados**, **724 posts**, límite superior fijo `2026-10-18 00:00:00 -03:00`. **Constancia 2026-10-14**: el autor fijó el objetivo de 15 días (mínimo 10, RN-AN-02) con corte estimado `~2026-10-17`, cumplido. **Ratificación con los directores: no consta** (§3.3) | `docs/evidencias/VENTANA_B5.md` §1, §3 y §18 |
+| ¿Se conserva la ventana actual o se reinicia la recolección con métricas corregidas? (prioridad **Media**) | **RESUELTA el 2026-10-19 — se CONSERVA.** Tarea **6.2** ejecutada: la ventana se cerró sobre sus datos existentes (724 posts, 15 días, inicio operativo `2026-10-01 13:15:12`) y **no se reinicia**. Las correcciones de pipeline pendientes (IN-06, IN-08, IN-10) salen como cambios de versión **fuera** de la ventana | `docs/evidencias/VENTANA_B5.md` §3, §18; tasks 6.1/6.2 de C-05 |
 
 **Limitación conocida de la evidencia de falla:** el log de ejecuciones de la instancia n8n no
 está disponible ni preservado, por lo que el éxito de la ingesta **día por día no puede probarse
 desde el log**; la bitácora lo declara como `sin observación` y su transcripción es manual
 cuando el log exista (tarea 3.5 del change C-05, decisión D-3). Ver
-`V4/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §6.
+`docs/evidencias/VERIFICACION_INSTANCIA_2026-09-25.md` §6.
 
 ## Decisiones pendientes para el próximo change
 

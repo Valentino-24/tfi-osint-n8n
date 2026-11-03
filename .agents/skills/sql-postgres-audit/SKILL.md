@@ -10,7 +10,7 @@ DB: `tesi_osint` (Postgres 18, localhost:5433), role `tesi_app`. Tables: `subred
 
 ## Principles
 - **Read-only first**: Prefer `SELECT`. Never `INSERT/UPDATE/DELETE/TRUNCATE/DROP/ALTER`
-- **Reproducible**: Save literal SQL + output to `V4/evidencias/` with date/window/n
+- **Reproducible**: Save literal SQL + output to `docs/evidencias/` with date/window/n
 - **Timezone aware**: Convert with `AT TIME ZONE 'America/Argentina/Buenos_Aires'` when grouping by "day"
 - **Window by ingestion**: For B5 use `posts.ingested_at` range
 - **Include zeros**: Join to `subreddits` and show all monitored in scope
@@ -85,5 +85,5 @@ LIMIT 20;
 - [ ] Timezone explicit
 - [ ] Window explicit
 - [ ] Denom includes zeros
-- [ ] Output saved to `V4/evidencias/` with query+date+window+n
+- [ ] Output saved to `docs/evidencias/` with query+date+window+n
 - [ ] No credentials in file
