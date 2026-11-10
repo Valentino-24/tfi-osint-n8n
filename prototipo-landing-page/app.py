@@ -7,8 +7,24 @@ Solo lee lo que la ingesta ya escribio.
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 import queries
+from models import (
+    Alerta,
+    Anomalia,
+    Categoria,
+    Latencia,
+    Comunidad,
+    ComunidadEstado,
+    DistribucionScore,
+    Entidad,
+    RegimenDia,
+    Resumen,
+    SerieDiaria,
+    Suficiencia,
+    UltimoPost,
+)
 
 app = FastAPI(
     title="Panel OSINT - prototipo",
@@ -16,41 +32,60 @@ app = FastAPI(
         "Capa de lectura sobre tesi_osint. No escribe, no altera la evidencia "
         "y no interviene en la recoleccion de la ventana B5."
     ),
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
-@app.get("/api/resumen")
+# Serve static files (CSS, JS, images)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/api/resumen", response_model=Resumen)
 def api_resumen():
     return queries.resumen()[0]
 
 
-@app.get("/api/por-comunidad")
+@app.get("/api/por-comunidad", response_model=list[Comunidad])
 def api_comunidad():
     return queries.por_comunidad()
 
 
-@app.get("/api/por-categoria")
+@app.get("/api/por-categoria", response_model=list[Categoria])
 def api_categoria():
     return queries.por_categoria()
 
 
-@app.get("/api/comunidades-estado")
+@app.get("/api/comunidades-estado", response_model=list[ComunidadEstado])
 def api_comunidades_estado():
     return queries.comunidades_con_estado()
 
 
-@app.get("/api/serie-diaria")
-def api_serie():
-    return queries.serie_diaria()
+@app.get("/api/serie-diaria", response_model=list[SerieDiaria])
+def api_serie(categoria: str | None = None):
+    return queries.serie_diaria(categoria)
 
 
-@app.get("/api/anomalias")
+@app.get("/api/anomalias", response_model=list[Anomalia])
 def api_anomalias():
     return queries.anomalias()
 
 
-@app.get("/api/entidades/{tipo}")
+@app.get("/api/alertas", response_model=list[Alerta])
+def api_alertas():
+    return queries.alertas()
+
+
+@app.get("/api/regimen", response_model=list[RegimenDia])
+def api_regimen():
+    return queries.regimen_operacion()
+
+
+@app.get("/api/latencia", response_model=list[Latencia])
+def api_latencia():
+    return queries.latencia_por_estado()
+
+
+@app.get("/api/entidades/{tipo}", response_model=list[Entidad])
 def api_entidades(tipo: str):
     try:
         return queries.entidades(tipo)
@@ -58,20 +93,41 @@ def api_entidades(tipo: str):
         raise HTTPException(status_code=400, detail=str(exc))
 
 
-@app.get("/api/distribucion-score")
+@app.get("/api/distribucion-score", response_model=list[DistribucionScore])
 def api_score():
     return queries.distribucion_score()
 
 
-@app.get("/api/suficiencia")
+@app.get("/api/suficiencia", response_model=Suficiencia)
 def api_suficiencia():
     """Dias completos evaluados y estado de la ventana B5 (minimo 10 / objetivo 15)."""
     return queries.suficiencia()[0]
 
 
-@app.get("/api/ultimos-posts")
-def api_ultimos(limite: int = 15):
-    return queries.ultimos_posts(min(max(limite, 1), 100))
+@app.get("/api/ultimos-posts", response_model=list[UltimoPost])
+def api_ultimos(limite: int = 15, categoria: str | None = None,
+                desde: str | None = None, hasta: str | None = None):
+    return queries.ultimos_posts(min(max(limite, 1), 100), categoria, desde, hasta)
+
+
+@app.get("/api/export/csv")
+def api_export_csv(categoria: str | None = None, limite: int = 100):
+    """Exporta posts como CSV. Solo lectura."""
+    from fastapi.responses import StreamingResponse
+    import csv, io
+    rows = queries.ultimos_posts(min(max(limite, 1), 1000), categoria)
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["id", "comunidad", "titulo", "categoria", "score", "publicado", "url"])
+    for r in rows:
+        writer.writerow([r["id"], r["display_name"], r["title"], r["nlp_category"],
+                        r["nlp_score"], r["publicado"], r["url"]])
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=posts_export.csv"},
+    )
 
 
 @app.get("/api/salud")
@@ -85,7 +141,7 @@ def api_salud():
 
 @app.get("/")
 def panel():
-    return FileResponse("static/index.html")
+    return FileResponse("static/v1/index.html")
 
 
 @app.get("/v2")
@@ -102,3 +158,12 @@ def panel_v3():
     /api/* en el navegador, asi que la pagina nunca muestra datos viejos.
     """
     return FileResponse("static/v3/index.html")
+
+
+@app.get("/v4")
+def panel_v4():
+    """Landing v4: incluye alertas Telegram y regimen de operacion.
+
+    Convive con /, /v2 y /v3. Agrega secciones de alertas y regimen.
+    """
+    return FileResponse("static/v4/index.html")

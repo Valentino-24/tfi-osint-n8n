@@ -50,7 +50,7 @@ FastAPI, queda en <http://127.0.0.1:8000/docs>.
 
 La v1 (panel clásico) vive en `/`, la **v2** (landing por secciones, con hero,
 alcance activo y Metodología) en <http://127.0.0.1:8000/v2> y la **v3** (diseño
-Canva, mismo contenido con datos en vivo) en <http://127.0.0.1:8000/v3>.
+Canva, mismo contenido con datos en vivo) en <http://127.0.0.1:8000/v3> y la **v4** (v3 + alertas Telegram y regimen de operacion) en <http://127.0.0.1:8000/v4>.
 Conviven: cada versión agrega sus endpoints, no toca lo que usan las otras.
 
 La **v3 tiene dos temas** (claro y oscuro) con un botón de sol/luna en la barra
@@ -89,6 +89,7 @@ $env:TFI_DB_PASSWORD = "..."   # gana sobre .env
 | `static/index.html` | Panel v1. Sin dependencias externas: los gráficos son SVG y CSS. |
 | `static/v2/index.html` | Landing v2, secciones con alcance activo. |
 | `static/v3/index.html` | Landing v3, diseño Canva + datos en vivo. |
+| `static/v4/index.html` | Landing v4 (v3 + alertas Telegram y regimen de operacion). |
 | `run.ps1` | Levanta uvicorn. |
 
 ## Endpoints

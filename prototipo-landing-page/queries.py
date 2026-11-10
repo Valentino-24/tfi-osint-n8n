@@ -31,7 +31,7 @@ def resumen() -> list[dict]:
           COUNT(DISTINCT (ingested_at {TZ})::date)                  AS dias_recoleccion,
           MIN(ingested_at {TZ})::date                               AS desde,
           MAX(ingested_at {TZ})::date                               AS hasta,
-          MAX(ingested_at {TZ})                                      AS ultima_carga,
+          MAX(ingested_at {TZ})::date                                AS ultima_carga,
           MIN((created_utc {TZ})::date)                             AS publicado_desde,
           MAX((created_utc {TZ})::date)                             AS publicado_hasta
         FROM posts
@@ -90,17 +90,23 @@ def por_categoria() -> list[dict]:
     """)
 
 
-def serie_diaria() -> list[dict]:
-    """Posts ingeridos por dia, para ver el ritmo de recoleccion."""
+def serie_diaria(categoria: str | None = None) -> list[dict]:
+    """Posts ingeridos por dia, para ver el ritmo de recoleccion.
+
+    Filtro opcional por categoria (nlp_category).
+    """
+    where = "WHERE nlp_category = %s" if categoria else ""
+    params = (categoria,) if categoria else ()
     return consultar(f"""
         SELECT (ingested_at {TZ})::date AS dia,
                COUNT(*)               AS total,
                COUNT(*) FILTER (WHERE nlp_category IS NOT NULL
                                   AND nlp_category <> 'No relevante') AS con_senal
         FROM posts
+        {where}
         GROUP BY 1
         ORDER BY 1
-    """)
+    """, params)
 
 
 def anomalias() -> list[dict]:
@@ -167,9 +173,26 @@ def distribucion_score() -> list[dict]:
     """)
 
 
-def ultimos_posts(limite: int = 15) -> list[dict]:
-    """Ultimos posts ingeridos, con su categoria."""
-    return consultar("""
+def ultimos_posts(limite: int = 15, categoria: str | None = None,
+                 desde: str | None = None, hasta: str | None = None) -> list[dict]:
+    """Ultimos posts ingeridos, con su categoria.
+
+    Filtros opcionales: categoria (nlp_category), desde/hasta (fecha de ingesta).
+    """
+    condiciones = []
+    params = [ZONA, ZONA]
+    if categoria:
+        condiciones.append("p.nlp_category = %s")
+        params.append(categoria)
+    if desde:
+        condiciones.append("(p.ingested_at AT TIME ZONE %s)::date >= %s")
+        params.extend([ZONA, desde])
+    if hasta:
+        condiciones.append("(p.ingested_at AT TIME ZONE %s)::date <= %s")
+        params.extend([ZONA, hasta])
+    where = ("WHERE " + " AND ".join(condiciones)) if condiciones else ""
+    params.append(limite)
+    sql = f"""
         SELECT p.id, s.display_name, p.title, p.nlp_category,
                ROUND(p.nlp_score::numeric, 2) AS nlp_score,
                (p.created_utc AT TIME ZONE %s)::date AS publicado,
@@ -177,9 +200,11 @@ def ultimos_posts(limite: int = 15) -> list[dict]:
                p.url
         FROM posts p
         JOIN subreddits s ON s.id = p.subreddit_id
+        {where}
         ORDER BY p.ingested_at DESC
         LIMIT %s
-    """, (ZONA, ZONA, limite))
+    """
+    return consultar(sql, tuple(params))
 
 
 # Criterio de suficiencia de la ventana B5, decidido el 2026-10-09:
@@ -216,3 +241,85 @@ def suficiencia() -> list[dict]:
     else:
         fila["estado"] = "abierta"
     return [fila]
+
+
+def alertas(limite: int = 50) -> list[dict]:
+    """Alertas generadas por el motor de anomalias.
+
+    La tabla arranca vacia y se llena cuando el motor detecta un disparo.
+    Si devuelve [], no es un error: todavia no se ejecuto esa rama o no hubo disparos.
+    """
+    return consultar("""
+        SELECT a.id,
+               (a.created_at AT TIME ZONE %s)::date AS fecha,
+               an.categoria,
+               an.n_observado,
+               ROUND(an.umbral::numeric, 2) AS umbral,
+               a.estado,
+               a.canal
+        FROM alertas a
+        JOIN anomalias an ON an.id = a.anomalia_id
+        ORDER BY a.created_at DESC
+        LIMIT %s
+    """, (ZONA, limite))
+
+
+def regimen_operacion() -> list[dict]:
+    """Regimen de operacion de la instancia por dia.
+
+    Reconstruye las jornadas desde ingested_at.
+    """
+    return consultar("""
+        SELECT (ingested_at AT TIME ZONE %s)::date AS fecha,
+               COUNT(*) AS publicaciones,
+               MIN(ingested_at AT TIME ZONE %s)::time(0) AS primera_ingesta,
+               MAX(ingested_at AT TIME ZONE %s)::time(0) AS ultima_ingesta
+        FROM posts
+        GROUP BY 1
+        ORDER BY 1
+    """, (ZONA, ZONA, ZONA))
+
+
+def latencia_por_estado() -> list[dict]:
+    """Latencia descompuesta por grupo de publicaciones."""
+    return consultar("""
+        SELECT
+          CASE
+            WHEN created_utc >= '2026-10-01 00:00:00+00' THEN 'en_ventana'
+            ELSE 'arrastre_inicial'
+          END AS grupo,
+          COUNT(*) AS n,
+          ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (ingested_at - created_utc)) / 60)::numeric, 1) AS p50_min,
+          ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (ingested_at - created_utc)) / 60)::numeric, 1) AS p95_min,
+          ROUND(MAX(EXTRACT(EPOCH FROM (ingested_at - created_utc)) / 60)::numeric, 1) AS max_min
+        FROM posts
+        GROUP BY 1
+        ORDER BY 1
+    """)
+
+def alertas(limite: int = 50) -> list[dict]:
+    return consultar("""
+        SELECT a.id,
+               (a.created_at AT TIME ZONE %s)::date AS fecha,
+               an.categoria,
+               an.n_observado,
+               ROUND(an.umbral::numeric, 2) AS umbral,
+               a.estado,
+               a.canal
+        FROM alertas a
+        JOIN anomalias an ON an.id = a.anomalia_id
+        ORDER BY a.created_at DESC
+        LIMIT %s
+    """, (ZONA, limite))
+
+
+def regimen_operacion() -> list[dict]:
+    return consultar("""
+        SELECT (ingested_at AT TIME ZONE %s)::date AS fecha,
+               COUNT(*) AS publicaciones,
+               MIN(ingested_at AT TIME ZONE %s)::time(0) AS primera_ingesta,
+               MAX(ingested_at AT TIME ZONE %s)::time(0) AS ultima_ingesta
+        FROM posts
+        GROUP BY 1
+        ORDER BY 1
+    """, (ZONA, ZONA, ZONA))
