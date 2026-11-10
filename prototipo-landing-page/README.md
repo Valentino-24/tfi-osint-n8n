@@ -151,6 +151,12 @@ funciones. La v4 además separa HTML, CSS y JS, pero sigue siendo un único
 **`score` y `num_comments` están en 0** en todos los posts. El RSS de Reddit
 no los trae; es una limitación conocida, documentada como RN-FU-04.
 
+**El ~27,9 % de instancia activa que muestra la v4 no sale de la API.** Es un
+dato del informe y vive en una constante (`REGIMEN_INSTANCIA_PCT` en
+`static/v4/js/app.js`): no hay tabla en `tesi_osint` que registre corridas ni
+tiempo activo, y `/api/regimen` solo devuelve fecha, publicaciones y
+primera/última ingesta. Está marcado así para que no se lea como dato en vivo.
+
 ## Tests
 
 ```powershell

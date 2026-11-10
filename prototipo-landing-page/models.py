@@ -116,6 +116,3 @@ class RegimenDia(BaseModel):
     publicaciones: int
     primera_ingesta: time | None = None
     ultima_ingesta: time | None = None
-    instancia_activa_pct: float | None = None
-    corridas_automaticas: int | None = None
-    corridas_manuales: int | None = None

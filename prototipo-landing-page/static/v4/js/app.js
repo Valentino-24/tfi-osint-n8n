@@ -1,8 +1,10 @@
 /* ------------------------------------------------------------------ *
    * v3: el diseno de Canva + los datos reales de tesi_osint.            *
-   * Todo lo numerado sale de /api/* en el navegador: no hay cifras      *
-   * escritas a mano en este archivo.                                    *
+   * Todo lo numerado sale de /api/* en el navegador, salvo             *
+   * REGIMEN_INSTANCIA_PCT, que es un dato del informe: no hay tabla    *
+   * en tesi_osint que registre el tiempo de instancia activa.           *
    * ------------------------------------------------------------------ */
+  const REGIMEN_INSTANCIA_PCT = 27.9;  // medido sobre el tramo con registro; NO viene de la API
   const $ = id => document.getElementById(id);
   const slot = name => document.querySelector('[data-slot="' + name + '"]');
   const tpl = t => document.querySelector('[data-template-id="' + t + '"]');
@@ -203,7 +205,7 @@
     else { elR.innerHTML = "<table class=\"data-table\"><thead><tr><th>Fecha</th><th>Posts</th><th>Primera ingesta</th><th>Ultima ingesta</th></tr></thead><tbody>" +
       regimen.map(r => "<tr><td>" + fecha(r.fecha) + "</td><td>" + num(r.publicaciones) + "</td><td>" + (r.primera_ingesta || "\u2014") + "</td><td>" + (r.ultima_ingesta || "\u2014") + "</td></tr>").join("") +
       "</tbody></table>";
-      slot("regime-nota").textContent = regimen.length + " dias con ingesta. Regimen: jornadas diurnas, instancia activa ~27.9% del tramo con registro."; }
+      slot("regime-nota").textContent = regimen.length + " dias con ingesta. Regimen: jornadas diurnas, instancia activa ~" + dec(REGIMEN_INSTANCIA_PCT) + "% del tramo con registro."; }
     nPosts = res.total_posts;
 
     /* --- banner de aviso --- */
