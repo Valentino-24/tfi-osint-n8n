@@ -22,7 +22,9 @@ def test_resumen():
 def test_por_comunidad():
     r = queries.por_comunidad()
     assert isinstance(r, list)
-    assert len(r) == 3
+    # >= 3 y no == 3: el piloto arranca con tres subreddits, pero activar uno
+    # nuevo no tiene que romper el test.
+    assert len(r) >= 3
     nombres = {row["display_name"] for row in r}
     assert "r/devsarg" in nombres
     assert "r/netsec" in nombres

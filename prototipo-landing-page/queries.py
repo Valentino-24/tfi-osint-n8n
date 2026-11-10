@@ -296,30 +296,3 @@ def latencia_por_estado() -> list[dict]:
         GROUP BY 1
         ORDER BY 1
     """)
-
-def alertas(limite: int = 50) -> list[dict]:
-    return consultar("""
-        SELECT a.id,
-               (a.created_at AT TIME ZONE %s)::date AS fecha,
-               an.categoria,
-               an.n_observado,
-               ROUND(an.umbral::numeric, 2) AS umbral,
-               a.estado,
-               a.canal
-        FROM alertas a
-        JOIN anomalias an ON an.id = a.anomalia_id
-        ORDER BY a.created_at DESC
-        LIMIT %s
-    """, (ZONA, limite))
-
-
-def regimen_operacion() -> list[dict]:
-    return consultar("""
-        SELECT (ingested_at AT TIME ZONE %s)::date AS fecha,
-               COUNT(*) AS publicaciones,
-               MIN(ingested_at AT TIME ZONE %s)::time(0) AS primera_ingesta,
-               MAX(ingested_at AT TIME ZONE %s)::time(0) AS ultima_ingesta
-        FROM posts
-        GROUP BY 1
-        ORDER BY 1
-    """, (ZONA, ZONA, ZONA))
