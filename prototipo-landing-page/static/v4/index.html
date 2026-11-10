@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OSINT ° NET · Observatorio de amenazas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/v4/css/styles.css">
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("tema") || "light");</script>
+</head>
+<body>
+
+  <header class="site-nav canva-header" data-template-id="site-header" >
+   <nav class="wrap nav-row" aria-label="Navegación principal">
+<a class="brand" href="#inicio" aria-label="OSINT NET, ir al inicio">OSINT <em>°</em> NET</a>
+    <div class="nav-links" id="nav-links">
+<a href="#inicio" data-template-id="nav-inicio" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Inicio</a> <a href="#resumen" data-template-id="nav-resumen" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Resúmen</a> <a href="#resultados" data-template-id="nav-resultados" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Señal</a> <a href="#entidades" data-template-id="nav-entidades" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Entidades</a> <a href="#anomalias" data-template-id="nav-anomalias" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Variación</a> <a href="#alertas" data-template-id="nav-alertas" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Alertas</a> <a href="#regimen" data-template-id="nav-regimen" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Régimen</a> <a href="#latencia" data-template-id="nav-latencia" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Latencia</a> <a href="#posts" data-template-id="nav-posts" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Trazabilidad</a> <a href="#metodologia" data-template-id="nav-metodologia" class="canva-link" style="font-weight: 400; font-style: normal; font-size: 13px">Metodo</a>
+    </div>
+<button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="true">
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z"/></svg>
+    </button>
+<button class="menu-button" id="menu-toggle" type="button" aria-controls="nav-links" aria-expanded="false" aria-label="Abrir menú">
+     <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16">
+</path>
+     </svg>
+</button>
+   </nav>
+  </header>
+  <section class="hero canva-section" id="inicio" data-template-id="hero-section" aria-labelledby="hero-title" >
+   <div class="wrap hero-inner">
+    <div>
+     <p class="eyebrow canva-text" data-template-id="hero-eyebrow" style="font-weight: 400; font-style: normal; font-size: 16px">TFI · UTN Mendoza · Tecnicatura en Programación</p>
+     <h1 id="hero-title" class="canva-text" data-template-id="hero-title" style="font-weight: 700; font-style: normal; font-size: 56px">Monitoreo OSINT de amenazas de ciberseguridad en comunidades técnicas de Reddit</h1>
+     <p class="hero-desc canva-text" data-template-id="hero-description" style="font-weight: 400; font-style: normal; font-size: 16px">Reddit, n8n y PostgreSQL como base de un sistema para identificar estafas, phishing, malware y otras amenazas. Una lectura clara de las señales, el proceso y sus límites.</p>
+     <div class="hero-actions">
+<a href="#resumen" class="primary-link canva-link" data-template-id="hero-cta" style="font-weight: 700; font-style: normal; font-size: 16px">Explorar el panel →</a> <span class="src-tag canva-tag" data-template-id="hero-demo" style="font-weight: 400; font-style: normal; font-size: 16px">Datos reales de la base</span>
+     </div>
+    </div>
+    <div class="wf-wrap">
+     <div class="wf-win canva-panel" data-template-id="workflow-window" role="img" aria-label="Flujo del sistema: Reddit, filtrar, clasificar, PostgreSQL y panel. Ilustración conceptual." >
+      <div class="wf-top">
+       <div class="wf-dots" aria-hidden="true">
+        <i>
+</i>
+<i>
+</i>
+<i>
+</i>
+       </div>
+<span class="wf-caption canva-text" data-template-id="workflow-caption" style="font-weight: 400; font-style: normal; font-size: 16px">Diseñado con n8n<svg class="wf-n8n" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#EA4B71" d="M21.4737 5.6842c-1.1772 0-2.1663.8051-2.4468 1.8947h-2.8955c-1.235 0-2.289.893-2.492 2.111l-.1038.623a1.263 1.263 0 0 1-1.246 1.0555H11.289c-.2805-1.0896-1.2696-1.8947-2.4468-1.8947s-2.1663.8051-2.4467 1.8947H4.973c-.2805-1.0896-1.2696-1.8947-2.4468-1.8947C1.1311 9.4737 0 10.6047 0 12s1.131 2.5263 2.5263 2.5263c1.1772 0 2.1663-.8051 2.4468-1.8947h1.4223c.2804 1.0896 1.2696 1.8947 2.4467 1.8947 1.1772 0 2.1663-.8051 2.4468-1.8947h1.0008a1.263 1.263 0 0 1 1.2459 1.0555l.1038.623c.203 1.218 1.257 2.111 2.492 2.111h.3692c.2804 1.0895 1.2696 1.8947 2.4468 1.8947 1.3952 0 2.5263-1.131 2.5263-2.5263s-1.131-2.5263-2.5263-2.5263c-1.1772 0-2.1664.805-2.4468 1.8947h-.3692a1.263 1.263 0 0 1-1.246-1.0555l-.1037-.623A2.52 2.52 0 0 0 13.9607 12a2.52 2.52 0 0 0 .821-1.4794l.1038-.623a1.263 1.263 0 0 1 1.2459-1.0555h2.8955c.2805 1.0896 1.2696 1.8947 2.4468 1.8947 1.3952 0 2.5263-1.131 2.5263-2.5263s-1.131-2.5263-2.5263-2.5263m0 1.2632a1.263 1.263 0 0 1 1.2631 1.2631 1.263 1.263 0 0 1-1.2631 1.2632 1.263 1.263 0 0 1-1.2632-1.2632 1.263 1.263 0 0 1 1.2632-1.2631M2.5263 10.7368A1.263 1.263 0 0 1 3.7895 12a1.263 1.263 0 0 1-1.2632 1.2632A1.263 1.263 0 0 1 1.2632 12a1.263 1.263 0 0 1 1.2631-1.2632m6.3158 0A1.263 1.263 0 0 1 10.1053 12a1.263 1.263 0 0 1-1.2632 1.2632A1.263 1.263 0 0 1 7.579 12a1.263 1.263 0 0 1 1.2632-1.2632m10.1053 3.7895a1.263 1.263 0 0 1 1.2631 1.2632 1.263 1.263 0 0 1-1.2631 1.2631 1.263 1.263 0 0 1-1.2632-1.2631 1.263 1.263 0 0 1 1.2632-1.2632"/></svg></span>
+      </div>
+      <div class="wf-scroll">
+       <div class="wf-canvas">
+        <div class="wf-flow" aria-hidden="true">
+         <div class="wf-node reddit" style="--step:0">
+          <div class="wf-card">
+           <svg class="brand" viewBox="0 0 24 24">
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 3.314 1.343 6.314 3.515 8.485l-2.286 2.286C.775 23.225 1.097 24 1.738 24H12c6.627 0 12-5.373 12-12S18.627 0 12 0Zm4.388 3.199c1.104 0 1.999.895 1.999 1.999 0 1.105-.895 2-1.999 2-.946 0-1.739-.657-1.947-1.539v.002c-1.147.162-2.032 1.15-2.032 2.341v.007c1.776.067 3.4.567 4.686 1.363.473-.363 1.064-.58 1.707-.58 1.547 0 2.802 1.254 2.802 2.802 0 1.117-.655 2.081-1.601 2.531-.088 3.256-3.637 5.876-7.997 5.876-4.361 0-7.905-2.617-7.998-5.87-.954-.447-1.614-1.415-1.614-2.538 0-1.548 1.255-2.802 2.803-2.802.645 0 1.239.218 1.712.585 1.275-.79 2.881-1.291 4.64-1.365v-.01c0-1.663 1.263-3.034 2.88-3.207.188-.911.993-1.595 1.959-1.595Zm-8.085 8.376c-.784 0-1.459.78-1.506 1.797-.047 1.016.64 1.429 1.426 1.429.786 0 1.371-.369 1.418-1.385.047-1.017-.553-1.841-1.338-1.841Zm7.406 0c-.786 0-1.385.824-1.338 1.841.047 1.017.634 1.385 1.418 1.385.785 0 1.473-.413 1.426-1.429-.046-1.017-.721-1.797-1.506-1.797Zm-3.703 4.013c-.974 0-1.907.048-2.77.135-.147.015-.241.168-.183.305.483 1.154 1.622 1.964 2.953 1.964 1.33 0 2.47-.81 2.953-1.964.057-.137-.037-.29-.184-.305-.863-.087-1.795-.135-2.769-.135Z"/>
+           </svg>
+          </div>
+<span class="wf-name canva-text" data-template-id="wf-reddit" style="font-weight: 700; font-style: normal; font-size: 16px">Reddit</span>
+         </div>
+<span class="wf-link" style="--delay:0s">
+</span>
+         <div class="wf-node" style="--step:1">
+          <div class="wf-card">
+           <svg viewBox="0 0 32 32">
+            <path d="M4 7h24l-9 10v8l-6 3V17z">
+</path>
+           </svg>
+          </div>
+<span class="wf-name canva-text" data-template-id="wf-filter" style="font-weight: 700; font-style: normal; font-size: 16px">Filtrar</span>
+         </div>
+<span class="wf-link" style="--delay:.6s">
+</span>
+         <div class="wf-node classify" style="--step:2">
+          <div class="wf-card">
+           <svg viewBox="0 0 32 32">
+            <rect x="5" y="5" width="9" height="9" rx="2">
+</rect>
+<rect x="18" y="5" width="9" height="9" rx="2">
+</rect>
+<rect x="5" y="18" width="9" height="9" rx="2">
+</rect>
+<rect x="18" y="18" width="9" height="9" rx="2">
+</rect>
+<path d="m8 9 2 2 2-3m9 14 2 2 2-3">
+</path>
+           </svg>
+          </div>
+<span class="wf-name canva-text" data-template-id="wf-classify" style="font-weight: 700; font-style: normal; font-size: 16px">Clasificar</span>
+         </div>
+<span class="wf-link" style="--delay:1.2s">
+</span>
+         <div class="wf-node" style="--step:3">
+          <div class="wf-card">
+           <svg viewBox="0 0 32 32">
+            <ellipse cx="16" cy="7" rx="10" ry="4">
+</ellipse>
+<path d="M6 7v18c0 2 4.5 4 10 4s10-2 10-4V7M6 16c0 2 4.5 4 10 4s10-2 10-4">
+</path>
+           </svg>
+          </div>
+<span class="wf-name canva-text" data-template-id="wf-database" style="font-weight: 700; font-style: normal; font-size: 16px">PostgreSQL</span>
+         </div>
+<span class="wf-link" style="--delay:1.8s">
+</span>
+         <div class="wf-node panel-node" style="--step:4">
+          <div class="wf-card">
+           <svg viewBox="0 0 32 32">
+            <rect x="3" y="5" width="26" height="20" rx="2">
+</rect>
+<path d="M10 29h12M16 25v4M8 18l5-5 4 3 7-7">
+</path>
+           </svg>
+          </div>
+<span class="wf-name canva-text" data-template-id="wf-panel" style="font-weight: 700; font-style: normal; font-size: 16px">Panel</span>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <p class="sr-only">Ilustración conceptual: publicaciones del RSS público de Reddit pasan por filtrado y clasificación, se persisten en PostgreSQL y se consultan desde un panel de solo lectura.</p>
+    </div>
+   </div>
+  </section>
+  <main class="w-full">
+   <div class="wrap">
+    <aside class="notice canva-banner" data-template-id="transparency-banner" aria-label="Nota de transparencia" >
+<span class="notice-mark" aria-hidden="true">
+</span>
+     <div>
+      <strong class="canva-text" data-template-id="transparency-heading" style="font-weight: 700; font-style: normal; font-size: 16px">Antes de explorar: todo sale de la base</strong>
+      <p class="canva-text" id="transparency-text" data-template-id="transparency-text" style="font-weight: 400; font-style: normal; font-size: 16px">Cada valor de esta página se calcula en el navegador con consultas <code>SELECT</code> sobre <code>tesi_osint</code>, con el rol de solo lectura <code>tfi_lectura</code>. Ventana B5: del 01/10/2026 al 17/10/2026, corte fijado el 18/10/2026. Consulta del <span data-slot="v-fecha">…</span> sobre <span data-slot="v-n">…</span> posts recolectados (última carga <span data-slot="v-carga">…</span>).</p>
+     </div>
+    </aside>
+   </div>
+    <div class="wrap">
+    <section id="resumen" class="section reveal canva-section" data-template-id="summary-section" aria-labelledby="summary-title" >
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="summary-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">RESÚMEN</p>
+       <h2 id="summary-title" class="canva-text" data-template-id="summary-title" style="font-weight: 700; font-style: normal; font-size: 24px">El panorama, de un vistazo</h2>
+       <p class="intro canva-text" data-template-id="summary-intro" style="font-weight: 400; font-style: normal; font-size: 16px">El volumen, las publicaciones con señal, el alcance activo y la continuidad de la recolección, medidos sobre la ventana B5 con la misma consulta que sostiene el resto del panel. Observación: <span data-slot="r-obs">…</span>.</p>
+      </div>
+     </div>
+     <div class="kpis">
+      <article class="kpi canva-card" data-template-id="kpi-1" >
+       <span class="metric canva-text" data-template-id="kpi-1-value" style="font-weight: 700; font-style: normal; font-size: 40px">…</span>
+<span class="kpi-label canva-text" data-template-id="kpi-1-label" style="font-weight: 400; font-style: normal; font-size: 16px">Posts recolectados</span>
+<span class="kpi-demo canva-tag" data-template-id="kpi-1-demo" style="font-weight: 400; font-style: normal; font-size: 16px">…</span>
+      </article>
+      <article class="kpi canva-card" data-template-id="kpi-2" >
+       <span class="metric canva-text" data-template-id="kpi-2-value" style="font-weight: 700; font-style: normal; font-size: 40px">…</span>
+<span class="kpi-label canva-text" data-template-id="kpi-2-label" style="font-weight: 400; font-style: normal; font-size: 16px">Posts con señal</span>
+<span class="kpi-demo canva-tag" data-template-id="kpi-2-demo" style="font-weight: 400; font-style: normal; font-size: 16px">…</span>
+      </article>
+      <article class="kpi canva-card" data-template-id="kpi-3" >
+       <span class="metric canva-text" data-template-id="kpi-3-value" style="font-weight: 700; font-style: normal; font-size: 40px">…</span>
+<span class="kpi-label canva-text" data-template-id="kpi-3-label" style="font-weight: 400; font-style: normal; font-size: 16px">Comunidades activas</span>
+<span class="kpi-demo canva-tag" data-template-id="kpi-3-demo" style="font-weight: 400; font-style: normal; font-size: 16px">…</span>
+      </article>
+      <article class="kpi canva-card" data-template-id="kpi-4" >
+       <span class="metric canva-text" data-template-id="kpi-4-value" style="font-weight: 700; font-style: normal; font-size: 40px">…</span>
+<span class="kpi-label canva-text" data-template-id="kpi-4-label" style="font-weight: 400; font-style: normal; font-size: 16px">Días de recolección</span>
+<span class="kpi-demo canva-tag" data-template-id="kpi-4-demo" style="font-weight: 400; font-style: normal; font-size: 16px">…</span>
+      </article>
+     </div>
+    </section>
+   </div>
+   </div>
+   <div class="band w-full">
+   <div class="wrap">
+    <section id="resultados" class="section reveal canva-section" data-template-id="results-section" aria-labelledby="results-title" >
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="results-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">SEÑAL</p>
+       <h2 id="results-title" class="canva-text" data-template-id="results-title" style="font-weight: 700; font-style: normal; font-size: 24px">Dónde y qué se detecta</h2>
+       <p class="intro canva-text" data-template-id="results-intro" style="font-weight: 400; font-style: normal; font-size: 16px">Dos lecturas complementarias del corpus: las comunidades del alcance activo y las categorías del diccionario.</p>
+      </div>
+     </div>
+     <div class="two-col">
+      <article class="panel canva-card" data-template-id="community-panel" >
+       <div class="panel-head">
+        <h3 class="canva-text" data-template-id="community-title" style="font-weight: 700; font-style: normal; font-size: 19px">Dónde se detecta</h3>
+<span class="pill canva-tag" data-template-id="community-demo" style="font-weight: 400; font-style: normal; font-size: 16px"><span class="wf-dots" aria-hidden="true"><i></i><i></i><i></i></span></span>
+       </div>
+       <div class="bars" id="community-bars"></div>
+       <p class="panel-note canva-text" data-template-id="community-note" style="font-weight: 400; font-style: normal; font-size: 16px">Alcance activo (IN-07, denominador 3):<br> <span data-slot="com-nota">…</span>. r/argentina, r/derechogenial y r/DerechoGenial integran el histórico, siguen desactivadas y por eso suman 0 posts.</p>
+      </article>
+      <article class="panel canva-card" data-template-id="category-panel" >
+       <div class="panel-head">
+        <h3 class="canva-text" data-template-id="category-title" style="font-weight: 700; font-style: normal; font-size: 19px">Qué se detecta</h3>
+<span class="pill canva-tag" data-template-id="category-demo" style="font-weight: 400; font-style: normal; font-size: 16px"><span class="wf-dots" aria-hidden="true"><i></i><i></i><i></i></span></span>
+       </div>
+       <div class="bars" id="category-bars"></div>
+       <p class="panel-note canva-text" data-template-id="category-note" style="font-weight: 400; font-style: normal; font-size: 16px">El diccionario tiene nueve categorías. «No relevante» es el control negativo del clasificador, no una décima categoría: cuenta los posts que no alcanzan <code>MIN_HITS=1</code>. <span data-slot="cat-nota">…</span>.</p>
+      </article>
+     </div>
+    </section>
+   </div>
+   </div>
+   <div class="band w-full">
+    <div class="wrap">
+     <section id="entidades" class="section reveal canva-section" data-template-id="entities-section" aria-labelledby="entities-section-title" >
+      <div class="section-head">
+       <span class="marker" aria-hidden="true">/</span>
+       <div>
+        <p class="section-kicker canva-text" data-template-id="entities-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">ENTIDADES</p>
+        <h2 id="entities-section-title" class="canva-text" data-template-id="entities-section-title" style="font-weight: 700; font-style: normal; font-size: 24px">De menciones a señales interpretables</h2>
+        <p class="intro canva-text" data-template-id="entities-section-intro" style="font-weight: 400; font-style: normal; font-size: 16px">El score resume cuántas coincidencias con el diccionario encontró cada post; las entidades, extraídas del <code>jsonb</code> de cada uno, muestran qué se menciona.</p>
+       </div>
+      </div>
+      <div class="two-col">
+       <article class="panel canva-card" data-template-id="score-panel" >
+        <div class="panel-head">
+         <h3 class="canva-text" data-template-id="score-title" style="font-weight: 700; font-style: normal; font-size: 19px">Score de significancia</h3>
+<span class="pill canva-tag" data-template-id="score-demo" style="font-weight: 400; font-style: normal; font-size: 16px"><span class="wf-dots" aria-hidden="true"><i></i><i></i><i></i></span></span>
+        </div>
+        <div class="bars" id="score-bars"></div>
+        <div class="score-legend" data-slot="score-legend"></div>
+        <p class="panel-note canva-text" data-template-id="score-note" style="font-weight: 400; font-style: normal; font-size: 16px">Regla: <code>min(1, hits/4)</code> con <code>MIN_HITS=1</code>. El tramo 0,00 es la bolsa «No relevante»: permanece en el corpus y queda fuera del conjunto con señal. <span data-slot="score-nota">…</span>.</p>
+       </article>
+       <article class="panel canva-card" data-template-id="entities-panel" >
+        <div class="panel-head">
+         <h3 class="canva-text" data-template-id="entities-title" style="font-weight: 700; font-style: normal; font-size: 19px">Entidades más mencionadas</h3>
+        </div>
+        <p class="intro canva-text" data-template-id="entities-intro" style="font-weight: 400; font-style: normal; font-size: 16px">Tipos extraídos del <code>jsonb</code> de cada post. Elegí un tipo para ver sus menciones más frecuentes.</p>
+        <div class="tabs" role="tablist" aria-label="Tipos de entidades">
+<button type="button" role="tab" id="tab-cves" aria-controls="entity-panel" aria-selected="true" tabindex="0" data-template-id="tab-cves" class="canva-button" style="font-weight: 400; font-style: normal; font-size: 16px">CVEs</button> <button type="button" role="tab" id="tab-domains" aria-controls="entity-panel" aria-selected="false" tabindex="-1" data-template-id="tab-domains" class="canva-button" style="font-weight: 400; font-style: normal; font-size: 16px">Dominios</button> <button type="button" role="tab" id="tab-ips" aria-controls="entity-panel" aria-selected="false" tabindex="-1" data-template-id="tab-ips" class="canva-button" style="font-weight: 400; font-style: normal; font-size: 16px">IPs</button> <button type="button" role="tab" id="tab-emails" aria-controls="entity-panel" aria-selected="false" tabindex="-1" data-template-id="tab-emails" class="canva-button" style="font-weight: 400; font-style: normal; font-size: 16px">Correos</button> <button type="button" role="tab" id="tab-products" aria-controls="entity-panel" aria-selected="false" tabindex="-1" data-template-id="tab-products" class="canva-button" style="font-weight: 400; font-style: normal; font-size: 16px">Productos</button>
+        </div>
+        <div id="entity-panel" role="tabpanel" aria-labelledby="tab-cves" tabindex="0"><p class="muted-load">Consultando la base…</p></div>
+        <p class="panel-note canva-text" data-template-id="entities-note" style="font-weight: 400; font-style: normal; font-size: 16px">Menciones extraídas del <code>jsonb</code> de cada post y contadas por frecuencia. <span data-slot="ent-nota">…</span>.</p>
+       </article>
+      </div>
+     </section>
+    </div>
+   </div>
+   <div class="band w-full">
+   <div class="wrap">
+    <section id="anomalias" class="section reveal canva-section" data-template-id="anomalies-section" aria-labelledby="anomalies-title" >
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="anomalies-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">VARIACIÓN</p>
+       <h2 id="anomalies-title" class="canva-text" data-template-id="anomalies-title" style="font-weight: 700; font-style: normal; font-size: 24px">Ritmo de ingesta y anomalías</h2>
+       <p class="intro canva-text" data-template-id="anomalies-intro" style="font-weight: 400; font-style: normal; font-size: 16px">El volumen diario de ingesta y la lectura de una anomalía: observación, base y umbral de cada categoría.</p>
+      </div>
+     </div>
+     <div class="two-col">
+      <article class="panel canva-card" data-template-id="daily-panel" >
+       <div class="panel-head">
+        <h3 class="canva-text" data-template-id="daily-title" style="font-weight: 700; font-style: normal; font-size: 19px">Posts ingeridos por día</h3>
+<span class="pill canva-tag" data-template-id="daily-demo" style="font-weight: 400; font-style: normal; font-size: 16px"><span class="wf-dots" aria-hidden="true"><i></i><i></i><i></i></span></span>
+       </div>
+       <div class="daily-chart" id="daily-chart"></div>
+       <p class="panel-note canva-text" data-template-id="daily-note" style="font-weight: 400; font-style: normal; font-size: 16px">Fechas calculadas sobre <code>ingested_at</code> en <code>America/Argentina/Buenos_Aires</code>: indican cuándo entró el post, no cuándo se publicó. <span data-slot="daily-nota">…</span>.</p>
+      </article>
+      <article class="panel canva-card" data-template-id="anomaly-panel" >
+       <div class="panel-head">
+        <h3 class="canva-text" data-template-id="anomaly-title" style="font-weight: 700; font-style: normal; font-size: 19px">Cómo leer una anomalía</h3>
+<span class="pill canva-tag" data-template-id="anomaly-demo" style="font-weight: 400; font-style: normal; font-size: 16px"><span class="wf-dots" aria-hidden="true"><i></i><i></i><i></i></span></span>
+       </div>
+       <p class="intro canva-text" data-template-id="anomaly-intro" style="font-weight: 400; font-style: normal; font-size: 16px">La barra es la observación de un día; la línea punteada, su umbral. Si la barra la cruza, la categoría dispara.</p>
+       <div class="comparison" id="comparison"></div>
+       <p class="panel-note canva-text" data-template-id="anomaly-note" style="font-weight: 400; font-style: normal; font-size: 16px"><span data-slot="ano-nota">Consultando la base…</span></p>
+      </article>
+     </div>
+    </section>
+   </div>
+   </div>
+   <div class="band w-full">
+    <div class="wrap">
+    <section id="alertas" class="section reveal canva-section" data-template-id="alerts-section" aria-labelledby="alerts-title">
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="alerts-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">ALERTAS</p>
+       <h2 id="alerts-title" class="canva-text" data-template-id="alerts-title" style="font-weight: 700; font-style: normal; font-size: 24px">Alertas del motor de anomalias</h2>
+       <p class="intro canva-text" data-template-id="alerts-intro" style="font-weight: 400; font-style: normal; font-size: 16px">Alertas generadas por el motor de deteccion. El canal de notificacion (Telegram) esta implementado.</p>
+      </div>
+     </div>
+     <div class="panel canva-card" data-template-id="alerts-panel">
+      <div class="panel-head">
+       <h3 class="canva-text" data-template-id="alerts-table-title" style="font-weight: 700; font-style: normal; font-size: 19px">Ultimas alertas registradas</h3>
+      </div>
+      <div id="alerts-table"></div>
+      <p class="panel-note canva-text" data-template-id="alerts-note" style="font-weight: 400; font-style: normal; font-size: 16px"><span data-slot="alerts-nota">Consultando la base...</span></p>
+     </div>
+    </section>
+   </div>
+   <div class="band w-full">
+    <div class="wrap">
+    <section id="regimen" class="section reveal canva-section" data-template-id="regime-section" aria-labelledby="regime-title">
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="regime-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">REGIMEN</p>
+       <h2 id="regime-title" class="canva-text" data-template-id="regime-title" style="font-weight: 700; font-style: normal; font-size: 24px">Regimen de operacion de la instancia</h2>
+       <p class="intro canva-text" data-template-id="regime-intro" style="font-weight: 400; font-style: normal; font-size: 16px">La instancia de n8n opero en jornadas diurnas. Activa el 27.9 por ciento del tramo con registro.</p>
+      </div>
+     </div>
+     <div class="panel canva-card" data-template-id="regime-panel">
+      <div class="panel-head">
+       <h3 class="canva-text" data-template-id="regime-table-title" style="font-weight: 700; font-style: normal; font-size: 19px">Ingesta por dia</h3>
+      </div>
+      <div id="regime-table"></div>
+      <p class="panel-note canva-text" data-template-id="regime-note" style="font-weight: 400; font-style: normal; font-size: 16px"><span data-slot="regime-nota">Consultando la base...</span></p>
+     </div>
+    </section>
+   </div>
+   <div class="band w-full">
+    <div class="wrap">
+    <section id="latencia" class="section reveal canva-section" data-template-id="latency-section" aria-labelledby="latency-title">
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="latency-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">LATENCIA</p>
+       <h2 id="latency-title" class="canva-text" data-template-id="latency-title" style="font-weight: 700; font-style: normal; font-size: 24px">Latencia extremo a extremo</h2>
+       <p class="intro canva-text" data-template-id="latency-intro" style="font-weight: 400; font-style: normal; font-size: 16px">Descomposicion de la latencia por grupo de publicaciones.</p>
+      </div>
+     </div>
+     <div class="panel canva-card" data-template-id="latency-panel">
+      <div class="panel-head">
+       <h3 class="canva-text" data-template-id="latency-table-title" style="font-weight: 700; font-style: normal; font-size: 19px">Latencia por grupo</h3>
+      </div>
+      <div id="latency-table"></div>
+      <p class="panel-note canva-text" data-template-id="latency-note" style="font-weight: 400; font-style: normal; font-size: 16px"><span data-slot="latency-nota">Consultando la base...</span></p>
+     </div>
+    </section>
+   </div>
+   <div class="band w-full">
+    <div class="wrap">
+    <section id="posts" class="section reveal canva-section" data-template-id="posts-section" aria-labelledby="posts-title" >
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="posts-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">TRAZABILIDAD</p>
+       <h2 id="posts-title" class="canva-text" data-template-id="posts-title" style="font-weight: 700; font-style: normal; font-size: 24px">Últimos posts ingeridos</h2>
+       <p class="intro canva-text" data-template-id="posts-intro" style="font-weight: 400; font-style: normal; font-size: 16px">Los últimos posts que entraron desde el feed público de Reddit, con su categoría y score tal como los clasificó el diccionario.</p>
+      </div>
+     </div>
+     <div class="panel canva-card" data-template-id="posts-panel" >
+      <div class="table-scroll" role="region" aria-label="Tabla de últimos posts" tabindex="0">
+       <table>
+        <thead>
+         <tr>
+          <th class="canva-text" data-template-id="column-community" style="font-weight: 400; font-style: normal; font-size: 16px">Comunidad</th>
+          <th class="canva-text" data-template-id="column-title" style="font-weight: 400; font-style: normal; font-size: 16px">Título</th>
+          <th class="canva-text" data-template-id="column-category" style="font-weight: 400; font-style: normal; font-size: 16px">Categoría</th>
+          <th class="canva-text" data-template-id="column-score" style="font-weight: 400; font-style: normal; font-size: 16px">Score</th>
+         </tr>
+        </thead>
+        <div style="margin-bottom:8px;">
+       <a href="/api/export/csv" style="padding:6px 14px;border-radius:6px;border:1px solid #ccc;text-decoration:none;color:inherit;display:inline-block;">Exportar CSV</a>
+     </div>
+     <tbody id="posts-body"></tbody>
+       </table>
+      </div>
+     </div>
+    </section>
+   </div>
+   </div>
+   <div class="wrap">
+    <section id="metodologia" class="section reveal canva-section" data-template-id="method-section" aria-labelledby="method-title" >
+     <div class="section-head">
+      <span class="marker" aria-hidden="true">/</span>
+      <div>
+       <p class="section-kicker canva-text" data-template-id="method-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">METODO</p>
+       <h2 id="method-title" class="canva-text" data-template-id="method-title" style="font-weight: 700; font-style: normal; font-size: 24px">Del feed a la lectura</h2>
+       <p class="intro canva-text" data-template-id="method-intro" style="font-weight: 400; font-style: normal; font-size: 16px">Siete pasos que transforman un feed publico de Reddit en una lectura accionable.</p>
+      </div>
+     </div>
+     <div class="road-shell canva-panel" data-template-id="road-shell" >
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i1" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="13" rx="2"/><path d="M8 9h8M8 12.5h5M8 17v3l4-3"/></symbol>
+  <symbol id="i2" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i3" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/></symbol>
+  <symbol id="i4" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3 3 7 3s7-1.3 7-3v-6"/></symbol>
+  <symbol id="i5" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+  <symbol id="i6" viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M15 6h5v5"/></symbol>
+  <symbol id="i7" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M8 10l2 2 4-4"/></symbol>
+</svg>
+      <div class="metodo-tl">
+
+  <div class="step">
+    <div class="node"><svg><use href="#i1"/></svg></div>
+    <div class="body">
+      <div class="num">Paso 01</div>
+      <div class="title">Recolección</div>
+      <p class="desc">n8n consulta cada <b>15 minutos</b> los feeds RSS públicos de Reddit de tres comunidades.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="node"><svg><use href="#i2"/></svg></div>
+    <div class="body">
+      <div class="num">Paso 02</div>
+      <div class="title">Normalización y seudonimización</div>
+      <p class="desc">El autor se reemplaza por un <b>HMAC-SHA-256</b> con clave propia de cada despliegue.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="node"><svg><use href="#i3"/></svg></div>
+    <div class="body">
+      <div class="num">Paso 03</div>
+      <div class="title">Clasificación</div>
+      <p class="desc">Un diccionario de <b>201 términos</b> en <b>9 categorías</b> asigna categoría y puntaje a cada post.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="node"><svg><use href="#i4"/></svg></div>
+    <div class="body">
+      <div class="num">Paso 04</div>
+      <div class="title">Persistencia</div>
+      <p class="desc">Los posts se guardan en <b>PostgreSQL</b> sin duplicarse, aunque el proceso se repita.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="node"><svg><use href="#i5"/></svg></div>
+    <div class="body">
+      <div class="num">Paso 05</div>
+      <div class="title">Extracción de entidades</div>
+      <p class="desc">Se identifican <b>CVE</b>, dominios, IPs, correos y nombres de productos.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="node"><svg><use href="#i6"/></svg></div>
+    <div class="body">
+      <div class="num">Paso 06</div>
+      <div class="title">Detección de anomalías</div>
+      <p class="desc">Cada día se compara el volumen de cada categoría con su base histórica y un umbral estadístico.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="node"><svg><use href="#i7"/></svg></div>
+    <div class="body">
+      <div class="num">Paso 07</div>
+      <div class="title">Alertas</div>
+      <p class="desc">Si hay un disparo se registra una alerta y se prepara el envío por <b>Telegram</b>, deshabilitado por defecto.</p>
+    </div>
+  </div>
+
+</div>
+     </div>
+     <aside class="limits canva-banner" data-template-id="limitations-banner" >
+      <strong class="canva-text" data-template-id="limitations-title" style="font-weight: 700; font-style: normal; font-size: 16px">Limitaciones declaradas</strong>
+      <p class="canva-text" data-template-id="limitations-text" style="font-weight: 400; font-style: normal; font-size: 16px">El rate limiting de Reddit (429) y el sesgo se reportan como limitaciones, sin compensarlos con datos ficticios. RSS no aporta score ni num_comments. El sistema opera en jornadas diurnas, no de forma continua. <span data-slot="limites"></span></p>
+     </aside>
+    </section>
+   </div>
+   <div class="band w-full">
+    <div class="wrap">
+    <section id="posts" 
+   </div>
+  </main>
+  <aside class="closing canva-section" data-template-id="closing-section" >
+   <div class="wrap">
+    <p class="section-kicker canva-text" data-template-id="closing-kicker" style="font-weight: 400; font-style: normal; font-size: 16px">TRANSPARENCIA ANTES QUE APARIENCIA</p>
+    <h2 class="canva-text" data-template-id="closing-title" style="font-weight: 700; font-style: normal; font-size: 24px">Una señal solo importa si puede explicarse.</h2>
+    <p class="canva-text" data-template-id="closing-text" style="font-weight: 400; font-style: normal; font-size: 16px">OSINT ° NET presenta el alcance, los criterios y los límites de un monitoreo de solo lectura. Cada cifra de esta página tiene su consulta, su fecha y su ventana a la vista.</p>
+   </div>
+  </aside>
+  <footer class="canva-footer" data-template-id="site-footer" >
+   <div class="wrap">
+<span class="canva-text" data-template-id="footer-left" style="font-weight: 400; font-style: normal; font-size: 16px">OSINT <em class="deg">°</em> NET · Prototipo académico de solo lectura</span> <span class="canva-text" data-template-id="footer-right" style="font-weight: 400; font-style: normal; font-size: 16px"><span data-slot="pie">…</span> · Sin modificación de evidencia</span>
+   </div>
+  </footer>
+  
+ 
+
+  <script src="/static/v4/js/app.js"></script>
+</body>
+</html>
