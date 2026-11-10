@@ -5,9 +5,6 @@ lo que la ingesta de n8n ya escribió: volumen por comunidad, distribución por
 categoría, ritmo de recolección, anomalías detectadas y entidades extraídas.
 La v4 agrega alertas, régimen de operación, latencia de ingesta y export CSV.
 
-No es el proyecto final. Este repo (`tfi-osint-n8n`) es de documentación y
-coordinación; el panel con su README definitivo va a vivir en otro repo.
-
 ## Garantía central: no puede tocar la evidencia
 
 La protección no depende de que el código se porte bien. Depende del rol de
@@ -170,13 +167,6 @@ sin_senal`, que `por_comunidad` devuelva las tres comunidades del piloto, que
 tramo `0.00`. **Requieren `tfi-postgres` arriba y datos cargados**; si la base
 está caída fallan los 14 que consultan y pasa solo el de validación de tipo de
 entidad.
-
-## Qué falta para convertirlo en el proyecto real
-
-- README del proyecto, instalación y decisiones de arquitectura
-- Tests contra datos con anomalías forzadas (los actuales dependen del estado real de la base)
-- Paginado real en `ultimos-posts` (hoy es tope + `LIMIT`)
-- Migración a otro repo con su propio versionado
 
 ## Verificación de no-escritura
 
